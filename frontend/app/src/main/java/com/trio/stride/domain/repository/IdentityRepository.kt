@@ -1,0 +1,14 @@
+package com.trio.stride.domain.repository
+
+import com.trio.stride.data.dto.SignUpRequest
+import com.trio.stride.data.dto.SignUpResponse
+import com.trio.stride.data.dto.VerifyOtpResponse
+import retrofit2.Response
+
+interface IdentityRepository {
+    suspend fun signUp(request: SignUpRequest): Response<SignUpResponse>
+
+    suspend fun verifyOtp(otpCode: String, userIdentity: String): Response<VerifyOtpResponse>
+
+
+}
