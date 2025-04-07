@@ -28,7 +28,7 @@ fun NavGraphBuilder.authGraph(
         composable(Screen.Auth.Login.route) {
             LoginScreen(
                 onLoginSuccess = {},
-                onUnAuthorized = {},
+                onUnAuthorized = { },
                 onSignUp = { navController.navigate(Screen.Auth.SignUp.route) }
             )
         }
@@ -39,7 +39,7 @@ fun NavGraphBuilder.authGraph(
 
         composable(Screen.Auth.OTP.route) { backStackEntry ->
             val userIdentity = backStackEntry.arguments?.getString("userIdentity") ?: ""
-            VerifyOtpScreen(navController,  userIdentity)
+            VerifyOtpScreen(navController, userIdentity)
         }
     }
 }

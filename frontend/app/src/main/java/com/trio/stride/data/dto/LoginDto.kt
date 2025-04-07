@@ -5,7 +5,13 @@ data class LoginRequestDto(
     val password: String
 )
 
-data class AuthResponseDto(
-    val token: String,
-    val expiryTime: String
-)
+sealed class AuthResponseDto {
+    data class WithToken(
+        val token: String,
+        val expiryTime: String
+    ) : AuthResponseDto()
+
+    data class WithUserIdentity(
+        val userIdentityId: String
+    ) : AuthResponseDto()
+}

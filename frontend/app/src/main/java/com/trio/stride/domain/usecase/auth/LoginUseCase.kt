@@ -17,7 +17,10 @@ class LoginUseCase(private val repository: AuthRepository) {
 
         try {
             val result = repository.login(email, password)
-            emit(Resource.Success(result))
+            when (result) {
+                is AuthInfo.WithToken -> emit(Resource.Success(result))
+                is AuthInfo.WithUserIdentity -> emit(Resource.Success(result))
+            }
         } catch (e: HttpException) {
             when (e.code()) {
                 403 -> emit(Resource.Error(UnauthorizedException(e.message.toString())))

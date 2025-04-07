@@ -15,13 +15,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,15 +42,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.trio.stride.R
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.theme.StrideTheme
-import com.trio.stride.R
-import com.trio.stride.ui.theme.StrideColor
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onUnAuthorized: () -> Unit,
+    onUnAuthorized: (String) -> Unit,
     onSignUp: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -65,7 +62,7 @@ fun LoginScreen(
     when (state.state) {
         LoginViewModel.LoginState.LOADING -> Loading()
         LoginViewModel.LoginState.SUCCESS -> onLoginSuccess()
-        LoginViewModel.LoginState.UNAUTHORIZED -> onUnAuthorized()
+        LoginViewModel.LoginState.UNAUTHORIZED -> onUnAuthorized(state.userIdentity)
         else -> {}
     }
 
@@ -78,10 +75,13 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                modifier = Modifier.height(80.dp).align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .height(80.dp)
+                    .align(Alignment.CenterHorizontally),
                 painter = painterResource(R.drawable.app_name),
                 contentDescription = "App name",
-                contentScale = ContentScale.FillHeight)
+                contentScale = ContentScale.FillHeight
+            )
             Spacer(Modifier.height(16.dp))
 
             Text("Log In to Stride", style = StrideTheme.typography.headlineLarge)
@@ -121,7 +121,9 @@ fun LoginScreen(
                 ),
                 isError = state.message.isNotBlank(),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequesterPassword)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequesterPassword)
             )
 
             if (state.message.isNotBlank()) {
@@ -132,7 +134,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = {loginViewModel.login(email, password)},
+                onClick = { loginViewModel.login(email, password) },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -150,18 +152,31 @@ fun LoginScreen(
                     contentColor = StrideTheme.colors.gray600
                 ),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(42.dp).fillMaxWidth()) {
+                modifier = Modifier
+                    .height(42.dp)
+                    .fillMaxWidth()
+            ) {
                 Row(Modifier.fillMaxWidth(), Arrangement.Center) {
-                    Image(painter = painterResource(R.drawable.google), contentDescription = "Google Icon")
+                    Image(
+                        painter = painterResource(R.drawable.google),
+                        contentDescription = "Google Icon"
+                    )
                     Spacer(Modifier.width(12.dp))
                     Text("Log In with Google", style = StrideTheme.typography.titleMedium)
                 }
             }
 
             Spacer(Modifier.height(12.dp))
-            TextButton(onClick = { onSignUp() }, modifier = Modifier.align(Alignment.End), shape = RoundedCornerShape(8.dp),) {
+            TextButton(
+                onClick = { onSignUp() },
+                modifier = Modifier.align(Alignment.End),
+                shape = RoundedCornerShape(8.dp),
+            ) {
                 Row(Modifier, Arrangement.Center) {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Arrow Icon")
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Arrow Icon"
+                    )
                     Spacer(Modifier.width(12.dp))
                     Text("Sign Up", style = StrideTheme.typography.titleMedium)
                 }

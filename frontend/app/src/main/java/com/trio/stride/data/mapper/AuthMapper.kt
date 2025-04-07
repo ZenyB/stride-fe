@@ -8,11 +8,11 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun AuthResponseDto.toDomain(): AuthInfo {
+fun AuthResponseDto.WithToken.toDomain(): AuthInfo {
     val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
     val localDateTime = OffsetDateTime.parse(expiryTime, formatter).toLocalDateTime()
 
-    return AuthInfo(
+    return AuthInfo.WithToken(
         token = token,
         expiryTime = localDateTime
     )
