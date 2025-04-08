@@ -155,28 +155,12 @@ fun LoginScreen(
             HorizontalDivider(thickness = 2.dp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedButton(
-                onClick = { },
-                colors = ButtonDefaults.outlinedButtonColors().copy(
-                    containerColor = StrideTheme.colors.transparent,
-                    contentColor = StrideTheme.colors.gray600
-                ),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .height(42.dp)
-                    .fillMaxWidth()
-            ) {
-                Row(Modifier.fillMaxWidth(), Arrangement.Center) {
-                    Image(
-                        painter = painterResource(R.drawable.google),
-                        contentDescription = "Google Icon"
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Text("Log In with Google", style = StrideTheme.typography.titleMedium)
+            GoogleSignInButton { token ->
+                {
+                    Log.i("GOOGLE TOKEN", token.toString())
+                    loginViewModel.loginWithGoogle(token.toString())
                 }
             }
-
-            GoogleSignInButton { token -> Log.i("GOOGLE TOKEN", token.toString()) }
 
             Spacer(Modifier.height(12.dp))
             TextButton(
@@ -198,7 +182,7 @@ fun LoginScreen(
 }
 
 @Composable
-fun GoogleSignInButton(
+private fun GoogleSignInButton(
     context: Context = LocalContext.current,
     onTokenReceived: (String?) -> Unit
 ) {

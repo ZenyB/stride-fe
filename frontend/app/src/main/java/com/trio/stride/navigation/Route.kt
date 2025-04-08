@@ -12,4 +12,6 @@ sealed class Screen(val route: String) {
             const val ROUTE = "auth"
         }
     }
+
+    object Home : Screen("home")
 }

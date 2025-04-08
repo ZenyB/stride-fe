@@ -15,3 +15,7 @@ sealed class AuthResponseDto {
         val userIdentityId: String
     ) : AuthResponseDto()
 }
+
+data class LoginGoogleRequestDto(
+    val idToken: String
+)

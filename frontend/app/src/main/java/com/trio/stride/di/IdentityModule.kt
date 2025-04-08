@@ -7,6 +7,7 @@ import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.domain.usecase.auth.LoginUseCase
+import com.trio.stride.domain.usecase.auth.LoginWithGoogleUseCase
 import com.trio.stride.domain.usecase.identity.SignUpUseCase
 import dagger.Module
 import dagger.Provides
@@ -85,5 +86,14 @@ object IdentityModule {
     @Singleton
     fun provideSignUpUseCase(identityRepository: IdentityRepository): SignUpUseCase {
         return SignUpUseCase(identityRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLoginWithGoogleUseCase(
+        authRepository: AuthRepository,
+        tokenManager: TokenManager
+    ): LoginWithGoogleUseCase {
+        return LoginWithGoogleUseCase(authRepository, tokenManager)
     }
 }

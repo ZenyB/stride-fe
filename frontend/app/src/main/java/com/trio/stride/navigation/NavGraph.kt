@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
@@ -18,6 +19,9 @@ fun AppNavHost(
 ) {
     NavHost(navController, startDestination = startDestination) {
         authGraph(navController)
+        composable(route = Screen.Home.route) {
+            HomeScreen()
+        }
     }
 }
 
@@ -27,7 +31,7 @@ fun NavGraphBuilder.authGraph(
     navigation(startDestination = Screen.Auth.Login.route, route = Screen.Auth.ROUTE) {
         composable(Screen.Auth.Login.route) {
             LoginScreen(
-                onLoginSuccess = {},
+                onLoginSuccess = { navController.navigate(Screen.Home.route) },
                 onUnAuthorized = { },
                 onSignUp = { navController.navigate(Screen.Auth.SignUp.route) }
             )
