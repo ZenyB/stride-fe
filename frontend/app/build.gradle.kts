@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
-    id ("com.google.dagger.hilt.android")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -42,18 +42,22 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.datastore.preferences)
 
-    implementation (libs.hilt.android)
+    implementation(libs.androidx.credentials)
+    implementation(libs.googleid)
+    implementation(libs.play.services.auth)
+
+    implementation(libs.hilt.android)
     ksp(libs.dagger.hilt.compiler)
-    implementation (libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.logging.interceptor)
 
-
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-    implementation (libs.androidx.material)
-    implementation (libs.androidx.runtime.livedata)
-    implementation (libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.androidx.material)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
