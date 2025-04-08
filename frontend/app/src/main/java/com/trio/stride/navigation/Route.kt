@@ -8,6 +8,8 @@ sealed class Screen(val route: String) {
             fun createRoute(userIdentity: String): String = "${ROUTE}/otp/$userIdentity"
         }
 
+        object ForgotPassword : Auth("${ROUTE}/forgot_password")
+
         companion object {
             const val ROUTE = "auth"
         }
