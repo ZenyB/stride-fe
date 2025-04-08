@@ -4,7 +4,7 @@ import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.repository.UserRepository
-import com.trio.stride.domain.usecase.profile.GetUserCase
+import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -59,5 +59,5 @@ object ProfileModule {
     @Provides
     @Singleton
     fun provideGetUserCase(repository: UserRepository) =
-        GetUserCase(repository)
+        GetUserUseCase(repository)
 }

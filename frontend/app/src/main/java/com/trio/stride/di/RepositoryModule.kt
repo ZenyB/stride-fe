@@ -2,8 +2,10 @@ package com.trio.stride.di
 
 import com.trio.stride.data.repositoryimpl.AuthRepositoryImpl
 import com.trio.stride.data.repositoryimpl.IdentityRepositoryImpl
+import com.trio.stride.data.repositoryimpl.UserRepositoryImpl
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.IdentityRepository
+import com.trio.stride.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -24,4 +26,10 @@ abstract class RepositoryModule {
     abstract fun bindIdentityRepository(
         identityRepositoryImpl: IdentityRepositoryImpl
     ): IdentityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(
+        userRepositoryImpl: UserRepositoryImpl
+    ): UserRepository
 }
