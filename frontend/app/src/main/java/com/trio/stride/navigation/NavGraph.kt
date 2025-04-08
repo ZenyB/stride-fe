@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
-import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
 import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
@@ -34,8 +33,7 @@ fun NavGraphBuilder.authGraph(
             LoginScreen(
                 onLoginSuccess = { navController.navigate(Screen.Home.route) },
                 onUnAuthorized = { },
-                onSignUp = { navController.navigate(Screen.Auth.SignUp.route) },
-                onForgotPassword = { navController.navigate(Screen.Auth.ForgotPassword.route) }
+                onSignUp = { navController.navigate(Screen.Auth.SignUp.route) }
             )
         }
 
@@ -46,16 +44,6 @@ fun NavGraphBuilder.authGraph(
         composable(Screen.Auth.OTP.route) { backStackEntry ->
             val userIdentity = backStackEntry.arguments?.getString("userIdentity") ?: ""
             VerifyOtpScreen(navController, userIdentity)
-        }
-
-        composable(Screen.Auth.ForgotPassword.route) {
-            ForgotPasswordScreen(
-                onChangePasswordSuccess = {
-                    navController.navigate(
-                        Screen.Auth.Login.route
-                    ) { popUpTo(Screen.Auth.ROUTE) }
-                }
-            )
         }
     }
 }

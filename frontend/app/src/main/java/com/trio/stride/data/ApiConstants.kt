@@ -7,6 +7,5 @@ object ApiConstants {
     const val LOGIN_GOOGLE = "auth/login/google"
     const val PROFILE = "users/profile"
     const val SIGNUP = "users/register"
-    const val RESET_PASSWORD = "users/reset-password"
     const val USERS = "users"
 }

@@ -60,7 +60,6 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onUnAuthorized: (String) -> Unit,
     onSignUp: () -> Unit,
-    onForgotPassword: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -140,6 +139,7 @@ fun LoginScreen(
             if (state.message.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "Error: ${state.message}", color = StrideTheme.colorScheme.error)
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -175,26 +175,6 @@ fun LoginScreen(
                     )
                     Spacer(Modifier.width(12.dp))
                     Text("Sign Up", style = StrideTheme.typography.titleMedium)
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-            TextButton(
-                onClick = { onForgotPassword() },
-                modifier = Modifier.align(Alignment.End),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.textButtonColors().copy(
-                    containerColor = StrideTheme.colors.transparent,
-                    contentColor = StrideTheme.colors.gray600
-                ),
-            ) {
-                Row(Modifier, Arrangement.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Arrow Icon"
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    Text("Forgot Password", style = StrideTheme.typography.titleMedium)
                 }
             }
         }
