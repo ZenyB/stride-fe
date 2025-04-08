@@ -5,6 +5,6 @@ data class SignUpRequest(
     val password: String
 )
 
-data class SignUpResponse (
-    val userIdentityId: String
+data class SignUpResponse(
+    val userIdentityId: String,
 )

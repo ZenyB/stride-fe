@@ -10,5 +10,6 @@ interface IdentityRepository {
 
     suspend fun verifyOtp(otpCode: String, userIdentity: String): Response<VerifyOtpResponse>
 
+    suspend fun sendOtp(userIdentity: String): Response<VerifyOtpResponse>
 
 }
