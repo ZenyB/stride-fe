@@ -2,6 +2,7 @@ package com.trio.stride.domain.usecase.identity
 
 import com.trio.stride.data.dto.SignUpRequest
 import com.trio.stride.domain.repository.IdentityRepository
+import com.trio.stride.ui.utils.parseErrorResponse
 import javax.inject.Inject
 
 class VerifyOtpUseCase @Inject constructor(
@@ -17,7 +18,8 @@ class VerifyOtpUseCase @Inject constructor(
                 val message = if (response.body()?.data == true) "OTP Verified" else ""
                 Result.success(message)
             } else {
-                Result.failure(Exception(response.message()))
+                val errorResponse = parseErrorResponse(response.errorBody())
+                Result.failure(Exception(errorResponse.message))
             }
         } catch (e: Exception) {
             Result.failure(e)

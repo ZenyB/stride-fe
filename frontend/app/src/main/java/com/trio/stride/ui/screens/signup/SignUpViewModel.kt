@@ -11,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-const val tag="SignUpTag"
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
@@ -28,7 +27,6 @@ class SignUpViewModel @Inject constructor(
     var success by mutableStateOf(false)
 
     fun signUp(email: String, password: String) {
-        // Trigger loading state
         setState { SignUpViewState.Loading }
 
         viewModelScope.launch {
@@ -36,7 +34,6 @@ class SignUpViewModel @Inject constructor(
             result
                 .onSuccess { data ->
                     setState { SignUpViewState.Success(data) }
-                    Log.d(tag, data)
                 }
                 .onFailure {
                     setState { SignUpViewState.Error(it.message ?: "An error occurred") }
