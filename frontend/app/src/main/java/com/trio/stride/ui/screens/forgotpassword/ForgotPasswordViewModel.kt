@@ -29,14 +29,15 @@ class ForgotPasswordViewModel @Inject constructor(
                 .onSuccess { data ->
                     setState {
                         currentState.copy(
-                            currentProgress = Progress.VERIFY_OTP,
+                            currentProgress = Progress.VERIFY_OTP, isLoading = false
                         )
                     }
                 }
                 .onFailure {
                     setState {
                         currentState.copy(
-                            errorMessage = it.message
+                            errorMessage = it.message,
+                            isLoading = false
                         )
                     }
                 }
@@ -53,14 +54,16 @@ class ForgotPasswordViewModel @Inject constructor(
                     setState {
                         currentState.copy(
                             currentProgress = Progress.CHANGE_PASSWORD,
-                            resetPasswordTokenId = data
+                            resetPasswordTokenId = data,
+                            isLoading = false
                         )
                     }
                 }
                 .onFailure {
                     setState {
                         currentState.copy(
-                            errorMessage = it.message
+                            errorMessage = it.message,
+                            isLoading = false
                         )
                     }
                 }
@@ -77,14 +80,15 @@ class ForgotPasswordViewModel @Inject constructor(
                 .onSuccess {
                     setState {
                         currentState.copy(
-                            currentProgress = Progress.CHANGE_PASSWORD
+                            currentProgress = Progress.CHANGE_PASSWORD, isLoading = false
                         )
                     }
                 }
                 .onFailure {
                     setState {
                         currentState.copy(
-                            errorMessage = it.message
+                            errorMessage = it.message,
+                            isLoading = false
                         )
                     }
                 }
