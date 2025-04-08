@@ -7,4 +7,6 @@ sealed class VerifyOtpViewState: IViewState {
         object Loading : VerifyOtpViewState()
         data class Success(val message: String) : VerifyOtpViewState()
         data class Error(val message: String) : VerifyOtpViewState()
+        data class Countdown(val second: Int) : VerifyOtpViewState()
+
 }

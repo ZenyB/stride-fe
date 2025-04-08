@@ -5,17 +5,16 @@ import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.ui.utils.parseErrorResponse
 import javax.inject.Inject
 
-class VerifyOtpUseCase @Inject constructor(
+class SendOtpUseCase @Inject constructor(
     private val repository: IdentityRepository
 ) {
     suspend operator fun invoke(
         userIdentity: String,
-        otpCode: String
     ): Result<String> {
         return try {
-            val response = repository.verifyOtp(otpCode, userIdentity)
+            val response = repository.sendOtp(userIdentity)
             if (response.isSuccessful) {
-                val message = if (response.body()?.data == true) "OTP Verified" else ""
+                val message = if (response.body()?.data == true) "OTP sent successfully" else ""
                 Result.success(message)
             } else {
                 val errorResponse = parseErrorResponse(response.errorBody())

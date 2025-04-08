@@ -25,4 +25,8 @@ class IdentityRepositoryImpl @Inject constructor(
     override suspend fun verifyOtp(otpCode: String, userIdentity: String): Response<VerifyOtpResponse> {
         return identityApi.verifyOtp(userIdentity, VerifyOtpRequest(otpCode))
     }
+
+    override suspend fun sendOtp(userIdentity: String): Response<VerifyOtpResponse> {
+        return identityApi.sendOtp(userIdentity)
+    }
 }

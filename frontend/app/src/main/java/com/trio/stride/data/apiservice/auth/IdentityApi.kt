@@ -20,4 +20,9 @@ interface IdentityApi {
         @Body request: VerifyOtpRequest // Body with the OTP code
     ): Response<VerifyOtpResponse>
 
+    @POST("${ApiConstants.USERS}/{userIdentity}/verify/send-otp")
+    suspend fun sendOtp(
+        @Path("userIdentity") userIdentity: String,
+    ): Response<VerifyOtpResponse>
+
 }
