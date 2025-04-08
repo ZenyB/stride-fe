@@ -1,8 +1,9 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.apiservice.auth.IdentityApi
+import com.trio.stride.data.apiservice.user.UserApi
+import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.domain.usecase.auth.LoginUseCase
@@ -23,13 +24,21 @@ import javax.inject.Singleton
 @Retention(AnnotationRetention.BINARY)
 annotation class IdentityBaseUrl
 
-//@Qualifier
-//@Retention(AnnotationRetention.BINARY)
-//annotation class NotificationBaseUrl
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ProfileBaseUrl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class Unauthorized
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class Authorized
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+object IdentityModule {
 
     @Provides
     @IdentityBaseUrl
@@ -52,15 +61,18 @@ object AppModule {
     }
 
     @Provides
-    @Singleton
+    @Unauthorized
     fun provideUserApi(@IdentityBaseUrl retrofit: Retrofit): UserApi {
         return retrofit.create(UserApi::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideLoginUseCase(authRepository: AuthRepository): LoginUseCase {
-        return LoginUseCase(authRepository)
+    fun provideLoginUseCase(
+        authRepository: AuthRepository,
+        tokenManager: TokenManager
+    ): LoginUseCase {
+        return LoginUseCase(authRepository, tokenManager)
     }
 
     @Provides
