@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
@@ -38,16 +39,21 @@ fun ForgotPasswordScreen(
     var password by remember { mutableStateOf("") }
     var otpCode by remember { mutableStateOf("") }
 
+    if (state.isLoading) {
+        Loading()
+    }
+
     Scaffold() { padding ->
-        when (state.currentProgress) {
-            ForgotPasswordViewModel.Progress.SEND_OTP -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding())
-                        .padding(horizontal = 24.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            when (state.currentProgress) {
+                ForgotPasswordViewModel.Progress.SEND_OTP -> {
+
                     Text("Enter Your Email", style = StrideTheme.typography.headlineLarge)
                     Spacer(Modifier.height(32.dp))
                     OutlinedTextField(
@@ -69,16 +75,10 @@ fun ForgotPasswordScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
 
-            ForgotPasswordViewModel.Progress.VERIFY_OTP -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding())
-                        .padding(horizontal = 24.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
+
+                ForgotPasswordViewModel.Progress.VERIFY_OTP -> {
+
                     Text("Enter OTP", style = StrideTheme.typography.headlineLarge)
                     Spacer(Modifier.height(32.dp))
                     OutlinedTextField(
@@ -100,17 +100,11 @@ fun ForgotPasswordScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                }
-            }
 
-            ForgotPasswordViewModel.Progress.CHANGE_PASSWORD -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding())
-                        .padding(horizontal = 24.dp),
-                    verticalArrangement = Arrangement.Center
-                ) {
+                }
+
+                ForgotPasswordViewModel.Progress.CHANGE_PASSWORD -> {
+
                     Text("Enter New Password", style = StrideTheme.typography.headlineLarge)
                     Spacer(Modifier.height(32.dp))
                     OutlinedTextField(
@@ -132,42 +126,42 @@ fun ForgotPasswordScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+
+                }
+
+                ForgotPasswordViewModel.Progress.SUCCESS -> {
+                    onChangePasswordSuccess()
                 }
             }
-
-            ForgotPasswordViewModel.Progress.SUCCESS -> {
-                onChangePasswordSuccess()
+            if (state.errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Error: ${state.errorMessage}", color = StrideTheme.colorScheme.error)
             }
-        }
-        if (state.errorMessage != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Error: ${state.errorMessage}", color = StrideTheme.colorScheme.error)
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                when (state.currentProgress) {
-                    ForgotPasswordViewModel.Progress.SEND_OTP -> {
-                        viewModel.sendOtp(email)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    when (state.currentProgress) {
+                        ForgotPasswordViewModel.Progress.SEND_OTP -> {
+                            viewModel.sendOtp(email)
+                        }
+
+                        ForgotPasswordViewModel.Progress.VERIFY_OTP -> {
+                            viewModel.verifyOtp(email, otpCode)
+                        }
+
+                        ForgotPasswordViewModel.Progress.CHANGE_PASSWORD -> {
+                            viewModel.changePassword(email, password)
+                        }
+
+                        ForgotPasswordViewModel.Progress.SUCCESS -> {}
                     }
-
-                    ForgotPasswordViewModel.Progress.VERIFY_OTP -> {
-                        viewModel.verifyOtp(email, otpCode)
-                    }
-
-                    ForgotPasswordViewModel.Progress.CHANGE_PASSWORD -> {
-                        viewModel.changePassword(email, password)
-                    }
-
-                    ForgotPasswordViewModel.Progress.SUCCESS -> {}
-                }
-            },
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Submit", style = StrideTheme.typography.titleMedium)
+                },
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Submit", style = StrideTheme.typography.titleMedium)
+            }
         }
     }
-
 }
