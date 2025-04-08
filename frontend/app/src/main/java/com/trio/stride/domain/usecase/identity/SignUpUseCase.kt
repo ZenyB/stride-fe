@@ -1,7 +1,11 @@
 package com.trio.stride.domain.usecase.identity
 
+import android.util.Log
+import com.google.gson.Gson
 import com.trio.stride.data.dto.SignUpRequest
 import com.trio.stride.domain.repository.IdentityRepository
+import com.trio.stride.ui.utils.parseErrorResponse
+import okhttp3.ResponseBody
 import javax.inject.Inject
 
 
@@ -17,10 +21,12 @@ class SignUpUseCase @Inject constructor(
             if (response.isSuccessful) {
                 Result.success(response.body()?.userIdentityId ?: "empty value")
             } else {
-                Result.failure(Exception(response.message()))
+                val errorResponse = parseErrorResponse(response.errorBody())
+                Result.failure(Exception(errorResponse.message))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 }
+
