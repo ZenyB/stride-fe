@@ -2,6 +2,8 @@ package com.trio.stride.data.repositoryimpl
 
 import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.di.Authorized
+import com.trio.stride.domain.model.EquipmentsWeight
+import com.trio.stride.domain.model.HeartRateZones
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.repository.UserRepository
 import javax.inject.Inject
@@ -22,8 +24,17 @@ class UserRepositoryImpl @Inject constructor(
             male = response.male,
             city = response.city,
             maxHeartRate = response.maxHeartRate,
-            equipmentsWeight = response.equipmentsWeight,
-            heartRateZones = response.heartRateZones,
+            equipmentsWeight = EquipmentsWeight(
+                shoes = response.equipmentsWeight.SHOES,
+                bag = response.equipmentsWeight.BAG
+            ),
+            heartRateZones = HeartRateZones(
+                zone1 = response.heartRateZones.ZONE1,
+                zone2 = response.heartRateZones.ZONE2,
+                zone3 = response.heartRateZones.ZONE3,
+                zone4 = response.heartRateZones.ZONE4,
+                zone5 = response.heartRateZones.ZONE5
+            ),
             isBlock = response.isBlock
         )
     }

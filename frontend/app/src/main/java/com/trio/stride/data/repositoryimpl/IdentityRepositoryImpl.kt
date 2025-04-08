@@ -3,13 +3,15 @@ package com.trio.stride.data.repositoryimpl
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.trio.stride.data.apiservice.auth.IdentityApi
-import com.trio.stride.data.dto.LoginRequestDto
+import com.trio.stride.data.dto.ChangePasswordRequest
+import com.trio.stride.data.dto.ResetPasswordVerifyRequest
+import com.trio.stride.data.dto.ResetPasswordVerifyResponse
+import com.trio.stride.data.dto.SendOTPResetPasswordRequest
 import com.trio.stride.data.dto.SignUpRequest
 import com.trio.stride.data.dto.SignUpResponse
+import com.trio.stride.data.dto.SuccessResponse
 import com.trio.stride.data.dto.VerifyOtpRequest
 import com.trio.stride.data.dto.VerifyOtpResponse
-import com.trio.stride.data.mapper.toDomain
-import com.trio.stride.domain.model.AuthInfo
 import com.trio.stride.domain.repository.IdentityRepository
 import retrofit2.Response
 import javax.inject.Inject
@@ -22,11 +24,36 @@ class IdentityRepositoryImpl @Inject constructor(
         return identityApi.signUp(request)
     }
 
-    override suspend fun verifyOtp(otpCode: String, userIdentity: String): Response<VerifyOtpResponse> {
+    override suspend fun verifyOtp(
+        otpCode: String,
+        userIdentity: String
+    ): Response<VerifyOtpResponse> {
         return identityApi.verifyOtp(userIdentity, VerifyOtpRequest(otpCode))
     }
 
     override suspend fun sendOtp(userIdentity: String): Response<VerifyOtpResponse> {
         return identityApi.sendOtp(userIdentity)
+    }
+
+    override suspend fun sendOtpResetPassword(username: String): Response<SuccessResponse> {
+        return identityApi.sendOtpResetPassword(SendOTPResetPasswordRequest(username))
+    }
+
+    override suspend fun resetPasswordVerify(
+        username: String,
+        token: String
+    ): Response<ResetPasswordVerifyResponse> {
+        return identityApi.resetPasswordVerify(ResetPasswordVerifyRequest(username, token))
+    }
+
+    override suspend fun changePassword(
+        resetPasswordTokenId: String,
+        token: String,
+        password: String
+    ): Response<SuccessResponse> {
+        return identityApi.changePassword(
+            resetPasswordTokenId,
+            ChangePasswordRequest(token, password)
+        )
     }
 }
