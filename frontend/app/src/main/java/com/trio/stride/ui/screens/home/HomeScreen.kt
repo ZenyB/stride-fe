@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.ui.components.Loading
@@ -28,7 +27,6 @@ import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -96,24 +94,29 @@ class HomeScreenViewModel @Inject constructor(
 
             try {
                 // Gọi use case nếu có gọi API logout
-                logoutUseCase.invoke().collectLatest { response ->
-                    when (response) {
-                        is Resource.Success -> {
-                            tokenManager.clearTokens()
+//                logoutUseCase.invoke().collectLatest { response ->
+//                    when (response) {
+//                        is Resource.Success -> {
+//                            tokenManager.clearTokens()
+//
+//                            _logoutSuccess.value = true
+//
+//                            errorMessage.value = ""
+//                        }
+//
+//                        is Resource.Error -> {
+//                            errorMessage.value = response.error.message.toString()
+//                        }
+//
+//                        is Resource.Loading -> {}
+//                    }
+//
+//                }
+                tokenManager.clearTokens()
 
-                            _logoutSuccess.value = true
+                _logoutSuccess.value = true
 
-                            errorMessage.value = ""
-                        }
-
-                        is Resource.Error -> {
-                            errorMessage.value = response.error.message.toString()
-                        }
-
-                        is Resource.Loading -> {}
-                    }
-
-                }
+                errorMessage.value = ""
             } catch (e: Exception) {
                 errorMessage.value = e.message.toString()
             } finally {
