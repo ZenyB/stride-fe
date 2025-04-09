@@ -1,4 +1,4 @@
-import com.trio.stride.base.StrideException
+package com.trio.stride.base
 
 sealed class Resource<T>(
     val data: T? = null,

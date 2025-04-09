@@ -5,16 +5,11 @@ data class LoginRequestDto(
     val password: String
 )
 
-sealed class AuthResponseDto {
-    data class WithToken(
-        val token: String,
-        val expiryTime: String
-    ) : AuthResponseDto()
-
-    data class WithUserIdentity(
-        val userIdentityId: String
-    ) : AuthResponseDto()
-}
+data class AuthResponseDto(
+    val token: String? = null,
+    val expiryTime: String? = null,
+    val userIdentityId: String? = null
+)
 
 data class LoginGoogleRequestDto(
     val idToken: String

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.NotFoundException
+import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.AuthInfo
 import com.trio.stride.domain.model.UserData
 import com.trio.stride.domain.usecase.auth.LoginUseCase

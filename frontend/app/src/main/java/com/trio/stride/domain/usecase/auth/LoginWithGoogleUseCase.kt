@@ -1,6 +1,7 @@
 package com.trio.stride.domain.usecase.auth
 
 import com.trio.stride.base.NetworkException
+import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.model.AuthInfo

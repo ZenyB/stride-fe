@@ -156,10 +156,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             GoogleSignInButton { token ->
-                {
-                    Log.i("GOOGLE TOKEN", token.toString())
-                    loginViewModel.loginWithGoogle(token.toString())
-                }
+                loginViewModel.loginWithGoogle(token.toString())
             }
 
             Spacer(Modifier.height(12.dp))
@@ -231,8 +228,10 @@ private fun GoogleSignInButton(
 
     OutlinedButton(
         onClick = {
-            val intent = googleSignInClient.signInIntent
-            launcher.launch(intent)
+            googleSignInClient.signOut().addOnCompleteListener {
+                val intent = googleSignInClient.signInIntent
+                launcher.launch(intent)
+            }
         },
         colors = ButtonDefaults.outlinedButtonColors().copy(
             containerColor = StrideTheme.colors.transparent,
