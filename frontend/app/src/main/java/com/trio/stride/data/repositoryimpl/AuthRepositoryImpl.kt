@@ -25,4 +25,10 @@ class AuthRepositoryImpl @Inject constructor(
         val response = api.loginWithGoogle(LoginGoogleRequestDto(idToken))
         return response.toDomain()
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun logout(): Boolean {
+        val response = api.logout()
+        return response.data
+    }
 }

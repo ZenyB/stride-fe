@@ -21,7 +21,14 @@ fun AppNavHost(
     NavHost(navController, startDestination = startDestination) {
         authGraph(navController)
         composable(route = Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onLogOutSuccess = {
+                    navController.navigate(Screen.Auth.Login.route) {
+                        popUpTo(0)
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
     }
 }
@@ -32,7 +39,16 @@ fun NavGraphBuilder.authGraph(
     navigation(startDestination = Screen.Auth.Login.route, route = Screen.Auth.ROUTE) {
         composable(Screen.Auth.Login.route) {
             LoginScreen(
-                onLoginSuccess = { navController.navigate(Screen.Home.route) },
+                onLoginSuccess = {
+                    navController.navigate(
+                        Screen.Home.route
+                    ) {
+                        popUpTo(Screen.Home.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 onUnAuthorized = { },
                 onSignUp = { navController.navigate(Screen.Auth.SignUp.route) },
                 onForgotPassword = { navController.navigate(Screen.Auth.ForgotPassword.route) }
@@ -53,7 +69,12 @@ fun NavGraphBuilder.authGraph(
                 onChangePasswordSuccess = {
                     navController.navigate(
                         Screen.Auth.Login.route
-                    ) { popUpTo(Screen.Auth.ROUTE) }
+                    ) {
+                        popUpTo(Screen.Auth.ROUTE) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

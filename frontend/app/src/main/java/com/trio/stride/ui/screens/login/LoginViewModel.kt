@@ -3,7 +3,7 @@ package com.trio.stride.ui.screens.login
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
-import com.trio.stride.base.NotFoundException
+import com.trio.stride.base.IncorrectInfoException
 import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.AuthInfo
 import com.trio.stride.domain.model.UserData
@@ -40,7 +40,7 @@ class LoginViewModel @Inject constructor(
                                 is AuthInfo.WithToken -> {
                                     setState {
                                         currentState.copy(
-                                            message = "Success",
+                                            message = "",
                                             state = LoginState.SUCCESS
                                         )
                                     }
@@ -65,10 +65,10 @@ class LoginViewModel @Inject constructor(
                         }
 
                         is Resource.Error -> {
-                            if (response.error is NotFoundException)
+                            if (response.error is IncorrectInfoException)
                                 setState {
                                     currentState.copy(
-                                        message = response.error.message.toString(),
+                                        message = "invalid username or password",
                                         state = LoginState.ERROR
                                     )
                                 }
@@ -83,7 +83,7 @@ class LoginViewModel @Inject constructor(
                     }
                 }
             } else {
-                setState { currentState.copy(message = "invalid email or password") }
+                setState { currentState.copy(message = "invalid username or password") }
             }
 
         }

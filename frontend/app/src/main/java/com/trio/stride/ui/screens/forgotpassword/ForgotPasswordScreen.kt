@@ -154,7 +154,9 @@ fun ForgotPasswordScreen(
                             viewModel.changePassword(email, password)
                         }
 
-                        ForgotPasswordViewModel.Progress.SUCCESS -> {}
+                        ForgotPasswordViewModel.Progress.SUCCESS -> {
+                            onChangePasswordSuccess()
+                        }
                     }
                 },
                 shape = RoundedCornerShape(8.dp),

@@ -1,9 +1,8 @@
 package com.trio.stride.domain.usecase.auth
 
+import com.trio.stride.base.IncorrectInfoException
 import com.trio.stride.base.NetworkException
-import com.trio.stride.base.NotFoundException
 import com.trio.stride.base.Resource
-import com.trio.stride.base.UnauthorizedException
 import com.trio.stride.base.UnknownException
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.model.AuthInfo
@@ -29,8 +28,7 @@ class LoginUseCase(private val repository: AuthRepository, private val tokenMana
             }
         } catch (e: HttpException) {
             when (e.code()) {
-                403 -> emit(Resource.Error(UnauthorizedException(e.message.toString())))
-                400 -> emit(Resource.Error(NotFoundException(e.message.toString())))
+                400 -> emit(Resource.Error(IncorrectInfoException(e.message.toString())))
                 else -> emit(Resource.Error(UnknownException(e.message.toString())))
             }
         } catch (e: IOException) {
