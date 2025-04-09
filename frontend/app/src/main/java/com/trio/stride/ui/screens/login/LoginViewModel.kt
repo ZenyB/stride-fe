@@ -99,7 +99,7 @@ class LoginViewModel @Inject constructor(
                             is AuthInfo.WithToken -> {
                                 setState {
                                     currentState.copy(
-                                        message = "Success",
+                                        message = "",
                                         state = LoginState.SUCCESS
                                     )
                                 }

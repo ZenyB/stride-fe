@@ -1,9 +1,5 @@
 package com.trio.stride.ui.screens.login
 
-import android.content.Context
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,18 +36,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
 import com.trio.stride.R
 import com.trio.stride.ui.components.Loading
+import com.trio.stride.ui.components.button.GoogleSignInButton
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
@@ -156,7 +148,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             GoogleSignInButton { token ->
-                loginViewModel.loginWithGoogle(token.toString())
+                token.let { loginViewModel.loginWithGoogle(token.toString()) }
             }
 
             Spacer(Modifier.height(12.dp))
@@ -194,61 +186,6 @@ fun LoginScreen(
                     Text("Forgot Password", style = StrideTheme.typography.titleMedium)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun GoogleSignInButton(
-    context: Context = LocalContext.current,
-    onTokenReceived: (String?) -> Unit
-) {
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            val idToken = account.idToken
-            onTokenReceived(idToken)
-        } catch (e: ApiException) {
-            Log.e("GoogleSignIn", e.message.toString())
-            onTokenReceived(null)
-        }
-    }
-
-    val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(stringResource(R.string.google_login_client_id))
-        .requestEmail()
-        .build()
-
-    val googleSignInClient = remember {
-        GoogleSignIn.getClient(context, signInOptions)
-    }
-
-    OutlinedButton(
-        onClick = {
-            googleSignInClient.signOut().addOnCompleteListener {
-                val intent = googleSignInClient.signInIntent
-                launcher.launch(intent)
-            }
-        },
-        colors = ButtonDefaults.outlinedButtonColors().copy(
-            containerColor = StrideTheme.colors.transparent,
-            contentColor = StrideTheme.colors.gray600
-        ),
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier
-            .height(42.dp)
-            .fillMaxWidth()
-    ) {
-        Row(Modifier.fillMaxWidth(), Arrangement.Center) {
-            Image(
-                painter = painterResource(R.drawable.google),
-                contentDescription = "Google Icon"
-            )
-            Spacer(Modifier.width(12.dp))
-            Text("Log In with Google", style = StrideTheme.typography.titleMedium)
         }
     }
 }
