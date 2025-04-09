@@ -6,6 +6,11 @@ data class LoginRequestDto(
 )
 
 data class AuthResponseDto(
-    val token: String,
-    val expiryTime: String
+    val token: String? = null,
+    val expiryTime: String? = null,
+    val userIdentityId: String? = null
+)
+
+data class LoginGoogleRequestDto(
+    val idToken: String
 )

@@ -9,11 +9,11 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun AuthResponseDto.toDomain(): AuthInfo {
-    val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-    val localDateTime = OffsetDateTime.parse(expiryTime, formatter).toLocalDateTime()
-
-    return AuthInfo(
-        token = token,
-        expiryTime = localDateTime
-    )
+    return if (token != null) {
+        val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+        val localDateTime = OffsetDateTime.parse(expiryTime, formatter).toLocalDateTime()
+        AuthInfo.WithToken(token, localDateTime)
+    } else {
+        AuthInfo.WithUserIdentity(userIdentityId ?: "")
+    }
 }
