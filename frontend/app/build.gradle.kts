@@ -53,6 +53,13 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.logging.interceptor)
 
+    implementation(libs.android)
+    implementation(libs.maps.compose)
+    implementation(libs.place.autocomplete)
+    implementation(libs.mapbox.search.android)
+
+
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.androidx.material)
