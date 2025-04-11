@@ -49,7 +49,7 @@ class LoginViewModel @Inject constructor(
 
                                 is AuthInfo.WithUserIdentity -> setState {
                                     currentState.copy(
-                                        message = "Unauthorized",
+                                        message = "",
                                         state = LoginState.UNAUTHORIZED,
                                         userIdentity = response.data.userIdentityId
                                     )

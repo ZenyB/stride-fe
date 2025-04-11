@@ -54,8 +54,8 @@ fun SignUpScreen(
         }
 
         is SignUpViewState.WithGoogleSuccess -> {
-            navController.navigate(Screen.Home.route) {
-                popUpTo(Screen.Home.route) {
+            navController.navigate(Screen.BottomNavScreen.Home.route) {
+                popUpTo(Screen.BottomNavScreen.Home.route) {
                     inclusive = true
                 }
                 launchSingleTop = true

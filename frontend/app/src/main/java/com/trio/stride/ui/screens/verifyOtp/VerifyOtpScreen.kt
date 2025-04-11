@@ -90,7 +90,7 @@ fun VerifyOtpScreen(
     when (uiState) {
         is VerifyOtpViewState.Loading -> Loading()
         is VerifyOtpViewState.Success -> {
-            navController.navigate(Screen.Auth.SignUp.route)
+            navController.navigate(Screen.Auth.Login.route)
         }
 
         else -> {

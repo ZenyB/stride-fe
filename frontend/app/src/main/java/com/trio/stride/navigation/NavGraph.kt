@@ -1,35 +1,31 @@
 package com.trio.stride.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import com.trio.stride.ui.screens.activity.ActivityScreen
+import com.trio.stride.ui.screens.activity.ProfileScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
 import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
+import com.trio.stride.ui.screens.maps.search.SearchMapScreen
+import com.trio.stride.ui.screens.maps.view.ViewMapScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
 
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Screen.Auth.ROUTE
+    startDestination: String = Screen.Auth.ROUTE,
 ) {
     NavHost(navController, startDestination = startDestination) {
         authGraph(navController)
-        composable(route = Screen.Home.route) {
-            HomeScreen(
-                onLogOutSuccess = {
-                    navController.navigate(Screen.Auth.Login.route) {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
+        mainAppGraph(navController)
     }
 }
 
@@ -41,15 +37,18 @@ fun NavGraphBuilder.authGraph(
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(
-                        Screen.Home.route
+                        Screen.BottomNavScreen.Home.route
                     ) {
-                        popUpTo(Screen.Home.route) {
+                        popUpTo(Screen.BottomNavScreen.Home.route) {
                             inclusive = true
                         }
                         launchSingleTop = true
                     }
                 },
-                onUnAuthorized = { },
+                onUnAuthorized = { userIdentity ->
+                    navController.navigate(Screen.Auth.OTP.createRoute(userIdentity))
+
+                },
                 onSignUp = { navController.navigate(Screen.Auth.SignUp.route) },
                 onForgotPassword = { navController.navigate(Screen.Auth.ForgotPassword.route) }
             )
@@ -79,4 +78,36 @@ fun NavGraphBuilder.authGraph(
             )
         }
     }
+}
+
+
+fun NavGraphBuilder.mainAppGraph(navController: NavHostController) {
+    composable(Screen.BottomNavScreen.Home.route) {
+        HomeScreen(onLogOutSuccess = {
+            navController.navigate(Screen.Auth.Login.route) {
+                popUpTo(0)
+                launchSingleTop = true
+            }
+        })
+    }
+    composable(Screen.BottomNavScreen.Maps.route) {
+        ViewMapScreen(navController)
+    }
+
+    composable(Screen.BottomNavScreen.Search.route) {
+        SearchMapScreen(navController)
+    }
+
+    composable(Screen.BottomNavScreen.Activity.route) {
+        ActivityScreen()
+    }
+
+    composable(Screen.BottomNavScreen.Profile.route) {
+        ProfileScreen()
+    }
+
+    composable(Screen.BottomNavScreen.Record.route) {
+        ProfileScreen()
+    }
+
 }

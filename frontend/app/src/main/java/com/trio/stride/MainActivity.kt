@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,9 +13,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.trio.stride.navigation.AppNavHost
 import com.trio.stride.navigation.Screen
+import com.trio.stride.ui.components.BottomNavBar
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -29,18 +32,26 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val isLoggedIn by mainViewModel.isLoggedIn.collectAsState()
+            val currentBackStack by navController.currentBackStackEntryAsState()
+            val showBottomBar =
+                currentBackStack?.destination?.route in Screen.BottomNavScreen.items.map { it.route }
 
             StrideTheme {
-
                 Scaffold(
                     content = { paddingValues ->
                         // NavHost for handling navigation
                         val startDestination =
-                            if (isLoggedIn) Screen.Home.route else Screen.Auth.ROUTE
+                            if (isLoggedIn) Screen.BottomNavScreen.Home.route else Screen.Auth.ROUTE
                         AppNavHost(
                             navController = navController,
-                            startDestination = startDestination
+                            startDestination = startDestination,
                         )
+
+                    },
+                    bottomBar = {
+                        if (showBottomBar) {
+                            BottomNavBar(navController)
+                        }
                     }
                 )
 
