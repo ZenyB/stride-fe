@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.place.autocomplete)
     implementation(libs.mapbox.search.android)
 
+    implementation(libs.accompanist.permissions)
+
 
 
     implementation(libs.retrofit)

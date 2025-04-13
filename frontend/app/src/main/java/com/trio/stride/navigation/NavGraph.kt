@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.trio.stride.ui.screens.activity.ActivityScreen
+import com.trio.stride.ui.screens.activity.HeartRateScreen
 import com.trio.stride.ui.screens.activity.ProfileScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
 import com.trio.stride.ui.screens.home.HomeScreen
@@ -21,10 +22,11 @@ import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
 fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Auth.ROUTE,
+    onBluetoothStateChanged: () -> Unit
 ) {
     NavHost(navController, startDestination = startDestination) {
         authGraph(navController)
-        mainAppGraph(navController)
+        mainAppGraph(navController, onBluetoothStateChanged)
     }
 }
 
@@ -109,7 +111,9 @@ fun NavGraphBuilder.mainAppGraph(navController: NavHostController) {
         }
 
         composable(Screen.BottomNavScreen.Record.route) {
-            ProfileScreen()
+//        ProfileScreen()
+            HeartRateScreen(onBluetoothStateChanged)
         }
     }
+
 }
