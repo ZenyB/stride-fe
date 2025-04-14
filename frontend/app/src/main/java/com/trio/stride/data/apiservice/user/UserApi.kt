@@ -5,6 +5,7 @@ import com.trio.stride.data.dto.AuthResponseDto
 import com.trio.stride.data.dto.GetUserResponse
 import com.trio.stride.data.dto.LoginGoogleRequestDto
 import com.trio.stride.data.dto.LoginRequestDto
+import com.trio.stride.data.dto.LogoutRequestDTO
 import com.trio.stride.data.dto.SuccessResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -18,7 +19,7 @@ interface UserApi {
     suspend fun loginWithGoogle(@Body request: LoginGoogleRequestDto): AuthResponseDto
 
     @POST(ApiConstants.LOGOUT)
-    suspend fun logout(): SuccessResponse
+    suspend fun logout(@Body request: LogoutRequestDTO): SuccessResponse
 
     @GET(ApiConstants.PROFILE)
     suspend fun getUser(): GetUserResponse

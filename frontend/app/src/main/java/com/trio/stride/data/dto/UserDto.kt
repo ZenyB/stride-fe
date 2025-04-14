@@ -2,17 +2,17 @@ package com.trio.stride.data.dto
 
 data class GetUserResponse(
     val id: String,
-    val name: String,
-    val ava: String,
-    val dob: String,
-    val height: Int,
-    val weight: Int,
-    val male: Boolean,
-    val city: String,
-    val maxHeartRate: Int,
-    val equipmentsWeight: EquipmentsWeight,
-    val heartRateZones: HeartRateZones,
-    val isBlock: Boolean
+    val name: String? = null,
+    val ava: String? = null,
+    val dob: String? = null,
+    val height: Int? = null,
+    val weight: Int? = null,
+    val male: Boolean? = null,
+    val city: String? = null,
+    val maxHeartRate: Int? = null,
+    val equipmentsWeight: EquipmentsWeight? = null,
+    val heartRateZones: HeartRateZones? = null,
+    val isBlock: Boolean? = null
 )
 
 data class EquipmentsWeight(
