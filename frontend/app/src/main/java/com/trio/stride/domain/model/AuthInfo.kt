@@ -1,11 +1,9 @@
 package com.trio.stride.domain.model
 
-import java.time.LocalDateTime
-
 sealed class AuthInfo {
     data class WithToken(
         val token: String,
-        val expiryTime: LocalDateTime
+        val expiryTime: String
     ) : AuthInfo()
 
     data class WithUserIdentity(

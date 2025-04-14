@@ -1,13 +1,6 @@
 package com.trio.stride.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import com.trio.stride.R
-import com.trio.stride.navigation.Screen.Auth.Companion
 
 sealed class Screen(val route: String) {
     sealed class Auth(route: String) : Screen(route) {
@@ -39,4 +32,6 @@ sealed class Screen(val route: String) {
             val items = listOf(Home, Maps, Record, Activity, Profile)
         }
     }
+
+    object MainApp : Screen("main")
 }

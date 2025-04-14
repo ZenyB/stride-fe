@@ -22,7 +22,7 @@ class LoginWithGoogleUseCase(
             val result = repository.loginWithGoogle(idToken)
             when (result) {
                 is AuthInfo.WithToken -> {
-                    tokenManager.saveAccessToken(result.token)
+                    tokenManager.saveAccessToken(result.token, result.expiryTime)
                     emit(Resource.Success(result))
                 }
 

@@ -7,5 +7,5 @@ interface AuthRepository {
 
     suspend fun loginWithGoogle(idToken: String): AuthInfo
 
-    suspend fun logout(): Boolean
+    suspend fun logout(token: String): Boolean
 }

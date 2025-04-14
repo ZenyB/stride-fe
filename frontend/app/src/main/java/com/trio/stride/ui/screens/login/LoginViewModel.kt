@@ -114,12 +114,6 @@ class LoginViewModel @Inject constructor(
                                 )
                             }
 
-                            null -> setState {
-                                currentState.copy(
-                                    message = "Can't get information",
-                                    state = LoginState.ERROR
-                                )
-                            }
                         }
                     }
 

@@ -20,7 +20,7 @@ class LoginUseCase(private val repository: AuthRepository, private val tokenMana
             val result = repository.login(email, password)
             when (result) {
                 is AuthInfo.WithToken -> {
-                    tokenManager.saveAccessToken(result.token)
+                    tokenManager.saveAccessToken(result.token, result.expiryTime)
                     emit(Resource.Success(result))
                 }
 
