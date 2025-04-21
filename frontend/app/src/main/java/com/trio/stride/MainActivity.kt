@@ -31,12 +31,8 @@ import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var bluetoothAdapter: BluetoothAdapter
-
     override fun onCreate(savedInstanceState: Bundle?) {
 
         val mainViewModel: MainViewModel by viewModels()
@@ -76,86 +72,16 @@ class MainActivity : ComponentActivity() {
                         AppNavHost(
                             navController = navController,
                             startDestination = Screen.BottomNavScreen.ROUTE,
-                            onBluetoothStateChanged = {
-                                checkAndRequestPermissions()
-                            }
                         )
 
-                    },
-                    bottomBar = {
-                        if (showBottomBar) {
-                            BottomNavBar(navController)
-                        }
                     }
-                )
 
+
+                }
             }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        checkAndRequestPermissions()
-    }
-
-    private var isBluetoothDialogAlreadyShown = false
-    private fun showBluetoothDialog() {
-        if (!bluetoothAdapter.isEnabled) {
-            if (!isBluetoothDialogAlreadyShown) {
-                val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startBluetoothIntentForResult.launch(enableBluetoothIntent)
-                isBluetoothDialogAlreadyShown = true
-            }
-
-        }
-    }
-
-    private val startBluetoothIntentForResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            isBluetoothDialogAlreadyShown = false
-            if (result.resultCode != Activity.RESULT_OK) {
-                showBluetoothDialog()
-            }
-        }
-
-    private val requestBluetoothPermissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            if (permissions[android.Manifest.permission.BLUETOOTH_CONNECT] == true &&
-                permissions[android.Manifest.permission.BLUETOOTH_SCAN] == true
-            ) {
-                // Permissions granted, now check Bluetooth status
-                showBluetoothDialog()
-            } else {
-                // Permissions denied
-                Toast.makeText(this, "Bluetooth permissions denied.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-    private fun checkAndRequestPermissions() {
-        val bluetoothConnectPermission = ContextCompat.checkSelfPermission(
-            this, android.Manifest.permission.BLUETOOTH_CONNECT
-        )
-        val bluetoothScanPermission = ContextCompat.checkSelfPermission(
-            this, android.Manifest.permission.BLUETOOTH_SCAN
-        )
-
-        if (bluetoothConnectPermission == PackageManager.PERMISSION_GRANTED &&
-            bluetoothScanPermission == PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permissions already granted, proceed to enable Bluetooth
-            showBluetoothDialog()
-        } else {
-            // Request permissions
-            requestBluetoothPermissionsLauncher.launch(
-                arrayOf(
-                    android.Manifest.permission.BLUETOOTH_CONNECT,
-                    android.Manifest.permission.BLUETOOTH_SCAN
-                )
-            )
         }
     }
 }
-
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {

@@ -19,6 +19,8 @@ import com.trio.stride.ui.utils.ble.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -31,14 +33,32 @@ class HeartRateBLEReceiverManager @Inject constructor(
     private val DEVICE_NAME = "Galaxy Fit3 (DD5D)"
     override val data: MutableSharedFlow<Resource<HeartRateResult>> = MutableSharedFlow()
 
+    private val _isBluetoothOn = MutableStateFlow(bluetoothAdapter.isEnabled)
+    override val isBluetoothOn: StateFlow<Boolean> = _isBluetoothOn
+
+    private val _selectedDeviceAddress = MutableStateFlow<String>("")
+    override val selectedDeviceAddress: StateFlow<String> = _selectedDeviceAddress
+
     private val bleScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
     }
+
+    override val scannedDevices = MutableStateFlow<List<BluetoothDevice>>(emptyList())
+
+    private val foundAddresses = mutableSetOf<String>()
+
 
     private val HEART_RATE_SERVICE_UUID = UUID.fromString("0000180D-0000-1000-8000-00805f9b34fb")
     private val HEART_RATE_CHARACTERISTIC_UUID =
         UUID.fromString("00002A37-0000-1000-8000-00805f9b34fb")
     private val CCCD_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
+
+
+    val scanFilter = ScanFilter.Builder()
+        .setServiceUuid(ParcelUuid(HEART_RATE_SERVICE_UUID))
+        .build()
+
+    val filters = listOf(scanFilter)
 
     private val scanSettings =
         ScanSettings.Builder()
@@ -54,25 +74,26 @@ class HeartRateBLEReceiverManager @Inject constructor(
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             Log.d("bluetoothScan", "device name ${result?.device?.name}")
-            if (result?.device?.name == DEVICE_NAME) {
-                coroutineScope.launch {
-                    data.emit(Resource.Loading(message = "Connecting to device..."))
-                }
-
-                if (isScanning) {
-                    Log.d("bluetoothScan", "is Scanning")
-                    result.device?.connectGatt(
-                        context,
-                        false,
-                        gattCallback,
-                        BluetoothDevice.TRANSPORT_LE
-                    )
-                    isScanning = false
-                    bleScanner.stopScan(this)
+            result?.device?.let { device ->
+                if (!device.name.isNullOrEmpty() && foundAddresses.add(device.address)) {
+                    scannedDevices.value += device
                 }
             }
+        }
+    }
 
+    override fun connectToDevice(device: BluetoothDevice) {
+        if (isScanning) {
+            device.connectGatt(
+                context,
+                false,
+                gattCallback,
+                BluetoothDevice.TRANSPORT_LE
+            )
+            _selectedDeviceAddress.value = device.address
 
+            isScanning = false
+            bleScanner.stopScan(scanCallback)
         }
     }
 
@@ -222,6 +243,10 @@ class HeartRateBLEReceiverManager @Inject constructor(
         }
     }
 
+    override fun setBluetoothState(isOn: Boolean) {
+        _isBluetoothOn.value = isOn
+    }
+
     private fun parseHeartRateMeasurement(data: ByteArray): Int {
         if (data.isEmpty()) return -1
 
@@ -296,7 +321,7 @@ class HeartRateBLEReceiverManager @Inject constructor(
         coroutineScope.launch {
             data.emit(Resource.Loading(message = "Scanning Ble devices"))
             isScanning = true
-            bleScanner.startScan(null, scanSettings, scanCallback)
+            bleScanner.startScan(filters, scanSettings, scanCallback)
         }
     }
 

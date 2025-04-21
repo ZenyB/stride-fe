@@ -33,6 +33,4 @@ fun SystemBroadcastReceiver(
             context.unregisterReceiver(broadcast)
         }
     }
-
-
 }

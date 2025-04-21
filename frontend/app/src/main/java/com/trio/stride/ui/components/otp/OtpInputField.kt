@@ -74,13 +74,13 @@ fun OtpInputField(
                     onNumberChanged(newNumber.toIntOrNull())
                 }
             },
-            cursorBrush = SolidColor(StrideTheme.colors.primary500),
+            cursorBrush = SolidColor(StrideTheme.colors.primary600),
             singleLine = true,
             textStyle = TextStyle(
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
-                color = StrideTheme.colors.primary500
+                color = StrideTheme.colors.primary600
             ),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.NumberPassword
@@ -105,7 +105,7 @@ fun OtpInputField(
                     Text(
                         text = "-",
                         textAlign = TextAlign.Center,
-                        color = StrideTheme.colors.primary500,
+                        color = StrideTheme.colors.primary600,
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Light,
                         modifier = Modifier
