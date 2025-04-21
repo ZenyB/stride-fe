@@ -14,3 +14,7 @@ data class AuthResponseDto(
 data class LoginGoogleRequestDto(
     val idToken: String
 )
+
+data class LogoutRequestDTO(
+    val token: String?
+)

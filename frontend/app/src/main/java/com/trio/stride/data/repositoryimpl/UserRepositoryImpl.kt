@@ -16,26 +16,26 @@ class UserRepositoryImpl @Inject constructor(
         val response = api.getUser()
         return UserInfo(
             id = response.id,
-            name = response.name,
-            ava = response.ava,
-            dob = response.dob,
-            height = response.height,
-            weight = response.weight,
-            male = response.male,
-            city = response.city,
-            maxHeartRate = response.maxHeartRate,
+            name = response.name ?: "",
+            ava = response.ava ?: "",
+            dob = response.dob ?: "",
+            height = response.height ?: 0,
+            weight = response.weight ?: 0,
+            male = response.male == true,
+            city = response.city ?: "",
+            maxHeartRate = response.maxHeartRate ?: 0,
             equipmentsWeight = EquipmentsWeight(
-                shoes = response.equipmentsWeight.SHOES,
-                bag = response.equipmentsWeight.BAG
+                shoes = response.equipmentsWeight?.SHOES ?: 0,
+                bag = response.equipmentsWeight?.BAG ?: 0
             ),
             heartRateZones = HeartRateZones(
-                zone1 = response.heartRateZones.ZONE1,
-                zone2 = response.heartRateZones.ZONE2,
-                zone3 = response.heartRateZones.ZONE3,
-                zone4 = response.heartRateZones.ZONE4,
-                zone5 = response.heartRateZones.ZONE5
+                zone1 = response.heartRateZones?.ZONE1 ?: 0,
+                zone2 = response.heartRateZones?.ZONE2 ?: 0,
+                zone3 = response.heartRateZones?.ZONE3 ?: 0,
+                zone4 = response.heartRateZones?.ZONE4 ?: 0,
+                zone5 = response.heartRateZones?.ZONE5 ?: 0
             ),
-            isBlock = response.isBlock
+            isBlock = response.isBlock == true
         )
     }
 }

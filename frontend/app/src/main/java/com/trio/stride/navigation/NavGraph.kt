@@ -1,7 +1,6 @@
 package com.trio.stride.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -37,9 +36,9 @@ fun NavGraphBuilder.authGraph(
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(
-                        Screen.BottomNavScreen.Home.route
+                        Screen.MainApp.route
                     ) {
-                        popUpTo(Screen.BottomNavScreen.Home.route) {
+                        popUpTo(Screen.MainApp.route) {
                             inclusive = true
                         }
                         launchSingleTop = true
@@ -47,7 +46,6 @@ fun NavGraphBuilder.authGraph(
                 },
                 onUnAuthorized = { userIdentity ->
                     navController.navigate(Screen.Auth.OTP.createRoute(userIdentity))
-
                 },
                 onSignUp = { navController.navigate(Screen.Auth.SignUp.route) },
                 onForgotPassword = { navController.navigate(Screen.Auth.ForgotPassword.route) }
@@ -82,32 +80,36 @@ fun NavGraphBuilder.authGraph(
 
 
 fun NavGraphBuilder.mainAppGraph(navController: NavHostController) {
-    composable(Screen.BottomNavScreen.Home.route) {
-        HomeScreen(onLogOutSuccess = {
-            navController.navigate(Screen.Auth.Login.route) {
-                popUpTo(0)
-                launchSingleTop = true
-            }
-        })
-    }
-    composable(Screen.BottomNavScreen.Maps.route) {
-        ViewMapScreen(navController)
-    }
+    navigation(
+        startDestination = Screen.BottomNavScreen.Home.route,
+        route = Screen.MainApp.route
+    ) {
+        composable(Screen.BottomNavScreen.Home.route) {
+            HomeScreen(onLogOutSuccess = {
+                navController.navigate(Screen.Auth.Login.route) {
+                    popUpTo(0)
+                    launchSingleTop = true
+                }
+            })
+        }
+        composable(Screen.BottomNavScreen.Maps.route) {
+            ViewMapScreen(navController)
+        }
 
-    composable(Screen.BottomNavScreen.Search.route) {
-        SearchMapScreen(navController)
-    }
+        composable(Screen.BottomNavScreen.Search.route) {
+            SearchMapScreen(navController)
+        }
 
-    composable(Screen.BottomNavScreen.Activity.route) {
-        ActivityScreen()
-    }
+        composable(Screen.BottomNavScreen.Activity.route) {
+            ActivityScreen()
+        }
 
-    composable(Screen.BottomNavScreen.Profile.route) {
-        ProfileScreen()
-    }
+        composable(Screen.BottomNavScreen.Profile.route) {
+            ProfileScreen()
+        }
 
-    composable(Screen.BottomNavScreen.Record.route) {
-        ProfileScreen()
+        composable(Screen.BottomNavScreen.Record.route) {
+            ProfileScreen()
+        }
     }
-
 }

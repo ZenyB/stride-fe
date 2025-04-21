@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.dto.LoginGoogleRequestDto
 import com.trio.stride.data.dto.LoginRequestDto
+import com.trio.stride.data.dto.LogoutRequestDTO
 import com.trio.stride.data.mapper.toDomain
 import com.trio.stride.di.Unauthorized
 import com.trio.stride.domain.model.AuthInfo
@@ -27,8 +28,8 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override suspend fun logout(): Boolean {
-        val response = api.logout()
+    override suspend fun logout(token: String): Boolean {
+        val response = api.logout(LogoutRequestDTO(token))
         return response.data
     }
 }

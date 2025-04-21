@@ -1,11 +1,12 @@
 package com.trio.stride
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.padding
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,9 +19,11 @@ import androidx.navigation.compose.rememberNavController
 import com.trio.stride.navigation.AppNavHost
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.BottomNavBar
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+@RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,30 +34,40 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            val isLoggedIn by mainViewModel.isLoggedIn.collectAsState()
+            val authState by mainViewModel.authState.collectAsState()
             val currentBackStack by navController.currentBackStackEntryAsState()
             val showBottomBar =
                 currentBackStack?.destination?.route in Screen.BottomNavScreen.items.map { it.route }
+            var startDestination: String? = null
 
             StrideTheme {
-                Scaffold(
-                    content = { paddingValues ->
-                        // NavHost for handling navigation
-                        val startDestination =
-                            if (isLoggedIn) Screen.BottomNavScreen.Home.route else Screen.Auth.ROUTE
-                        AppNavHost(
-                            navController = navController,
-                            startDestination = startDestination,
-                        )
+                when (authState) {
+                    MainViewModel.AuthState.UNKNOWN -> {
+                        Loading()
+                    }
 
-                    },
+                    MainViewModel.AuthState.AUTHORIZED -> {
+                        startDestination = Screen.MainApp.route
+                    }
+
+                    MainViewModel.AuthState.UNAUTHORIZED -> {
+                        startDestination = Screen.Auth.ROUTE
+                    }
+                }
+                Scaffold(
                     bottomBar = {
                         if (showBottomBar) {
                             BottomNavBar(navController)
                         }
+                    },
+                ) { paddingValues ->
+                    startDestination?.let {
+                        AppNavHost(
+                            navController = navController,
+                            startDestination = startDestination,
+                        )
                     }
-                )
-
+                }
             }
         }
     }
