@@ -1,10 +1,16 @@
 package com.trio.stride
 
-import android.os.Build
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.Scaffold
@@ -14,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.trio.stride.navigation.AppNavHost
@@ -22,8 +29,8 @@ import com.trio.stride.ui.components.BottomNavBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,9 +71,12 @@ class MainActivity : ComponentActivity() {
                     startDestination?.let {
                         AppNavHost(
                             navController = navController,
-                            startDestination = startDestination,
+                            startDestination = Screen.BottomNavScreen.ROUTE,
                         )
+
                     }
+
+
                 }
             }
         }

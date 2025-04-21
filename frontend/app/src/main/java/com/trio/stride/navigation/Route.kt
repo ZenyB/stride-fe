@@ -30,7 +30,10 @@ sealed class Screen(val route: String) {
 
         companion object {
             val items = listOf(Home, Maps, Record, Activity, Profile)
+            const val ROUTE = "main"
+
         }
+
     }
 
     object MainApp : Screen("main")

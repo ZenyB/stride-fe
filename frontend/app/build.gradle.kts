@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.trio.stride"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.play.services.auth)
 
     implementation(libs.hilt.android)
+    implementation(libs.androidx.lifecycle.service)
     ksp(libs.dagger.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.logging.interceptor)
@@ -57,6 +58,8 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.place.autocomplete)
     implementation(libs.mapbox.search.android)
+
+    implementation(libs.accompanist.permissions)
 
 
 

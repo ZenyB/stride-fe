@@ -1,6 +1,7 @@
 package com.trio.stride.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -8,8 +9,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.trio.stride.ui.screens.activity.ActivityScreen
+import com.trio.stride.ui.screens.heartrate.HeartRateScreen
 import com.trio.stride.ui.screens.activity.ProfileScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
+import com.trio.stride.ui.screens.heartrate.HeartRateViewModel
 import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.maps.search.SearchMapScreen
@@ -79,7 +82,8 @@ fun NavGraphBuilder.authGraph(
 }
 
 
-fun NavGraphBuilder.mainAppGraph(navController: NavHostController) {
+fun NavGraphBuilder.mainAppGraph(
+    navController: NavHostController) {
     navigation(
         startDestination = Screen.BottomNavScreen.Home.route,
         route = Screen.MainApp.route
@@ -109,7 +113,9 @@ fun NavGraphBuilder.mainAppGraph(navController: NavHostController) {
         }
 
         composable(Screen.BottomNavScreen.Record.route) {
-            ProfileScreen()
+            val heartRateViewModel: HeartRateViewModel = hiltViewModel()
+            HeartRateScreen(heartRateViewModel)
         }
     }
+
 }

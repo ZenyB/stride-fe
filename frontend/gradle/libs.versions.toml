@@ -1,4 +1,5 @@
 [versions]
+accompanistPermissions = "0.37.2"
 agp = "8.8.2"
 android = "11.11.0"
 autofill = "2.8.0-rc.1"
@@ -22,9 +23,11 @@ material = "1.7.8"
 playServicesAuth = "21.3.0"
 placeAutocomplete = "2.8.0-rc.1"
 runtimeLivedata = "1.7.8"
+lifecycleService = "2.8.7"
 
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 android = { module = "com.mapbox.maps:android", version.ref = "android" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
@@ -56,6 +59,7 @@ mapbox-search-android = { module = "com.mapbox.search:mapbox-search-android", ve
 maps-compose = { module = "com.mapbox.extension:maps-compose", version.ref = "mapsCompose" }
 place-autocomplete = { module = "com.mapbox.search:place-autocomplete", version.ref = "placeAutocomplete" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
+androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
