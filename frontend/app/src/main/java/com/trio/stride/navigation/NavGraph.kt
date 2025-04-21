@@ -17,6 +17,7 @@ import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.maps.search.SearchMapScreen
 import com.trio.stride.ui.screens.maps.view.ViewMapScreen
+import com.trio.stride.ui.screens.record.RecordScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
 
@@ -85,7 +86,7 @@ fun NavGraphBuilder.authGraph(
 fun NavGraphBuilder.mainAppGraph(
     navController: NavHostController) {
     navigation(
-        startDestination = Screen.BottomNavScreen.Home.route,
+        startDestination = Screen.BottomNavScreen.Record.route,
         route = Screen.MainApp.route
     ) {
         composable(Screen.BottomNavScreen.Home.route) {

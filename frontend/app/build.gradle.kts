@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.place.autocomplete)
     implementation(libs.mapbox.search.android)
+    implementation(libs.maps.locationcomponent)
+    implementation(libs.play.services.location)
 
     implementation(libs.accompanist.permissions)
 
