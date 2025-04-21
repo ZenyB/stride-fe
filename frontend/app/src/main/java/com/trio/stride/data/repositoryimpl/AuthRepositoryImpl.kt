@@ -1,7 +1,5 @@
 package com.trio.stride.data.repositoryimpl
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.dto.LoginGoogleRequestDto
 import com.trio.stride.data.dto.LoginRequestDto
@@ -15,19 +13,19 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     @Unauthorized private val api: UserApi
 ) : AuthRepository {
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override suspend fun login(email: String, password: String): AuthInfo {
         val response = api.login(LoginRequestDto(email, password))
         return response.toDomain()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override suspend fun loginWithGoogle(idToken: String): AuthInfo {
         val response = api.loginWithGoogle(LoginGoogleRequestDto(idToken))
         return response.toDomain()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override suspend fun logout(token: String): Boolean {
         val response = api.logout(LogoutRequestDTO(token))
         return response.data

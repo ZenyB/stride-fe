@@ -1,7 +1,5 @@
 package com.trio.stride.di
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.datastoremanager.TokenManager
@@ -24,7 +22,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object ProfileModule {
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     @Provides
     @ProfileBaseUrl
     fun provideRetrofitProfileUrl(tokenManager: TokenManager): Retrofit {

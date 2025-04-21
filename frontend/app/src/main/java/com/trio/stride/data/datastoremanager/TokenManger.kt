@@ -1,7 +1,5 @@
 package com.trio.stride.data.datastoremanager
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -23,7 +21,6 @@ class TokenManager @Inject constructor(
         public val EXPIRY_TIME_KEY = stringPreferencesKey("access_token_expiry")
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun getAccessToken(): Flow<String?> = dataStore.data.map { prefs ->
         val token = prefs[ACCESS_TOKEN_KEY]
         val expiryTimeString = prefs[EXPIRY_TIME_KEY]
@@ -47,7 +44,6 @@ class TokenManager @Inject constructor(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun isAccessTokenExpired(): Flow<Boolean> = dataStore.data.map { prefs ->
         val expiryStr = prefs[stringPreferencesKey("access_token_expiry")]
         expiryStr?.let {

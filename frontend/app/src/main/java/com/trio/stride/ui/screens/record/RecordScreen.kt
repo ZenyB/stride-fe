@@ -2,27 +2,30 @@ package com.trio.stride.ui.screens.record
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.location.LocationManager
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -33,17 +36,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -52,40 +57,35 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
-import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MapView
-import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
-import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.layers.addLayerAbove
-import com.mapbox.maps.extension.style.layers.generated.lineLayer
-import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
-import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
-import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.plugin.PuckBearing
+import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.R
 import com.trio.stride.ui.components.CustomCenterTopAppBar
+import com.trio.stride.ui.components.record.RecordValueBlock
+import com.trio.stride.ui.components.record.RecordValueBlockType
 import com.trio.stride.ui.screens.maps.view.ZOOM
+import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.formatTimeByMillis
 import com.trio.stride.ui.utils.map.RequestLocationPermission
 import kotlinx.coroutines.launch
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun RecordScreen() {
+fun RecordScreen(
+    viewModel: RecordViewModel = hiltViewModel()
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -94,9 +94,6 @@ fun RecordScreen() {
             pitch(0.0)
         }
     }
-    var mapBoxMap by remember { mutableStateOf<MapboxMap?>(null) }
-    var mapView by remember { mutableStateOf<MapView?>(null) }
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var permissionRequestCount by remember {
@@ -105,34 +102,9 @@ fun RecordScreen() {
     var showMap by remember {
         mutableStateOf(false)
     }
-    var isMapAvailable by remember {
-        mutableStateOf(false)
-    }
     var showRequestPermissionButton by remember {
         mutableStateOf(false)
     }
-    var startPoint by remember { mutableStateOf<Point?>(null) }
-    var isRecordStart by remember {
-        mutableStateOf(false)
-    }
-
-    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-    //
-    // Hardcoded route coordinates
-    val routeCoordinates = listOf(
-        Point.fromLngLat(106.804094, 10.868982),
-        Point.fromLngLat(106.804011, 10.868883),
-        Point.fromLngLat(106.803827, 10.86924),
-        Point.fromLngLat(106.803837, 10.869643),
-        Point.fromLngLat(106.803828, 10.869744),
-        Point.fromLngLat(106.803746, 10.869803),
-        Point.fromLngLat(106.803331, 10.869871),
-        Point.fromLngLat(106.802935, 10.86989),
-        Point.fromLngLat(106.802685, 10.86999)
-    )
-
-    val locationPoints = remember { mutableStateListOf<Point>() }
 
     Scaffold(
         topBar = {
@@ -140,33 +112,61 @@ fun RecordScreen() {
                 modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
                 title = "Run",
                 navigationIcon = {
-                    TextButton(onClick = {}) {
-                        Text(
-                            "Close",
-                            style = StrideTheme.typography.labelMedium,
-                            color = StrideTheme.colorScheme.onBackground
+                    IconButton(onClick = {}) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(R.drawable.park_down_icon),
+                            contentDescription = "Close record screen",
+                            tint = StrideTheme.colorScheme.onBackground
                         )
                     }
                 },
                 actions = {
                     IconButton(onClick = {}) {
                         Icon(
-                            painter = painterResource(R.drawable.record),
-                            contentDescription = "Setting"
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(R.drawable.setting_icon),
+                            contentDescription = "Setting",
+                            tint = StrideTheme.colorScheme.onBackground
                         )
                     }
                 })
         },
         floatingActionButton = {
-            CurrentLocationButton(mapViewportState) {
-                Log.i("MAPVIEWWWW", mapView.toString())
-                mapView?.let { it ->
-                    isRecordStart = true
-                    it.location.updateSettings {
-                        locationPuck = createDefault2DPuck(withBearing = true)
-                        puckBearingEnabled = true
-                        puckBearing = PuckBearing.HEADING
-                        enabled = true
+            Column(
+                modifier = Modifier
+                    .padding(bottom = 52.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(StrideTheme.colorScheme.background, CircleShape)
+                        .clip(CircleShape),
+                    onClick = {}
+                ) {
+                    Icon(
+                        modifier = Modifier.size(28.dp),
+                        painter = painterResource(R.drawable.layers_icon),
+                        contentDescription = "Select map type",
+                        tint = StrideTheme.colorScheme.onBackground
+                    )
+                }
+                CurrentLocationButton(
+                    mapViewportState = mapViewportState,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(StrideTheme.colorScheme.background, CircleShape)
+                        .clip(CircleShape),
+                    iconModifier = Modifier.size(28.dp)
+                ) {
+                    state.mapView?.let { it ->
+                        it.location.updateSettings {
+                            locationPuck = createDefault2DPuck(withBearing = true)
+                            puckBearingEnabled = true
+                            puckBearing = PuckBearing.HEADING
+                            enabled = true
+                        }
                     }
                 }
             }
@@ -174,22 +174,143 @@ fun RecordScreen() {
         bottomBar = {
             Box(
                 modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
                     .fillMaxWidth()
-                    .height(52.dp), Alignment.Center
+                    .background(StrideTheme.colorScheme.background), Alignment.Center
             ) {
-                if (!isRecordStart)
-                    TextButton(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        onClick = { isRecordStart = true }) {
-                        Text("START")
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            bottom = WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding()
+                        ),
+                    Alignment.Center
+                ) {
+                    when (state.recordStatus) {
+                        RecordViewModel.RecordStatus.NONE ->
+                            TextButton(
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
+                                    .clip(CircleShape)
+                                    .background(StrideTheme.colorScheme.secondary, CircleShape)
+                                    .size(85.dp),
+                                onClick = {
+                                    if (state.mapView != null) {
+                                        val listener = OnIndicatorPositionChangedListener { point ->
+                                            viewModel.startRecord(point)
+                                        }
+                                        state.mapView?.location?.addOnIndicatorPositionChangedListener(
+                                            listener
+                                        )
+                                        state.mapView?.location?.removeOnIndicatorPositionChangedListener(
+                                            listener
+                                        )
+                                    }
+                                }) {
+                                Text(
+                                    "START",
+                                    color = StrideTheme.colorScheme.onSecondary,
+                                    style = StrideTheme.typography.titleMedium
+                                )
+                            }
+
+                        RecordViewModel.RecordStatus.STOP -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                TextButton(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(vertical = 8.dp)
+                                        .clip(CircleShape)
+                                        .background(StrideTheme.colorScheme.background, CircleShape)
+                                        .size(85.dp),
+                                    onClick = { viewModel.resume() }) {
+                                    Text(
+                                        "RESUME",
+                                        color = StrideTheme.colorScheme.onBackground,
+                                        style = StrideTheme.typography.titleMedium
+                                    )
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Row(
+                                    Modifier
+                                        .weight(1f)
+                                        .padding(start = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TextButton(
+                                        modifier = Modifier
+                                            .padding(vertical = 8.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                StrideTheme.colorScheme.secondary,
+                                                CircleShape
+                                            )
+                                            .size(85.dp),
+                                        onClick = { viewModel.finish() }) {
+                                        Text(
+                                            "FINISH",
+                                            color = StrideTheme.colorScheme.onSecondary,
+                                            style = StrideTheme.typography.titleMedium
+                                        )
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    val isVisibleMetric =
+                                        state.screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                                    val showMetricButtonContainerColor =
+                                        if (isVisibleMetric)
+                                            StrideTheme.colorScheme.surfaceContainerLowest
+                                        else
+                                            StrideTheme.colorScheme.secondary
+                                    val showMetricButtonContentColor =
+                                        if (isVisibleMetric)
+                                            StrideTheme.colorScheme.secondary
+                                        else
+                                            StrideTheme.colorScheme.onSecondary
+
+                                    IconButton(modifier = Modifier
+                                        .size(44.dp)
+                                        .background(
+                                            showMetricButtonContainerColor,
+                                            CircleShape
+                                        )
+                                        .clip(CircleShape),
+                                        onClick = { viewModel.handleVisibleMetric() }) {
+                                        Icon(
+                                            modifier = Modifier.size(28.dp),
+                                            painter = painterResource(R.drawable.location_outline_icon),
+                                            contentDescription = "Handle visible metric",
+                                            tint = showMetricButtonContentColor
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        RecordViewModel.RecordStatus.RECORDING -> {
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
+                                    .background(
+                                        StrideTheme.colorScheme.surfaceContainerLowest,
+                                        CircleShape
+                                    )
+                                    .clip(CircleShape)
+                                    .size(85.dp),
+                                onClick = { viewModel.stop() }) {
+                                Icon(
+                                    modifier = Modifier.size(33.dp),
+                                    painter = painterResource(R.drawable.filled_round_square_icon),
+                                    contentDescription = "Stop record",
+                                    tint = StrideTheme.colorScheme.onBackground
+                                )
+                            }
+                        }
+
+                        RecordViewModel.RecordStatus.FINISH -> {}
                     }
-                else
-                    TextButton(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        onClick = { isRecordStart = false }) {
-                        Text("STOP")
-                    }
+                }
             }
         }
     ) { padding ->
@@ -206,49 +327,67 @@ fun RecordScreen() {
                 showMap = true
             }
         )
-        com.mapbox.maps.extension.compose.MapboxMap(
-            Modifier
-                .fillMaxSize()
-                .padding(top = padding.calculateTopPadding()),
-            mapViewportState = mapViewportState,
-            style = { MapStyle(style = Style.MAPBOX_STREETS) }
-        ) {
-            MapEffect(Unit) { mv ->
-                mapView = mv
-                drawRoute(mv, routeCoordinates)
+        when (state.screenStatus) {
+            RecordViewModel.ScreenStatus.DEFAULT -> {
+                MapboxMap(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(top = padding.calculateTopPadding()),
+                    mapViewportState = mapViewportState,
+                    style = { MapStyle(style = Style.MAPBOX_STREETS) }
+                ) {
+                    MapEffect(Unit) { mv ->
+                        viewModel.setMapView(mv)
 
-                //
-                mv.location.addOnIndicatorPositionChangedListener { point ->
-                    Log.d(
-                        "MapboxLocation",
-                        "Updated Location: ${point.longitude()}, ${point.latitude()}"
-                    )
+                        mv.location.addOnIndicatorPositionChangedListener { point ->
+                            Log.d(
+                                "MapboxLocation",
+                                "Updated Location: ${point.longitude()}, ${point.latitude()}"
+                            )
 
-                    if (locationPoints.isEmpty() && isRecordStart) {
-                        startPoint = point
-                    } else if (!isRecordStart && locationPoints.isNotEmpty()) {
-                        drawRoute(mv, locationPoints)
-                        locationPoints.clear()
-                    } else if (!isRecordStart)
-                        locationPoints.clear()
-
-                    if (shouldAddPoint(point, locationPoints)) {
-                        locationPoints.add(point)
-                        updatePolyline(mv, locationPoints)
+                            if (state.recordStatus == RecordViewModel.RecordStatus.RECORDING)
+                                viewModel.addPoints(point)
+                        }
+                    }
+                    if (state.startPoint != null) {
+                        CircleAnnotation(point = state.startPoint!!) {
+                            // Style the circle that will be added to the map.
+                            circleRadius = 5.0
+                            circleColor = StrideColor.green
+                            circleStrokeWidth = 1.5
+                            circleStrokeColor = Color(0xffffffff)
+                        }
                     }
                 }
             }
-            if (startPoint != null) {
-                val color = StrideTheme.colorScheme.primary
-                CircleAnnotation(point = startPoint!!) {
-                    // Style the circle that will be added to the map.
-                    circleRadius = 5.0
-                    circleColor = color
-                    circleStrokeWidth = 1.5
-                    circleStrokeColor = Color(0xffffffff)
+
+            RecordViewModel.ScreenStatus.DETAIL -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    RecordValueBlock(
+                        title = "Time",
+                        value = formatTimeByMillis(state.activityMetric.time)
+                    )
+                    RecordValueBlock(
+                        type = RecordValueBlockType.Large,
+                        title = "Avg Speed",
+                        value = state.activityMetric.avgSpeed.toString()
+                    )
+                    RecordValueBlock(
+                        title = "Distance",
+                        value = state.activityMetric.distance.toString()
+                    )
                 }
             }
+
+            RecordViewModel.ScreenStatus.SAVING -> {}
+
+            RecordViewModel.ScreenStatus.SENSOR -> {}
         }
+
 
         if (showRequestPermissionButton) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -282,7 +421,12 @@ fun RecordScreen() {
 }
 
 @Composable
-fun CurrentLocationButton(mapViewportState: MapViewportState, action: () -> Unit = {}) {
+fun CurrentLocationButton(
+    mapViewportState: MapViewportState,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+    action: () -> Unit = {}
+) {
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
@@ -296,9 +440,7 @@ fun CurrentLocationButton(mapViewportState: MapViewportState, action: () -> Unit
     }
 
     FloatingActionButton(
-        modifier = Modifier
-            .padding(16.dp)
-            .padding(bottom = 52.dp),
+        modifier = modifier,
         onClick = {
             val locationRequest =
                 LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
@@ -337,90 +479,11 @@ fun CurrentLocationButton(mapViewportState: MapViewportState, action: () -> Unit
                     }
                 })
         }) {
-        Icon(Icons.Filled.LocationOn, contentDescription = "Focus to Location")
-    }
-}
-
-private fun updatePolyline(mapView: MapView, points: List<Point>) {
-    if (points.size < 2) return
-    val lineString = LineString.fromLngLats(points)
-
-    val map = mapView.mapboxMap
-
-
-    map.getStyle { style ->
-        val sourceId = "live-route-source"
-        val layerId = "live-route-layer"
-
-        // Update existing source or create a new one
-        val source = style.getSourceAs<GeoJsonSource>(sourceId)
-        if (source != null) {
-            source.geometry(lineString)
-        } else {
-            val newSource = geoJsonSource(sourceId) {
-                geometry(lineString)
-            }
-            style.addSource(newSource)
-
-            style.addLayerAbove(
-                lineLayer(layerId, sourceId) {
-                    lineColor("#2571db") // Blue line
-                    lineWidth(4.0)
-                },
-                "default-route-layer"
-            )
-        }
-    }
-}
-
-private fun shouldAddPoint(
-    newPoint: Point,
-    points: List<Point>,
-    minDistance: Double = 2.5
-): Boolean {
-    if (points.isEmpty()) return true
-
-    val lastPoint = points.last()
-    val distance = haversineDistance(
-        lastPoint.latitude(),
-        lastPoint.longitude(),
-        newPoint.latitude(),
-        newPoint.longitude()
-    ) // Calculate distance in meters
-
-    return distance >= minDistance
-}
-
-fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-    val R = 6371000.0 // Earth radius in meters
-    val dLat = Math.toRadians(lat2 - lat1)
-    val dLon = Math.toRadians(lon2 - lon1)
-
-    val a = sin(dLat / 2) * sin(dLat / 2) +
-            cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
-            sin(dLon / 2) * sin(dLon / 2)
-
-    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    return R * c // Distance in meters
-}
-
-fun drawRoute(mapView: MapView, routeCoordinates: List<Point>) {
-    val mapboxMap = mapView.mapboxMap
-    val lineString = LineString.fromLngLats(routeCoordinates)
-
-    mapboxMap.getStyle { style ->
-        val sourceId = "default-route-source"
-        val layerId = "default-route-layer"
-        val source = geoJsonSource(sourceId) {
-            geometry(lineString)
-        }
-        style.addSource(source)
-
-        val layer = lineLayer(layerId, sourceId) {
-            lineColor("#e01659")
-            lineWidth(4.0)
-        }
-        style.addLayer(layer)
+        Icon(
+            modifier = iconModifier,
+            painter = painterResource(R.drawable.user_location_icon),
+            contentDescription = "Focus to Location",
+            tint = StrideTheme.colorScheme.onBackground
+        )
     }
 }

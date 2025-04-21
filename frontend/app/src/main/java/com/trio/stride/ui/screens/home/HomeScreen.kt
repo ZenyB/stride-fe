@@ -1,7 +1,5 @@
 package com.trio.stride.ui.screens.home
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -107,7 +105,7 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     fun logout() {
         viewModelScope.launch {
             _isLoggingOut.value = true

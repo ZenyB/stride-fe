@@ -12,7 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,7 +43,8 @@ class MainActivity : ComponentActivity() {
             val authState by mainViewModel.authState.collectAsState()
             val currentBackStack by navController.currentBackStackEntryAsState()
             val showBottomBar =
-                currentBackStack?.destination?.route in Screen.BottomNavScreen.items.map { it.route }
+                (currentBackStack?.destination?.route in Screen.BottomNavScreen.items.map { it.route })
+                        && currentBackStack?.destination?.route != Screen.BottomNavScreen.Record.route
             var startDestination: String? = null
 
             StrideTheme {
@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     startDestination?.let {
                         AppNavHost(
                             navController = navController,
-                            startDestination = Screen.BottomNavScreen.ROUTE,
+                            startDestination = Screen.MainApp.route,
                         )
 
                     }

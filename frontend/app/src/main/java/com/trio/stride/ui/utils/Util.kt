@@ -30,3 +30,11 @@ fun formatTime(seconds: Int): String {
     val secs = seconds % 60
     return "%02d:%02d".format(minutes, secs)
 }
+
+fun formatTimeByMillis(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d:%02d".format(hours, minutes, seconds)
+}

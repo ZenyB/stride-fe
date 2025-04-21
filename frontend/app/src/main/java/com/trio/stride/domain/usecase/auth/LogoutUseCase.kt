@@ -1,7 +1,5 @@
 package com.trio.stride.domain.usecase.auth
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
@@ -17,7 +15,7 @@ class LogoutUseCase @Inject constructor(
     val repository: AuthRepository, private val tokenManager: TokenManager
 ) {
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     operator fun invoke(): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
 
