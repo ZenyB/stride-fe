@@ -60,6 +60,8 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.trio.stride.R
 import com.trio.stride.RecordService
 import com.trio.stride.data.ble.ConnectionState
+import com.trio.stride.ui.components.StatusMessage
+import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.RequestNotificationPermission
 import com.trio.stride.ui.utils.ble.PermissionUtils
@@ -142,14 +144,15 @@ fun HeartRateScreen(
             )
 
             Spacer(Modifier.height(16.dp))
-            Text(
-                "One heart rate sensor can be connected at a time",
-                style = StrideTheme.typography.labelLarge,
-            )
             if (isBluetoothOn) {
-                Text("Bluetooth is ON ✅")
-            } else {
-                Text("Bluetooth is OFF ❌")
+                Text(
+                    "One heart rate sensor can be connected at a time",
+                    style = StrideTheme.typography.labelLarge,
+                )
+            }
+
+            if (!isBluetoothOn) {
+                StatusMessage(text = "bluetooth off", type = StatusMessageType.ERROR)
             }
             Spacer(Modifier.height(32.dp))
             Text(
