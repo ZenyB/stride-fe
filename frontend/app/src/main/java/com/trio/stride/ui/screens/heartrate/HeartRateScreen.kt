@@ -73,16 +73,16 @@ import com.trio.stride.ui.utils.ble.SystemBroadcastReceiver
 fun HeartRateScreen(
     viewModel: HeartRateViewModel
 ) {
-    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
-        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
-        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-            val state = bluetoothState.getIntExtra(EXTRA_STATE, ERROR)
-            when (state) {
-                STATE_ON -> viewModel.setBluetoothState(true)
-                STATE_OFF -> viewModel.setBluetoothState(false)
-            }
-        }
-    }
+//    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
+//        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
+//        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+//            val state = bluetoothState.getIntExtra(EXTRA_STATE, ERROR)
+//            when (state) {
+//                STATE_ON -> viewModel.setBluetoothState(true)
+//                STATE_OFF -> viewModel.setBluetoothState(false)
+//            }
+//        }
+//    }
     val context = LocalContext.current
 
     val permissionState =
@@ -122,13 +122,15 @@ fun HeartRateScreen(
         }
     })
 
-    LaunchedEffect(key1 = permissionState.allPermissionsGranted, key2 = isBluetoothOn) {
+    LaunchedEffect(key1 = permissionState.allPermissionsGranted) {
         if (permissionState.allPermissionsGranted) {
+            Log.d("bluetoothScan", "in launch effect ${bleConnectionState.toString()}")
             if (bleConnectionState == ConnectionState.Uninitialized) {
                 viewModel.initializeConnection(context)
             }
         }
     }
+
 
     Scaffold(modifier = Modifier.background(StrideTheme.colors.white)) { paddingValues ->
         Column(
@@ -213,7 +215,8 @@ fun HeartRateScreen(
                                     style = StrideTheme.typography.bodyLarge,
                                 )
                                 if (device.address == selectedDevice?.address
-                                    && bleConnectionState == ConnectionState.Connected) {
+                                    && bleConnectionState == ConnectionState.Connected
+                                ) {
                                     Text(
                                         text = "Heart rate: $heartRate",
                                         style = StrideTheme.typography.labelMedium,
