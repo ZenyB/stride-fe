@@ -34,25 +34,47 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.gson.JsonObject
+import com.mapbox.api.directions.v5.MapboxDirections
+import com.mapbox.api.directions.v5.models.DirectionsResponse
+import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.GeometryCollection
+import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.RenderedQueryGeometry
+import com.mapbox.maps.RenderedQueryOptions
+import com.mapbox.maps.ScreenBox
+import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
+import com.mapbox.maps.extension.compose.annotation.generated.withLineColor
 import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.flyTo
+import com.mapbox.maps.plugin.annotation.AnnotationConfig
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.viewport.ViewportStatus
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
 import com.mapbox.maps.plugin.viewport.data.OverviewViewportStateOptions
+import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.search.autocomplete.PlaceAutocomplete
 import com.trio.stride.R
 import com.trio.stride.navigation.Screen
@@ -60,6 +82,9 @@ import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.CityLocations
 import com.trio.stride.ui.utils.map.RequestLocationPermission
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 const val ZOOM = 16.0
 
@@ -67,6 +92,8 @@ const val ZOOM = 16.0
 fun ViewMapScreen(
     navController: NavController,
 ) {
+    val mapboxAccessToken = stringResource(id = R.string.mapbox_access_token)
+
     val selectedPoint = navController
         .currentBackStackEntry
         ?.savedStateHandle
@@ -94,6 +121,96 @@ fun ViewMapScreen(
         .zoom(ZOOM)
         .build()
 
+    val client = MapboxDirections.builder()
+        .accessToken(mapboxAccessToken)
+
+    val drawnRoutes = mutableMapOf<String, PolylineAnnotation>()
+
+    var currentIndex = 0
+    var selectedIndex = CityLocations.SamplePoints.size - 1
+
+    val allRoutes = mutableMapOf<String, List<Point>>()
+    var touchManager: PolylineAnnotationManager? = null
+    var polylineAnnotationManager: PolylineAnnotationManager? = null
+    var selectedRouteManager: PolylineAnnotationManager? = null
+
+
+    fun drawRoute(id: String, points: List<Point>) {
+        val isSelected = id == selectedIndex.toString()
+        val color =
+            if (isSelected) Color(233, 12, 86)
+            else Color(252, 134, 157, 255)
+
+        val manager =
+            if (isSelected) selectedRouteManager else polylineAnnotationManager
+
+        val polyline = manager!!.create(
+            PolylineAnnotationOptions()
+                .withPoints(points)
+                .withLineColor(color)
+                .withLineWidth(5.0)
+                .withLineJoin(LineJoin.ROUND)
+                .withData(JsonObject().apply {
+                    addProperty("id", id)
+                })
+        )
+
+        touchManager?.create(
+            PolylineAnnotationOptions()
+                .withPoints(points)
+                .withLineColor("#FFFFFF")
+                .withLineWidth(24.0)
+                .withLineOpacity(0.0)
+                .withData(JsonObject().apply {
+                    addProperty("id", id)
+                })
+
+
+        )
+        drawnRoutes[id] = polyline
+        allRoutes[id] = points
+    }
+
+    fun redrawRoutes(manager: PolylineAnnotationManager) {
+        manager.deleteAll()
+        touchManager?.deleteAll()
+        selectedRouteManager?.deleteAll()
+        drawnRoutes.clear()
+
+        allRoutes.forEach { (id, points) ->
+            drawRoute(id, points)
+        }
+    }
+
+    fun fetchAndDrawAllRoutes(annotationManager: PolylineAnnotationManager) {
+        CityLocations.SamplePoints.forEachIndexed { index, routeData ->
+            val routeOptions = RouteOptions.builder()
+                .coordinatesList(listOf(routeData.first, routeData.second))
+                .alternatives(true)
+                .applyDefaultNavigationOptions()
+                .build()
+            val request = client
+                .routeOptions(routeOptions)
+                .build()
+
+            request.enqueueCall(object : Callback<DirectionsResponse> {
+                override fun onResponse(
+                    call: Call<DirectionsResponse>,
+                    response: Response<DirectionsResponse>
+                ) {
+                    val route = response.body()?.routes()?.firstOrNull() ?: return
+                    val coords = LineString.fromPolyline(route.geometry() ?: "", 6).coordinates()
+                    drawRoute(currentIndex.toString(), coords)
+                    currentIndex++
+
+                }
+
+                override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                    Log.e("handle tap", "Failed to fetch route: ${t.message}")
+                }
+            })
+        }
+    }
 
     LaunchedEffect(true) {
         if (selectedPoint?.value == null) {
@@ -152,6 +269,35 @@ fun ViewMapScreen(
 
             ) {
                 MapEffect(Unit) { mapView ->
+
+                    val annotationApi = mapView.annotations
+
+                    mapView.mapboxMap.subscribeStyleLoaded {
+                        polylineAnnotationManager = annotationApi.createPolylineAnnotationManager(
+                            annotationConfig = AnnotationConfig(
+                                belowLayerId = "road-label",
+                                layerId = "view-map-route"
+                            ),
+                        )
+
+                        selectedRouteManager = annotationApi.createPolylineAnnotationManager()
+                        touchManager = annotationApi.createPolylineAnnotationManager()
+
+                        touchManager!!.addClickListener { clickedAnnotation ->
+                            val clickedId =
+                                clickedAnnotation.getData()?.asJsonObject?.get("id")?.asString
+
+                            clickedId?.let {
+                                selectedIndex = it.toInt()
+                                redrawRoutes(polylineAnnotationManager!!)
+                            }
+                            true
+                        }
+
+                        fetchAndDrawAllRoutes(polylineAnnotationManager!!)
+                    }
+
+
                     mapView.location.updateSettings {
                         locationPuck = createDefault2DPuck(withBearing = true)
                         puckBearingEnabled = true
@@ -192,7 +338,7 @@ fun ViewMapScreen(
             Text(
                 "Search locations",
                 color = StrideColor.gray,
-                style = StrideTheme.typography.bodyLarge,
+                style = StrideTheme.typography.bodyMedium,
                 modifier = Modifier.padding(16.dp)
             )
         }
