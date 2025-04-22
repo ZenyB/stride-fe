@@ -36,8 +36,8 @@ class HeartRateBLEReceiverManager @Inject constructor(
     private val _isBluetoothOn = MutableStateFlow(bluetoothAdapter.isEnabled)
     override val isBluetoothOn: StateFlow<Boolean> = _isBluetoothOn
 
-    private val _selectedDeviceAddress = MutableStateFlow<String>("")
-    override val selectedDeviceAddress: StateFlow<String> = _selectedDeviceAddress
+    private val _selectedDevice = MutableStateFlow<BluetoothDevice?>(null)
+    override val selectedDevice: StateFlow<BluetoothDevice?> = _selectedDevice
 
     private val bleScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
@@ -83,18 +83,15 @@ class HeartRateBLEReceiverManager @Inject constructor(
     }
 
     override fun connectToDevice(device: BluetoothDevice) {
-        if (isScanning) {
-            device.connectGatt(
-                context,
-                false,
-                gattCallback,
-                BluetoothDevice.TRANSPORT_LE
-            )
-            _selectedDeviceAddress.value = device.address
+        device.connectGatt(
+            context,
+            false,
+            gattCallback,
+            BluetoothDevice.TRANSPORT_LE
+        )
+        _selectedDevice.value = device
 
-            isScanning = false
-            bleScanner.stopScan(scanCallback)
-        }
+        bleScanner.stopScan(scanCallback)
     }
 
     private var currentConnectionAttempt = 1
@@ -123,7 +120,6 @@ class HeartRateBLEReceiverManager @Inject constructor(
                         )
                     }
                     gatt.close()
-
                 }
             } else {
                 gatt.close()
@@ -310,7 +306,12 @@ class HeartRateBLEReceiverManager @Inject constructor(
     }
 
     override fun reconnect() {
-        gatt?.connect()
+        selectedDevice.value?.connectGatt(
+            context,
+            false,
+            gattCallback,
+            BluetoothDevice.TRANSPORT_LE
+        )
     }
 
     override fun disconnect() {

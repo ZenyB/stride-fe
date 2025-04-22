@@ -93,7 +93,7 @@ fun HeartRateScreen(
     val devices by viewModel.scannedDevices.collectAsStateWithLifecycle()
     var menuExpanded by remember { mutableStateOf(false) }
     val isBluetoothOn by viewModel.isBluetoothOn.collectAsStateWithLifecycle()
-    val selectedDeviceAddress by viewModel.selectedDeviceAddress.collectAsStateWithLifecycle()
+    val selectedDevice by viewModel.selectedDevice.collectAsStateWithLifecycle()
 
     val heartRate by viewModel.heartRate.collectAsState()
 
@@ -212,9 +212,10 @@ fun HeartRateScreen(
                                     text = device.name ?: "Unnamed",
                                     style = StrideTheme.typography.bodyLarge,
                                 )
-                                if (device.address == selectedDeviceAddress) {
+                                if (device.address == selectedDevice?.address
+                                    && bleConnectionState == ConnectionState.Connected) {
                                     Text(
-                                        text = "Heart rate: ${heartRate}",
+                                        text = "Heart rate: $heartRate",
                                         style = StrideTheme.typography.labelMedium,
                                         color = StrideTheme.colors.gray600
                                     )
@@ -222,47 +223,50 @@ fun HeartRateScreen(
                             }
                         }
 
-                        if (bleConnectionState == ConnectionState.CurrentlyInitializing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = StrideTheme.colorScheme.primary,
-                                strokeCap = StrokeCap.Round,
-                                strokeWidth = 2.dp
-                            )
-                        } else if (bleConnectionState == ConnectionState.Connected) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Connected",
-                                    style = StrideTheme.typography.labelMedium,
-                                    color = StrideTheme.colors.gray600
+                        if (device.address == selectedDevice?.address) {
+                            if (bleConnectionState == ConnectionState.CurrentlyInitializing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = StrideTheme.colorScheme.primary,
+                                    strokeCap = StrokeCap.Round,
+                                    strokeWidth = 2.dp
                                 )
-                                Spacer(modifier = Modifier.width(2.dp))
-                                IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ellipsis_more),
-                                        contentDescription = "More Options",
-                                        tint = StrideTheme.colorScheme.primary
+                            } else if (bleConnectionState == ConnectionState.Connected) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Connected",
+                                        style = StrideTheme.typography.labelMedium,
+                                        color = StrideTheme.colors.gray600
                                     )
-                                }
-
-                                DropdownMenu(
-                                    expanded = menuExpanded,
-                                    onDismissRequest = { menuExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Disconnect") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            viewModel.disconnect(context)
-                                        },
-                                        contentPadding = PaddingValues(
-                                            horizontal = 12.dp,
-                                            vertical = 4.dp
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ellipsis_more),
+                                            contentDescription = "More Options",
+                                            tint = StrideTheme.colorScheme.primary
                                         )
-                                    )
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Disconnect") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                viewModel.disconnect(context)
+                                            },
+                                            contentPadding = PaddingValues(
+                                                horizontal = 12.dp,
+                                                vertical = 4.dp
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
+
                     }
                 }
 

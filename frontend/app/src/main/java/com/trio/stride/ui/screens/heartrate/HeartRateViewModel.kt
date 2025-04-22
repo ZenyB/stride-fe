@@ -31,7 +31,7 @@ class HeartRateViewModel @Inject constructor(
     val scannedDevices = heartRateReceiveManager.scannedDevices
 
     val isBluetoothOn: StateFlow<Boolean> = heartRateReceiveManager.isBluetoothOn
-    val selectedDeviceAddress: StateFlow<String> = heartRateReceiveManager.selectedDeviceAddress
+    val selectedDevice: StateFlow<BluetoothDevice?> = heartRateReceiveManager.selectedDevice
 
 
     fun setBluetoothState(isOn: Boolean) {
