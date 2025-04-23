@@ -4,25 +4,32 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,21 +43,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.gson.JsonObject
 import com.mapbox.api.directions.v5.MapboxDirections
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.api.directions.v5.models.RouteOptions
-import com.mapbox.geojson.GeometryCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
-import com.mapbox.maps.EdgeInsets
-import com.mapbox.maps.MapboxMap
-import com.mapbox.maps.RenderedQueryGeometry
-import com.mapbox.maps.RenderedQueryOptions
-import com.mapbox.maps.ScreenBox
-import com.mapbox.maps.ScreenCoordinate
+import com.mapbox.maps.LayerPosition
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -58,6 +61,10 @@ import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportS
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.withLineColor
 import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.layers.addLayerBelow
+import com.mapbox.maps.extension.style.layers.generated.FillLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.animation.flyTo
@@ -67,17 +74,15 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
-import com.mapbox.maps.plugin.gestures.addOnMapClickListener
-import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.viewport.ViewportStatus
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
-import com.mapbox.maps.plugin.viewport.data.OverviewViewportStateOptions
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
-import com.mapbox.search.autocomplete.PlaceAutocomplete
 import com.trio.stride.R
 import com.trio.stride.navigation.Screen
+import com.trio.stride.ui.components.map.MapStyleBottomSheet
+import com.trio.stride.ui.screens.login.LoginViewModel
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.CityLocations
@@ -87,12 +92,17 @@ import retrofit2.Callback
 import retrofit2.Response
 
 const val ZOOM = 16.0
+const val ROAD_LABEL = "road-label"
+const val ROAD_SIMPLE_LABEL = "road-label-simple"
+
 
 @Composable
 fun ViewMapScreen(
     navController: NavController,
+    mapStyleViewModel: MapStyleViewModel = hiltViewModel()
 ) {
     val mapboxAccessToken = stringResource(id = R.string.mapbox_access_token)
+    val mapStyle by mapStyleViewModel.mapStyle.collectAsStateWithLifecycle()
 
     val selectedPoint = navController
         .currentBackStackEntry
@@ -107,6 +117,8 @@ fun ViewMapScreen(
     var isMapAvailable by remember {
         mutableStateOf(false)
     }
+    var showSheet by remember { mutableStateOf(false) }
+
 
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -124,10 +136,11 @@ fun ViewMapScreen(
     val client = MapboxDirections.builder()
         .accessToken(mapboxAccessToken)
 
-    val drawnRoutes = mutableMapOf<String, PolylineAnnotation>()
+    val drawnRoutes = mutableMapOf<String, PolylineAnnotation?>()
 
     var currentIndex = 0
-    var selectedIndex = CityLocations.SamplePoints.size - 1
+    var selectedIndex by remember { mutableIntStateOf(0) }
+
 
     val allRoutes = mutableMapOf<String, List<Point>>()
     var touchManager: PolylineAnnotationManager? = null
@@ -137,19 +150,12 @@ fun ViewMapScreen(
 
     fun drawRoute(id: String, points: List<Point>) {
         val isSelected = id == selectedIndex.toString()
-        val color =
-            if (isSelected) Color(233, 12, 86)
-            else Color(252, 134, 157, 255)
-
         val manager =
             if (isSelected) selectedRouteManager else polylineAnnotationManager
 
-        val polyline = manager!!.create(
+        val polyline = manager?.create(
             PolylineAnnotationOptions()
                 .withPoints(points)
-                .withLineColor(color)
-                .withLineWidth(5.0)
-                .withLineJoin(LineJoin.ROUND)
                 .withData(JsonObject().apply {
                     addProperty("id", id)
                 })
@@ -171,47 +177,39 @@ fun ViewMapScreen(
         allRoutes[id] = points
     }
 
-    fun redrawRoutes(manager: PolylineAnnotationManager) {
-        manager.deleteAll()
-        touchManager?.deleteAll()
-        selectedRouteManager?.deleteAll()
-        drawnRoutes.clear()
-
-        allRoutes.forEach { (id, points) ->
-            drawRoute(id, points)
-        }
-    }
-
     fun fetchAndDrawAllRoutes(annotationManager: PolylineAnnotationManager) {
-        CityLocations.SamplePoints.forEachIndexed { index, routeData ->
-            val routeOptions = RouteOptions.builder()
-                .coordinatesList(listOf(routeData.first, routeData.second))
-                .alternatives(true)
-                .applyDefaultNavigationOptions()
-                .build()
-            val request = client
-                .routeOptions(routeOptions)
-                .build()
+        if (allRoutes.isEmpty()) {
+            CityLocations.SamplePoints.forEachIndexed { index, routeData ->
+                val routeOptions = RouteOptions.builder()
+                    .coordinatesList(listOf(routeData.first, routeData.second))
+                    .alternatives(true)
+                    .applyDefaultNavigationOptions()
+                    .build()
+                val request = client
+                    .routeOptions(routeOptions)
+                    .build()
 
-            request.enqueueCall(object : Callback<DirectionsResponse> {
-                override fun onResponse(
-                    call: Call<DirectionsResponse>,
-                    response: Response<DirectionsResponse>
-                ) {
-                    val route = response.body()?.routes()?.firstOrNull() ?: return
-                    val coords = LineString.fromPolyline(route.geometry() ?: "", 6).coordinates()
-                    drawRoute(currentIndex.toString(), coords)
-                    currentIndex++
+                request.enqueueCall(object : Callback<DirectionsResponse> {
+                    override fun onResponse(
+                        call: Call<DirectionsResponse>,
+                        response: Response<DirectionsResponse>
+                    ) {
+                        val route = response.body()?.routes()?.firstOrNull() ?: return
+                        val coords =
+                            LineString.fromPolyline(route.geometry() ?: "", 6).coordinates()
+                        drawRoute(currentIndex.toString(), coords)
+                        currentIndex++
 
-                }
+                    }
 
-                override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
-                    Log.e("handle tap", "Failed to fetch route: ${t.message}")
-                }
-            })
+                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                        Log.e("handle tap", "Failed to fetch route: ${t.message}")
+                    }
+                })
+            }
+
         }
     }
-
     LaunchedEffect(true) {
         if (selectedPoint?.value == null) {
             mapViewportState.transitionToFollowPuckState(
@@ -224,34 +222,48 @@ fun ViewMapScreen(
         }
     }
 
-    Scaffold(floatingActionButton = {
-        if (mapViewportState.mapViewportStatus == ViewportStatus.Idle) {
-            FloatingActionButton(
-                containerColor = Color.White,
-                contentColor = Color.Black,
-                shape = CircleShape,
-                onClick = {
-                    mapViewportState.transitionToFollowPuckState(
-                        followOptions,
-                        completionListener = { isFinish ->
-                            if (isFinish) {
-                                mapViewportState.setCameraOptions {
-                                    bearing(null)
-                                    zoom(ZOOM)
-                                    pitch(0.0)
-                                }
-                            }
-                        })
+    Scaffold(
+        floatingActionButton = {
+            Column(modifier = Modifier.offset(y = ((-100).dp))) {
+                if (mapViewportState.mapViewportStatus == ViewportStatus.Idle) {
+                    FloatingActionButton(
+                        containerColor = Color.White,
+                        contentColor = Color.Black,
+                        shape = CircleShape,
+                        onClick = {
+                            mapViewportState.transitionToFollowPuckState(
+                                followOptions,
+                                completionListener = { isFinish ->
+                                    if (isFinish) {
+                                        mapViewportState.setCameraOptions {
+                                            bearing(null)
+                                            zoom(ZOOM)
+                                            pitch(0.0)
+                                        }
+                                    }
+                                })
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = android.R.drawable.ic_menu_mylocation),
+                            contentDescription = "Locate button",
+                            tint = Color.Black
+                        )
+                    }
                 }
-            ) {
-                Icon(
-                    painter = painterResource(id = android.R.drawable.ic_menu_mylocation),
-                    contentDescription = "Locate button",
-                    tint = Color.Black
-                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                FloatingActionButton(
+                    onClick = { showSheet = true },
+                ) {
+                    Icon(Icons.Default.Settings, contentDescription = "Options")
+                }
             }
-        }
-    }) { padding ->
+
+
+        },
+        floatingActionButtonPosition = FabPosition.End,
+    ) { padding ->
         RequestLocationPermission(
             requestCount = permissionRequestCount,
             onPermissionDenied = {
@@ -265,37 +277,91 @@ fun ViewMapScreen(
             MapboxMap(
                 Modifier.fillMaxSize(),
                 mapViewportState = mapViewportState,
-                style = { MapStyle(style = Style.MAPBOX_STREETS) }
-
+                style = { MapStyle(style = mapStyle) }
             ) {
                 MapEffect(Unit) { mapView ->
 
                     val annotationApi = mapView.annotations
+                    selectedRouteManager = annotationApi.createPolylineAnnotationManager(
+                        annotationConfig = AnnotationConfig(
+                            belowLayerId = ROAD_LABEL,
+                            layerId = "selected-map-route"
+                        ),
+                    )
+                    selectedRouteManager?.lineColorString = "#E90C56"
+                    selectedRouteManager?.lineWidth = 5.0
+                    selectedRouteManager?.lineJoin = LineJoin.ROUND
+                    selectedRouteManager?.lineCap = LineCap.ROUND
 
-                    mapView.mapboxMap.subscribeStyleLoaded {
-                        polylineAnnotationManager = annotationApi.createPolylineAnnotationManager(
+                    polylineAnnotationManager =
+                        annotationApi.createPolylineAnnotationManager(
                             annotationConfig = AnnotationConfig(
-                                belowLayerId = "road-label",
+                                belowLayerId = "selected-map-route",
                                 layerId = "view-map-route"
                             ),
                         )
+                    polylineAnnotationManager?.lineColorString = "#FC869D"
+                    polylineAnnotationManager?.lineWidth = 5.0
+                    polylineAnnotationManager?.lineJoin = LineJoin.ROUND
+                    polylineAnnotationManager?.lineCap = LineCap.ROUND
+                    touchManager = annotationApi.createPolylineAnnotationManager(
+                        annotationConfig = AnnotationConfig(
+                            layerId = "touch-map-route"
+                        ),
+                    )
 
-                        selectedRouteManager = annotationApi.createPolylineAnnotationManager()
-                        touchManager = annotationApi.createPolylineAnnotationManager()
+                    touchManager!!.addClickListener { clickedAnnotation ->
+                        val clickedId =
+                            clickedAnnotation.getData()?.asJsonObject?.get("id")?.asString
+                        Log.d("handle tap", "touch id: $clickedId")
 
-                        touchManager!!.addClickListener { clickedAnnotation ->
-                            val clickedId =
-                                clickedAnnotation.getData()?.asJsonObject?.get("id")?.asString
+                        clickedId?.let {
+                            if (selectedIndex != it.toInt()) {
+                                drawnRoutes[selectedIndex.toString()]?.let { polyline ->
+                                    val newPolyline = polylineAnnotationManager?.create(
+                                        PolylineAnnotationOptions()
+                                            .withPoints(polyline.points)
+                                            .withData(JsonObject().apply {
+                                                addProperty("id", it)
+                                            })
+                                    )
+                                    selectedRouteManager?.delete(polyline)
+                                    drawnRoutes[selectedIndex.toString()] = newPolyline
+                                }
 
-                            clickedId?.let {
+                                drawnRoutes[it]?.let { polyline ->
+                                    val newPolyline = selectedRouteManager?.create(
+                                        PolylineAnnotationOptions()
+                                            .withPoints(polyline.points)
+                                            .withData(JsonObject().apply {
+                                                addProperty("id", it)
+                                            })
+                                    )
+                                    polylineAnnotationManager?.delete(polyline)
+                                    drawnRoutes[it] = newPolyline
+                                    Log.d("handle tap", "change color darker")
+                                }
                                 selectedIndex = it.toInt()
-                                redrawRoutes(polylineAnnotationManager!!)
                             }
-                            true
+                        }
+                        true
+                    }
+
+                    mapView.mapboxMap.subscribeStyleLoaded {
+                        mapView.mapboxMap.style?.moveStyleLayer(
+                            ROAD_LABEL,
+                            LayerPosition("selected-map-route", null, null)
+                        )
+                        mapView.mapboxMap.style?.moveStyleLayer("touch-map-route", null)
+
+
+                        mapView.mapboxMap.style?.styleLayers?.forEachIndexed { index, layer ->
+                            Log.d("MapLayers", "Layer $index: ${layer.id}")
                         }
 
-                        fetchAndDrawAllRoutes(polylineAnnotationManager!!)
                     }
+                    fetchAndDrawAllRoutes(polylineAnnotationManager!!)
+
 
 
                     mapView.location.updateSettings {
@@ -343,20 +409,36 @@ fun ViewMapScreen(
             )
         }
 
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .wrapContentWidth()
+                .padding(end = 16.dp, bottom = 100.dp)
+        ) {
 
-        MapFallbackScreen(
-            isMapAvailable,
-            permissionRequestCount,
-            onRetry = { permissionRequestCount += 1 },
-            goToSetting = {
-                context.startActivity(
-                    Intent(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", context.packageName, null)
-                    )
-                )
-            })
+        }
+
+        if (showSheet) {
+            MapStyleBottomSheet(
+                mapStyle = mapStyle,
+                onMapStyleSelected = { mapStyleViewModel.selectStyle(it) },
+                onDismiss = { showSheet = false }
+            )
+        }
     }
+
+    MapFallbackScreen(
+        isMapAvailable,
+        permissionRequestCount,
+        onRetry = { permissionRequestCount += 1 },
+        goToSetting = {
+            context.startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", context.packageName, null)
+                )
+            )
+        })
 }
 
 
