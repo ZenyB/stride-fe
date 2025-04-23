@@ -2,6 +2,8 @@ package com.trio.stride.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.mapbox.maps.Map
+import com.trio.stride.data.datastoremanager.MapStyleManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.datastoremanager.UserManager
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
@@ -30,5 +32,13 @@ object ManagerModule {
         getUserUseCase: GetUserUseCase
     ): UserManager {
         return UserManager(dataStore, getUserUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMapStyleManager(
+        dataStore: DataStore<Preferences>,
+    ): MapStyleManager {
+        return MapStyleManager(dataStore)
     }
 }
