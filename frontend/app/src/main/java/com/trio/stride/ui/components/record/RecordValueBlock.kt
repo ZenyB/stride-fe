@@ -38,15 +38,15 @@ fun RecordValueBlock(
         Text(
             value ?: "--",
             style = if (type == RecordValueBlockType.Large)
-                StrideTheme.typography.headlineLarge
+                StrideTheme.typography.displayLarge
             else
-                StrideTheme.typography.headlineSmall,
+                StrideTheme.typography.displaySmall,
             color = StrideTheme.colorScheme.onBackground
         )
         unit?.let { it ->
             Text(
                 it,
-                style = StrideTheme.typography.headlineSmall,
+                style = StrideTheme.typography.labelMedium,
                 color = StrideTheme.colorScheme.onBackground
             )
         }

@@ -1,5 +1,6 @@
 package com.trio.stride.ui.screens.record
 
+import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import com.mapbox.geojson.LineString
@@ -10,9 +11,10 @@ import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
-import com.trio.stride.RecordService
 import com.trio.stride.base.BaseViewModel
-import com.trio.stride.data.RecordRepository
+import com.trio.stride.data.ble.HeartRateReceiveManager
+import com.trio.stride.data.repositoryimpl.RecordRepository
+import com.trio.stride.data.service.RecordService
 import com.trio.stride.domain.model.ActivityMetric
 import com.trio.stride.domain.model.Coordinate
 import com.trio.stride.domain.viewstate.IViewState
@@ -22,15 +24,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecordViewModel @Inject constructor(
-    private val recordRepository: RecordRepository
+    private val recordRepository: RecordRepository,
+    private val heartRateReceiveManager: HeartRateReceiveManager
 ) : BaseViewModel<RecordViewModel.RecordViewState>() {
 
     val distance: StateFlow<Double> = recordRepository.distance
     val avgSpeed: StateFlow<Double> = recordRepository.avgSpeed
     val time: StateFlow<Long> = recordRepository.time
+
+    val heartRate: StateFlow<Int> = recordRepository.heartRate
+    var connectionState = recordRepository.connectionState
+    val scannedDevices = heartRateReceiveManager.scannedDevices
+    val isBluetoothOn: StateFlow<Boolean> = heartRateReceiveManager.isBluetoothOn
+    val selectedDeviceAddress: StateFlow<String> = heartRateReceiveManager.selectedDeviceAddress
+
     val activityType: StateFlow<ActivityType> = recordRepository.activityType
     val screenStatus: StateFlow<ScreenStatus> = recordRepository.screenStatus
     val recordStatus: StateFlow<RecordStatus> = recordRepository.recordStatus
+
     val startPoint: StateFlow<Point?> = recordRepository.startPoint
     val mapView: StateFlow<MapView?> = recordRepository.mapView
     val locationPoints: StateFlow<List<Point>> = recordRepository.routePoints
@@ -63,12 +74,46 @@ class RecordViewModel @Inject constructor(
         recordRepository.updateMapView(mapView)
     }
 
+    fun setBluetoothState(isOn: Boolean) {
+        heartRateReceiveManager.setBluetoothState(isOn)
+    }
+
     fun enableUserLocation() {
         recordRepository.enableUserLocation()
     }
 
     fun reloadMapStyle() {
         recordRepository.reloadMapStyle()
+    }
+
+    fun connectToDevice(context: Context, device: BluetoothDevice) {
+        val intent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.CONNECT_TO_DEVICE
+            putExtra(BluetoothDevice.EXTRA_DEVICE, device)
+        }
+        context.startService(intent)
+    }
+
+    fun reconnect(context: Context) {
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.RECONNECT
+        }
+        context.startService(startIntent)
+    }
+
+    fun disconnect(context: Context) {
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.DISCONNECT
+        }
+        context.startService(startIntent)
+    }
+
+    fun initializeConnection(context: Context) {
+        setState { currentState.copy(bluetoothErrMessage = null) }
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.START_RECEIVING
+        }
+        context.startService(startIntent)
     }
 
     fun startRecord(startPoint: Point, context: Context) {
@@ -114,8 +159,17 @@ class RecordViewModel @Inject constructor(
             recordRepository.updateScreenStatus(ScreenStatus.DEFAULT)
     }
 
+    fun handleShowSensorView() {
+        recordRepository.updateScreenStatus(ScreenStatus.SENSOR)
+    }
+
+    fun handleBackToDefault() {
+        recordRepository.updateScreenStatus(ScreenStatus.DEFAULT)
+    }
+
     data class RecordViewState(
         val isLoading: Boolean = false,
+        val bluetoothErrMessage: String? = null,
         val activityMetric: ActivityMetric = ActivityMetric()
     ) : IViewState
 

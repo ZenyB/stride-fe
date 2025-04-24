@@ -1,4 +1,4 @@
-package com.trio.stride.data
+package com.trio.stride.data.repositoryimpl
 
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point

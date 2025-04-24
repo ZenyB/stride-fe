@@ -1,4 +1,4 @@
-package com.trio.stride
+package com.trio.stride.data.service
 
 import android.Manifest
 import android.app.Notification
@@ -21,9 +21,11 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.mapbox.geojson.Point
-import com.trio.stride.data.RecordRepository
+import com.trio.stride.MainActivity
+import com.trio.stride.R
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.ble.HeartRateReceiveManager
+import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.ui.utils.ble.Resource
 import com.trio.stride.ui.utils.formatTimeByMillis
 import dagger.hilt.android.AndroidEntryPoint
