@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -36,12 +37,11 @@ class HeartRateBLEReceiverManager @Inject constructor(
     private val _isBluetoothOn = MutableStateFlow(bluetoothAdapter.isEnabled)
     override val isBluetoothOn: StateFlow<Boolean> = _isBluetoothOn
 
-    private val _selectedDeviceAddress = MutableStateFlow<String>("")
-    override val selectedDeviceAddress: StateFlow<String> = _selectedDeviceAddress
+    private val _selectedDevice = MutableStateFlow<BluetoothDevice?>(null)
+    override val selectedDevice: StateFlow<BluetoothDevice?> = _selectedDevice
 
-    private val bleScanner by lazy {
-        bluetoothAdapter.bluetoothLeScanner
-    }
+    private val bleScanner: BluetoothLeScanner?
+        get() = bluetoothAdapter.bluetoothLeScanner
 
     override val scannedDevices = MutableStateFlow<List<BluetoothDevice>>(emptyList())
 
@@ -83,18 +83,16 @@ class HeartRateBLEReceiverManager @Inject constructor(
     }
 
     override fun connectToDevice(device: BluetoothDevice) {
-        if (isScanning) {
-            device.connectGatt(
-                context,
-                false,
-                gattCallback,
-                BluetoothDevice.TRANSPORT_LE
-            )
-            _selectedDeviceAddress.value = device.address
+        device.connectGatt(
+            context,
+            false,
+            gattCallback,
+            BluetoothDevice.TRANSPORT_LE
+        )
+        _selectedDevice.value = device
 
-            isScanning = false
-            bleScanner.stopScan(scanCallback)
-        }
+        isScanning = false
+        bleScanner?.stopScan(scanCallback)
     }
 
     private var currentConnectionAttempt = 1
@@ -123,7 +121,6 @@ class HeartRateBLEReceiverManager @Inject constructor(
                         )
                     }
                     gatt.close()
-
                 }
             } else {
                 gatt.close()
@@ -310,23 +307,37 @@ class HeartRateBLEReceiverManager @Inject constructor(
     }
 
     override fun reconnect() {
-        gatt?.connect()
+        if (selectedDevice.value != null) {
+            selectedDevice.value?.connectGatt(
+                context,
+                false,
+                gattCallback,
+                BluetoothDevice.TRANSPORT_LE
+            )
+        } else {
+            startReceiving()
+        }
+
     }
 
     override fun disconnect() {
+        Log.d("bluetoothScan", "Disconnecting")
         gatt?.disconnect()
     }
 
     override fun startReceiving() {
+        Log.d("bluetoothScan", "Scanning")
         coroutineScope.launch {
             data.emit(Resource.Loading(message = "Scanning Ble devices"))
             isScanning = true
-            bleScanner.startScan(filters, scanSettings, scanCallback)
+            Log.d("bluetoothScan", "Bluetooth Scanner: ${bleScanner}")
+            Log.d("bluetoothScan", "Bluetooth Scanner enabled: ${bluetoothAdapter.isEnabled}")
+            bleScanner?.startScan(filters, scanSettings, scanCallback)
         }
     }
 
     override fun closeConnection() {
-        bleScanner.stopScan(scanCallback)
+        bleScanner?.stopScan(scanCallback)
         val characteristic =
             findCharacteristic(HEART_RATE_SERVICE_UUID, HEART_RATE_CHARACTERISTIC_UUID)
         if (characteristic != null) {

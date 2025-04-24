@@ -5,11 +5,15 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.EXTRA_DEVICE
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Looper
+import android.content.IntentFilter
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -24,6 +28,7 @@ import com.mapbox.geojson.Point
 import com.trio.stride.data.RecordRepository
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.ble.HeartRateReceiveManager
+import com.trio.stride.data.ble.HeartRateResult
 import com.trio.stride.ui.utils.ble.Resource
 import com.trio.stride.ui.utils.formatTimeByMillis
 import dagger.hilt.android.AndroidEntryPoint
@@ -120,6 +125,9 @@ class RecordService : LifecycleService() {
             LocationServices.getFusedLocationProviderClient(applicationContext)
 
         createNotificationChannel()
+
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(bluetoothStateReceiver, filter)
     }
 
     private fun startForeground() {
@@ -301,6 +309,7 @@ class RecordService : LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        unregisterReceiver(bluetoothStateReceiver)
         serviceScope.cancel()
     }
 
@@ -316,6 +325,39 @@ class RecordService : LifecycleService() {
         const val STOP_RECORDING = "STOP_RECORDING"
         const val PAUSE_RECORDING = "PAUSE_RECORDING"
         const val RESUME_RECORDING = "RESUME_RECORDING"
+
+    }
+
+    private val bluetoothStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.action
+            if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+                when (state) {
+                    BluetoothAdapter.STATE_ON -> {
+                        heartRateReceiveManager.setBluetoothState(true)
+                        heartRateReceiveManager.reconnect()
+                    }
+
+                    BluetoothAdapter.STATE_OFF -> {
+                        heartRateReceiveManager.setBluetoothState(false)
+                        heartRateReceiveManager.disconnect()
+                        heartRateReceiveManager.closeConnection()
+
+                        serviceScope.launch {
+                            heartRateReceiveManager.data.emit(
+                                Resource.Success(
+                                    data = HeartRateResult(
+                                        0,
+                                        ConnectionState.Disconnected
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
