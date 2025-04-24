@@ -29,7 +29,7 @@ fun RecordValueBlock(
         verticalArrangement = Arrangement.spacedBy(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(16.dp))
         Text(
             title.uppercase(),
             style = StrideTheme.typography.labelMedium,
@@ -38,9 +38,9 @@ fun RecordValueBlock(
         Text(
             value ?: "--",
             style = if (type == RecordValueBlockType.Large)
-                StrideTheme.typography.headlineSmall
+                StrideTheme.typography.headlineLarge
             else
-                StrideTheme.typography.headlineLarge,
+                StrideTheme.typography.headlineSmall,
             color = StrideTheme.colorScheme.onBackground
         )
         unit?.let { it ->
@@ -50,6 +50,6 @@ fun RecordValueBlock(
                 color = StrideTheme.colorScheme.onBackground
             )
         }
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(16.dp))
     }
 }

@@ -2,11 +2,13 @@ package com.trio.stride.ui.screens.record
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -35,6 +37,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,24 +61,24 @@ import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.mapbox.geojson.Point
+import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
-import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.PuckBearing
-import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.R
 import com.trio.stride.ui.components.CustomCenterTopAppBar
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
-import com.trio.stride.ui.screens.maps.view.ZOOM
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.formatDistance
+import com.trio.stride.ui.utils.formatSpeed
 import com.trio.stride.ui.utils.formatTimeByMillis
 import com.trio.stride.ui.utils.map.RequestLocationPermission
 import kotlinx.coroutines.launch
@@ -87,13 +90,6 @@ fun RecordScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val mapViewportState = rememberMapViewportState {
-        setCameraOptions {
-            center(Point.fromLngLat(106.80259579, 10.87007182))
-            zoom(ZOOM)
-            pitch(0.0)
-        }
-    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var permissionRequestCount by remember {
@@ -104,6 +100,32 @@ fun RecordScreen(
     }
     var showRequestPermissionButton by remember {
         mutableStateOf(false)
+    }
+    val distance by viewModel.distance.collectAsStateWithLifecycle()
+    val time by viewModel.time.collectAsStateWithLifecycle()
+    val avgSpeed by viewModel.avgSpeed.collectAsStateWithLifecycle()
+    val activityType by viewModel.activityType.collectAsStateWithLifecycle()
+    val screenStatus by viewModel.screenStatus.collectAsStateWithLifecycle()
+    val recordStatus by viewModel.recordStatus.collectAsStateWithLifecycle()
+    val startPoint by viewModel.startPoint.collectAsStateWithLifecycle()
+    val mapView by viewModel.mapView.collectAsStateWithLifecycle()
+    val locationPoints by viewModel.locationPoints.collectAsStateWithLifecycle()
+    val coordinates by viewModel.coordinates.collectAsStateWithLifecycle()
+    val mapViewportState = viewModel.mapViewportState
+
+    val startButtonGPSLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
+            focusToUser(mapView, mapViewportState)
+        } else {
+            Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        focusToUser(mapView, mapViewportState)
     }
 
     Scaffold(
@@ -158,17 +180,9 @@ fun RecordScreen(
                         .size(44.dp)
                         .background(StrideTheme.colorScheme.background, CircleShape)
                         .clip(CircleShape),
-                    iconModifier = Modifier.size(28.dp)
-                ) {
-                    state.mapView?.let { it ->
-                        it.location.updateSettings {
-                            locationPuck = createDefault2DPuck(withBearing = true)
-                            puckBearingEnabled = true
-                            puckBearing = PuckBearing.HEADING
-                            enabled = true
-                        }
-                    }
-                }
+                    iconModifier = Modifier.size(28.dp),
+                    mapView = mapView
+                )
             }
         },
         bottomBar = {
@@ -186,7 +200,7 @@ fun RecordScreen(
                         ),
                     Alignment.Center
                 ) {
-                    when (state.recordStatus) {
+                    when (recordStatus) {
                         RecordViewModel.RecordStatus.NONE ->
                             TextButton(
                                 modifier = Modifier
@@ -195,16 +209,20 @@ fun RecordScreen(
                                     .background(StrideTheme.colorScheme.secondary, CircleShape)
                                     .size(85.dp),
                                 onClick = {
-                                    if (state.mapView != null) {
-                                        val listener = OnIndicatorPositionChangedListener { point ->
-                                            viewModel.startRecord(point)
+                                    if (mapView != null) {
+                                        var userLocation: Point? = null
+                                        mapView?.location?.addOnIndicatorPositionChangedListener { point ->
+                                            userLocation = point
                                         }
-                                        state.mapView?.location?.addOnIndicatorPositionChangedListener(
-                                            listener
-                                        )
-                                        state.mapView?.location?.removeOnIndicatorPositionChangedListener(
-                                            listener
-                                        )
+                                        if (userLocation != null)
+                                            viewModel.startRecord(userLocation, context)
+                                        else
+                                            checkLocationOn(
+                                                context,
+                                                mapViewportState,
+                                                mapView,
+                                                startButtonGPSLauncher
+                                            )
                                     }
                                 }) {
                                 Text(
@@ -218,19 +236,27 @@ fun RecordScreen(
                             Row(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                TextButton(
+                                Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .padding(vertical = 8.dp)
-                                        .clip(CircleShape)
-                                        .background(StrideTheme.colorScheme.background, CircleShape)
-                                        .size(85.dp),
-                                    onClick = { viewModel.resume() }) {
-                                    Text(
-                                        "RESUME",
-                                        color = StrideTheme.colorScheme.onBackground,
-                                        style = StrideTheme.typography.titleMedium
-                                    )
+                                        .padding(end = 4.dp),
+                                    Alignment.CenterEnd
+                                ) {
+                                    TextButton(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(
+                                                StrideTheme.colorScheme.background,
+                                                CircleShape
+                                            )
+                                            .size(85.dp),
+                                        onClick = { viewModel.resume(context) }) {
+                                        Text(
+                                            "RESUME",
+                                            color = StrideTheme.colorScheme.onBackground,
+                                            style = StrideTheme.typography.titleMedium
+                                        )
+                                    }
                                 }
                                 Spacer(Modifier.width(8.dp))
                                 Row(
@@ -248,7 +274,7 @@ fun RecordScreen(
                                                 CircleShape
                                             )
                                             .size(85.dp),
-                                        onClick = { viewModel.finish() }) {
+                                        onClick = { viewModel.finish(context) }) {
                                         Text(
                                             "FINISH",
                                             color = StrideTheme.colorScheme.onSecondary,
@@ -257,7 +283,7 @@ fun RecordScreen(
                                     }
                                     Spacer(Modifier.width(8.dp))
                                     val isVisibleMetric =
-                                        state.screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                                        screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                     val showMetricButtonContainerColor =
                                         if (isVisibleMetric)
                                             StrideTheme.colorScheme.surfaceContainerLowest
@@ -289,22 +315,58 @@ fun RecordScreen(
                         }
 
                         RecordViewModel.RecordStatus.RECORDING -> {
-                            IconButton(
-                                modifier = Modifier
-                                    .padding(vertical = 8.dp)
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                IconButton(
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .padding(vertical = 8.dp)
+                                        .background(
+                                            StrideTheme.colorScheme.surfaceContainerLowest,
+                                            CircleShape
+                                        )
+                                        .clip(CircleShape)
+                                        .size(85.dp),
+                                    onClick = { viewModel.stop(context) }) {
+                                    Icon(
+                                        modifier = Modifier.size(33.dp),
+                                        painter = painterResource(R.drawable.filled_round_square_icon),
+                                        contentDescription = "Stop record",
+                                        tint = StrideTheme.colorScheme.onBackground
+                                    )
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                val isVisibleMetric =
+                                    screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                                val showMetricButtonContainerColor =
+                                    if (isVisibleMetric)
+                                        StrideTheme.colorScheme.surfaceContainerLowest
+                                    else
+                                        StrideTheme.colorScheme.secondary
+                                val showMetricButtonContentColor =
+                                    if (isVisibleMetric)
+                                        StrideTheme.colorScheme.secondary
+                                    else
+                                        StrideTheme.colorScheme.onSecondary
+
+                                IconButton(modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(end = 16.dp)
+                                    .size(44.dp)
                                     .background(
-                                        StrideTheme.colorScheme.surfaceContainerLowest,
+                                        showMetricButtonContainerColor,
                                         CircleShape
                                     )
-                                    .clip(CircleShape)
-                                    .size(85.dp),
-                                onClick = { viewModel.stop() }) {
-                                Icon(
-                                    modifier = Modifier.size(33.dp),
-                                    painter = painterResource(R.drawable.filled_round_square_icon),
-                                    contentDescription = "Stop record",
-                                    tint = StrideTheme.colorScheme.onBackground
-                                )
+                                    .clip(CircleShape),
+                                    onClick = { viewModel.handleVisibleMetric() }) {
+                                    Icon(
+                                        modifier = Modifier.size(28.dp),
+                                        painter = painterResource(R.drawable.location_outline_icon),
+                                        contentDescription = "Handle visible metric",
+                                        tint = showMetricButtonContentColor
+                                    )
+                                }
                             }
                         }
 
@@ -327,67 +389,70 @@ fun RecordScreen(
                 showMap = true
             }
         )
-        when (state.screenStatus) {
-            RecordViewModel.ScreenStatus.DEFAULT -> {
-                MapboxMap(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding()),
-                    mapViewportState = mapViewportState,
-                    style = { MapStyle(style = Style.MAPBOX_STREETS) }
-                ) {
-                    MapEffect(Unit) { mv ->
-                        viewModel.setMapView(mv)
-
-                        mv.location.addOnIndicatorPositionChangedListener { point ->
-                            Log.d(
-                                "MapboxLocation",
-                                "Updated Location: ${point.longitude()}, ${point.latitude()}"
-                            )
-
-                            if (state.recordStatus == RecordViewModel.RecordStatus.RECORDING)
-                                viewModel.addPoints(point)
-                        }
-                    }
-                    if (state.startPoint != null) {
-                        CircleAnnotation(point = state.startPoint!!) {
-                            // Style the circle that will be added to the map.
-                            circleRadius = 5.0
-                            circleColor = StrideColor.green
-                            circleStrokeWidth = 1.5
-                            circleStrokeColor = Color(0xffffffff)
-                        }
+        Box() {
+            MapboxMap(
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = padding.calculateTopPadding()),
+                mapViewportState = mapViewportState,
+                style = { MapStyle(style = Style.MAPBOX_STREETS) }
+            ) {
+                MapEffect(Unit) { mv ->
+                    viewModel.setMapView(mv)
+                    viewModel.drawRoute(mv, emptyList())
+                    viewModel.reloadMapStyle()
+//                    viewModel.trackingLocation()
+                    viewModel.enableUserLocation()
+                }
+                if (startPoint != null) {
+                    CircleAnnotation(point = startPoint!!) {
+                        circleRadius = 5.0
+                        circleColor = StrideColor.green600
+                        circleStrokeWidth = 1.5
+                        circleStrokeColor = Color(0xffffffff)
                     }
                 }
             }
+            when (screenStatus) {
+                RecordViewModel.ScreenStatus.DEFAULT -> {
 
-            RecordViewModel.ScreenStatus.DETAIL -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    RecordValueBlock(
-                        title = "Time",
-                        value = formatTimeByMillis(state.activityMetric.time)
-                    )
-                    RecordValueBlock(
-                        type = RecordValueBlockType.Large,
-                        title = "Avg Speed",
-                        value = state.activityMetric.avgSpeed.toString()
-                    )
-                    RecordValueBlock(
-                        title = "Distance",
-                        value = state.activityMetric.distance.toString()
-                    )
                 }
+
+                RecordViewModel.ScreenStatus.DETAIL -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(StrideTheme.colorScheme.background)
+                            .padding(
+                                top = padding.calculateTopPadding(),
+                                bottom = padding.calculateBottomPadding()
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        RecordValueBlock(
+                            title = "Time",
+                            value = formatTimeByMillis(time)
+                        )
+                        RecordValueBlock(
+                            type = RecordValueBlockType.Large,
+                            title = "Avg Speed",
+                            value = formatSpeed(avgSpeed),
+                            unit = "km/h"
+                        )
+                        RecordValueBlock(
+                            title = "Distance",
+                            value = formatDistance(distance),
+                            unit = "km"
+                        )
+                    }
+                }
+
+                RecordViewModel.ScreenStatus.SAVING -> {}
+
+                RecordViewModel.ScreenStatus.SENSOR -> {}
             }
-
-            RecordViewModel.ScreenStatus.SAVING -> {}
-
-            RecordViewModel.ScreenStatus.SENSOR -> {}
         }
-
 
         if (showRequestPermissionButton) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -423,6 +488,7 @@ fun RecordScreen(
 @Composable
 fun CurrentLocationButton(
     mapViewportState: MapViewportState,
+    mapView: MapView?,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
     action: () -> Unit = {}
@@ -442,42 +508,7 @@ fun CurrentLocationButton(
     FloatingActionButton(
         modifier = modifier,
         onClick = {
-            val locationRequest =
-                LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
-                    .setMinUpdateIntervalMillis(5000)
-                    .setWaitForAccurateLocation(true)
-                    .build()
-
-            val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-                .setAlwaysShow(true)
-
-            val client: SettingsClient = LocationServices.getSettingsClient(context)
-
-            client.checkLocationSettings(builder.build())
-                .addOnSuccessListener(OnSuccessListener {
-                    action()
-                    mapViewportState.transitionToFollowPuckState(
-                        completionListener = { isFinish ->
-                            if (isFinish) {
-                                mapViewportState.setCameraOptions { bearing(null) }
-                            }
-                        }
-                    )
-                })
-                .addOnFailureListener(OnFailureListener { exception ->
-                    if (exception is ResolvableApiException) {
-                        try {
-                            val intentSenderRequest =
-                                IntentSenderRequest.Builder(exception.resolution).build()
-                            launcher.launch(intentSenderRequest)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    } else {
-                        Toast.makeText(context, "Can't check location", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                })
+            checkLocationOn(context, mapViewportState, mapView, launcher, action)
         }) {
         Icon(
             modifier = iconModifier,
@@ -486,4 +517,66 @@ fun CurrentLocationButton(
             tint = StrideTheme.colorScheme.onBackground
         )
     }
+}
+
+private fun checkLocationOn(
+    context: Context,
+    mapViewportState: MapViewportState,
+    mapView: MapView?,
+    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
+    successAction: () -> Unit = {}
+) {
+
+    val locationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+            .setMinUpdateIntervalMillis(5000)
+            .setWaitForAccurateLocation(true)
+            .build()
+
+    val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        .setAlwaysShow(true)
+
+    val client: SettingsClient = LocationServices.getSettingsClient(context)
+
+    client.checkLocationSettings(builder.build())
+        .addOnSuccessListener(OnSuccessListener {
+            focusToUser(mapView, mapViewportState)
+            successAction()
+        })
+        .addOnFailureListener(OnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                try {
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(exception.resolution).build()
+                    launcher.launch(intentSenderRequest)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                Toast.makeText(context, "Can't check location", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
+}
+
+private fun focusToUser(
+    mapView: MapView?,
+    mapViewportState: MapViewportState
+) {
+    mapView?.let {
+        it.location.updateSettings {
+            locationPuck = createDefault2DPuck(withBearing = true)
+            puckBearingEnabled = true
+            puckBearing = PuckBearing.HEADING
+            enabled = true
+        }
+    }
+
+    mapViewportState.transitionToFollowPuckState(
+        completionListener = { isFinish ->
+            if (isFinish) {
+                mapViewportState.setCameraOptions { bearing(null) }
+            }
+        }
+    )
 }

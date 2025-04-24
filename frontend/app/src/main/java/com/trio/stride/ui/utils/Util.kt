@@ -2,6 +2,7 @@ package com.trio.stride.ui.utils
 
 import com.google.gson.Gson
 import okhttp3.ResponseBody
+import java.text.DecimalFormat
 
 fun isValidEmail(email: String): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -36,5 +37,22 @@ fun formatTimeByMillis(millis: Long): String {
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
-    return "%d:%02d:%02d".format(hours, minutes, seconds)
+    val timeString = if (hours > 0) {
+        "%d:%02d:%02d".format(hours, minutes, seconds)
+    } else {
+        "%02d:%02d".format(minutes, seconds)
+    }
+    return timeString
+}
+
+fun formatDistance(distance: Double): String {
+    val df = DecimalFormat("#.##")
+    val formattedDistance = df.format(distance / 1000)
+    return formattedDistance
+}
+
+fun formatSpeed(speed: Double): String {
+    val df = DecimalFormat("#.#")
+    val formattedSpeed = df.format(speed)
+    return formattedSpeed
 }
