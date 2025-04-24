@@ -1,28 +1,23 @@
 package com.trio.stride.ui.screens.heartrate
 
-import com.trio.stride.data.HeartRateRepository
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.trio.stride.RecordService
-import com.trio.stride.data.ble.ConnectionState
+import com.trio.stride.data.RecordRepository
 import com.trio.stride.data.ble.HeartRateReceiveManager
-import com.trio.stride.ui.utils.ble.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HeartRateViewModel @Inject constructor(
     private val heartRateReceiveManager: HeartRateReceiveManager,
-    heartRateRepo: HeartRateRepository
+    heartRateRepo: RecordRepository
 ) : ViewModel() {
     var errorMessge by mutableStateOf<String?>(null)
         private set

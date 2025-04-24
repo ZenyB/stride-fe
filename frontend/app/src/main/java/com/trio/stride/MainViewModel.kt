@@ -1,7 +1,5 @@
 package com.trio.stride
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.data.datastoremanager.TokenManager
@@ -11,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val tokenManager: TokenManager

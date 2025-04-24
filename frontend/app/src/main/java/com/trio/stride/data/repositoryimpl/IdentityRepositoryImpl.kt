@@ -1,7 +1,5 @@
 package com.trio.stride.data.repositoryimpl
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.trio.stride.data.apiservice.auth.IdentityApi
 import com.trio.stride.data.dto.ChangePasswordRequest
 import com.trio.stride.data.dto.ResetPasswordVerifyRequest
@@ -19,7 +17,7 @@ import javax.inject.Inject
 class IdentityRepositoryImpl @Inject constructor(
     private val identityApi: IdentityApi
 ) : IdentityRepository {
-    @RequiresApi(Build.VERSION_CODES.O)
+
     override suspend fun signUp(request: SignUpRequest): Response<SignUpResponse> {
         return identityApi.signUp(request)
     }

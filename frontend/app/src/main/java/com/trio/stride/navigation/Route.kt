@@ -21,7 +21,6 @@ sealed class Screen(val route: String) {
         object Home : BottomNavScreen("home", "Home", R.drawable.home)
         object Maps : BottomNavScreen("maps", "Maps", R.drawable.map)
         object Record : BottomNavScreen("record", "Record", R.drawable.record)
-
         object Activity : BottomNavScreen("activity", "Activity", R.drawable.activity)
         object Profile : BottomNavScreen("profile", "Profile", R.drawable.user)
 
