@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.navigationcore.android)
     implementation(libs.ui.maps)
 
+    implementation(libs.coil.compose)
 
 
     implementation(libs.accompanist.permissions)
