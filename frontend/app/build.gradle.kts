@@ -60,6 +60,11 @@ dependencies {
     implementation(libs.mapbox.search.android)
     implementation(libs.maps.locationcomponent)
     implementation(libs.play.services.location)
+    implementation(libs.navigationcore.android)
+    implementation(libs.ui.maps)
+
+    implementation(libs.coil.compose)
+
 
     implementation(libs.accompanist.permissions)
 
