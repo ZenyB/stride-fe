@@ -2,14 +2,10 @@ package com.trio.stride.ui.screens.record
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -52,27 +48,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.location.Priority
-import com.google.android.gms.location.SettingsClient
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
-import com.mapbox.maps.plugin.PuckBearing
-import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.R
 import com.trio.stride.ui.components.CustomCenterTopAppBar
+import com.trio.stride.ui.components.button.FocusUserLocationButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
 import com.trio.stride.ui.theme.StrideColor
@@ -81,6 +66,8 @@ import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatSpeed
 import com.trio.stride.ui.utils.formatTimeByMillis
 import com.trio.stride.ui.utils.map.RequestLocationPermission
+import com.trio.stride.ui.utils.map.checkLocationOn
+import com.trio.stride.ui.utils.map.focusToUser
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -118,14 +105,14 @@ fun RecordScreen(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
-            focusToUser(mapView, mapViewportState)
+            focusToUser(mapView)
         } else {
             Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
         }
     }
 
     LaunchedEffect(Unit) {
-        focusToUser(mapView, mapViewportState)
+        focusToUser(mapView)
     }
 
     Scaffold(
@@ -174,15 +161,9 @@ fun RecordScreen(
                         tint = StrideTheme.colorScheme.onBackground
                     )
                 }
-                CurrentLocationButton(
-                    mapViewportState = mapViewportState,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(StrideTheme.colorScheme.background, CircleShape)
-                        .clip(CircleShape),
-                    iconModifier = Modifier.size(28.dp),
-                    mapView = mapView
-                )
+                mapView?.let { mv ->
+                    FocusUserLocationButton(mapView = mv)
+                }
             }
         },
         bottomBar = {
@@ -219,7 +200,6 @@ fun RecordScreen(
                                         else
                                             checkLocationOn(
                                                 context,
-                                                mapViewportState,
                                                 mapView,
                                                 startButtonGPSLauncher
                                             )
@@ -401,7 +381,6 @@ fun RecordScreen(
                     viewModel.setMapView(mv)
                     viewModel.drawRoute(mv, emptyList())
                     viewModel.reloadMapStyle()
-//                    viewModel.trackingLocation()
                     viewModel.enableUserLocation()
                 }
                 if (startPoint != null) {
@@ -483,100 +462,4 @@ fun RecordScreen(
             }
         }
     }
-}
-
-@Composable
-fun CurrentLocationButton(
-    mapViewportState: MapViewportState,
-    mapView: MapView?,
-    modifier: Modifier = Modifier,
-    iconModifier: Modifier = Modifier,
-    action: () -> Unit = {}
-) {
-    val context = LocalContext.current
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    FloatingActionButton(
-        modifier = modifier,
-        onClick = {
-            checkLocationOn(context, mapViewportState, mapView, launcher, action)
-        }) {
-        Icon(
-            modifier = iconModifier,
-            painter = painterResource(R.drawable.user_location_icon),
-            contentDescription = "Focus to Location",
-            tint = StrideTheme.colorScheme.onBackground
-        )
-    }
-}
-
-private fun checkLocationOn(
-    context: Context,
-    mapViewportState: MapViewportState,
-    mapView: MapView?,
-    launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
-    successAction: () -> Unit = {}
-) {
-
-    val locationRequest =
-        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
-            .setMinUpdateIntervalMillis(5000)
-            .setWaitForAccurateLocation(true)
-            .build()
-
-    val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-        .setAlwaysShow(true)
-
-    val client: SettingsClient = LocationServices.getSettingsClient(context)
-
-    client.checkLocationSettings(builder.build())
-        .addOnSuccessListener(OnSuccessListener {
-            focusToUser(mapView, mapViewportState)
-            successAction()
-        })
-        .addOnFailureListener(OnFailureListener { exception ->
-            if (exception is ResolvableApiException) {
-                try {
-                    val intentSenderRequest =
-                        IntentSenderRequest.Builder(exception.resolution).build()
-                    launcher.launch(intentSenderRequest)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            } else {
-                Toast.makeText(context, "Can't check location", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
-}
-
-private fun focusToUser(
-    mapView: MapView?,
-    mapViewportState: MapViewportState
-) {
-    mapView?.let {
-        it.location.updateSettings {
-            locationPuck = createDefault2DPuck(withBearing = true)
-            puckBearingEnabled = true
-            puckBearing = PuckBearing.HEADING
-            enabled = true
-        }
-    }
-
-    mapViewportState.transitionToFollowPuckState(
-        completionListener = { isFinish ->
-            if (isFinish) {
-                mapViewportState.setCameraOptions { bearing(null) }
-            }
-        }
-    )
 }
