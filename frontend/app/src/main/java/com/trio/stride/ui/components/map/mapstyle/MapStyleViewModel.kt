@@ -1,8 +1,8 @@
-package com.trio.stride.ui.screens.maps.view
+package com.trio.stride.ui.components.map.mapstyle
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mapbox.maps.Style
-import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.datastoremanager.MapStyleManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +15,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MapStyleViewModel @Inject constructor(
     private val mapStyleManager: MapStyleManager
-) : BaseViewModel<ViewMapState>() {
+) : ViewModel() {
     private val _mapStyle = MutableStateFlow(Style.MAPBOX_STREETS)
     val mapStyle: StateFlow<String> = _mapStyle.asStateFlow()
-
-    override fun createInitialState(): ViewMapState {
-        return ViewMapState.Idle
-    }
 
     init {
         viewModelScope.launch {

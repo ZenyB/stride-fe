@@ -56,3 +56,15 @@ fun formatSpeed(speed: Double): String {
     val formattedSpeed = df.format(speed)
     return formattedSpeed
 }
+
+fun formatDuration(seconds: Int): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    val secs = seconds % 60
+
+    return buildString {
+        if (hours > 0) append("${hours}h")
+        if (minutes > 0) append("${minutes}m")
+        if (hours == 0 && minutes == 0 || secs > 0) append("${secs}s")
+    }
+}
