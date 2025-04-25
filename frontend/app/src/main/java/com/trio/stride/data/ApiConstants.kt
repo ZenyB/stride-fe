@@ -1,8 +1,10 @@
 package com.trio.stride.data
 
 object ApiConstants {
-    const val IDENTITY_URL = "http://192.168.1.18:8080/api/v1/identity/"
-    const val PROFILE_URL = "http://192.168.1.18:8080/api/v1/profile/"
+    const val BASE_URL = "http://103.228.74.5:8080/api/v1/"
+    const val IDENTITY_URL = "${BASE_URL}identity/"
+    const val PROFILE_URL = "${BASE_URL}profile/"
+    const val CORE_URL = "${BASE_URL}core/"
     const val LOGIN_END_POINTS = "auth/login"
     const val LOGIN_GOOGLE = "auth/login/google"
     const val LOGOUT = "auth/logout"
