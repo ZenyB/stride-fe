@@ -3,7 +3,7 @@ package com.trio.stride.data.dto
 data class GetSportResponseDto(
     val data: SportDto,
     val page: PageDto,
-    val filterDto: FilterDto
+    val filterDto: SportFilterDto
 )
 
 data class SportDto(
@@ -15,17 +15,12 @@ data class SportDto(
     val rules: List<RuleDto>
 )
 
-data class CategoryDto(
-    val id: String,
-    val name: String
-)
-
 data class RuleDto(
     val expression: String,
     val met: Double
 )
 
-data class FilterDto(
+data class SportFilterDto(
     val name: String,
     val categoryId: String?
 )
