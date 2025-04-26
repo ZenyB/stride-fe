@@ -77,7 +77,9 @@ fun HomeScreen(
                 "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png"
             )
             ChooseSportInSearch("https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png")
-            SportBottomSheet()
+            SportBottomSheet(
+                onItemClick = { sport -> TODO() }
+            )
         }
     }
 }
