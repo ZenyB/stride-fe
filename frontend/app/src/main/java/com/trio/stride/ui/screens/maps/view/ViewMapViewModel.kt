@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.mapbox.geojson.Point
+import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.dto.RecommendRouteRequest
@@ -28,10 +29,16 @@ class ViewMapViewModel @Inject constructor(
     private val _routeItems = MutableStateFlow<List<RouteItem>>(emptyList())
     val routeItems: StateFlow<List<RouteItem>> = _routeItems.asStateFlow()
 
+    private val _mapView = MutableStateFlow<MapView?>(null)
+    val mapView: StateFlow<MapView?> = _mapView
+
     private val _allRoutes = mutableStateMapOf<String, List<Point>>()
 
     private val _drawnRoutes = mutableMapOf<String, PolylineAnnotation?>()
 
+    fun setMapView(newValue: MapView?) {
+        _mapView.value = newValue
+    }
 
     fun onRouteItemClick(index: Int) {
         currentDetailIndex = index

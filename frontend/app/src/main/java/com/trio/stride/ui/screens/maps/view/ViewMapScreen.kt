@@ -20,16 +20,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -39,7 +42,6 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -79,10 +81,10 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
-import com.mapbox.maps.plugin.viewport.ViewportStatus
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
 import com.trio.stride.R
 import com.trio.stride.navigation.Screen
+import com.trio.stride.ui.components.button.FocusUserLocationButton
 import com.trio.stride.ui.components.map.MapFallbackScreen
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
@@ -108,6 +110,8 @@ fun ViewMapScreen(
     viewModel: ViewMapViewModel = hiltViewModel()
 ) {
     val mapStyle by mapStyleViewModel.mapStyle.collectAsStateWithLifecycle()
+    val mapView by viewModel.mapView.collectAsStateWithLifecycle()
+
 
     val selectedPoint = navController
         .currentBackStackEntry
@@ -115,7 +119,7 @@ fun ViewMapScreen(
         ?.getLiveData<Point>("selected_point")
         ?.observeAsState()
 
-    val routeItems by viewModel.routeItems.collectAsState()
+    val routeItems by viewModel.routeItems.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val sheetState = rememberStandardBottomSheetState(
@@ -262,61 +266,94 @@ fun ViewMapScreen(
         sheetPeekHeight = animatedPeekHeight,
         sheetContainerColor = StrideTheme.colors.white,
         sheetContent = {
-            Column(
+            Box(
                 Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 96.dp)
-                    .padding(
-                        bottom = WindowInsets.navigationBars.asPaddingValues()
-                            .calculateBottomPadding()
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .wrapContentHeight()
             ) {
-                when (uiState) {
-                    is ViewMapState.GetRouteError -> {
-                        Text(
-                            (uiState as ViewMapState.GetRouteError).message,
-                            style = StrideTheme.typography.titleMedium
-                        )
-                    }
-
-                    is ViewMapState.Loading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = StrideTheme.colorScheme.primary,
-                            strokeCap = StrokeCap.Round,
-                            strokeWidth = 3.dp
-                        )
-                    }
-
-                    is ViewMapState.ViewRouteDetail -> {
-                        BackHandler(enabled = true) {
-                            viewModel.backToNormalView()
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 96.dp)
+                        .padding(
+                            bottom = WindowInsets.navigationBars.asPaddingValues()
+                                .calculateBottomPadding()
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    when (uiState) {
+                        is ViewMapState.GetRouteError -> {
+                            Text(
+                                (uiState as ViewMapState.GetRouteError).message,
+                                style = StrideTheme.typography.titleMedium
+                            )
                         }
-                        RouteItemDetail(routeItems[viewModel.currentDetailIndex])
-                    }
 
-                    else -> {
-                        val size = routeItems.size
-                        if (size == 0) {
-                            Text(
-                                "No route found",
-                                style = StrideTheme.typography.titleMedium
+                        is ViewMapState.Loading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = StrideTheme.colorScheme.primary,
+                                strokeCap = StrokeCap.Round,
+                                strokeWidth = 3.dp
                             )
-                        } else {
-                            Text(
-                                "${size} route${if (size > 1) "s" else ""}",
-                                style = StrideTheme.typography.titleMedium
-                            )
-                            Spacer(Modifier.height(24.dp))
-                            RouteList(items = routeItems, onClick = { idx ->
-                                Log.d("click item", "item idx: ${idx}")
-                                viewModel.onRouteItemClick(idx)
-                            })
+                        }
+
+                        is ViewMapState.ViewRouteDetail -> {
+                            BackHandler(enabled = true) {
+                                viewModel.backToNormalView()
+                            }
+                            RouteItemDetail(routeItems[viewModel.currentDetailIndex])
+                        }
+
+                        else -> {
+                            val size = routeItems.size
+                            if (size == 0) {
+                                Text(
+                                    "No route found",
+                                    style = StrideTheme.typography.titleMedium
+                                )
+                            } else {
+                                Text(
+                                    "${size} route${if (size > 1) "s" else ""}",
+                                    style = StrideTheme.typography.titleMedium
+                                )
+                                Spacer(Modifier.height(24.dp))
+                                RouteList(items = routeItems, onClick = { idx ->
+                                    Log.d("click item", "item idx: ${idx}")
+                                    viewModel.onRouteItemClick(idx)
+                                })
+                            }
                         }
                     }
                 }
+                when (uiState) {
+                    is ViewMapState.ViewRouteDetail -> {
+                        IconButton(
+                            onClick = {
+                                viewModel.backToNormalView()
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = 8.dp, y = (-50).dp)
+                                .background(
+                                    color = StrideTheme.colors.white,
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = "Close Sheet"
+                            )
+                        }
+                    }
+
+                    else -> {
+
+                    }
+                }
+
             }
+
         },
     ) { padding ->
         RequestLocationPermission(
@@ -339,6 +376,7 @@ fun ViewMapScreen(
                 compass = {}
             ) {
                 MapEffect(Unit) { mapView ->
+                    viewModel.setMapView(mapView)
                     val annotationApi = mapView.annotations
                     selectedRouteManager = annotationApi.createPolylineAnnotationManager(
                         annotationConfig = AnnotationConfig(
@@ -387,7 +425,6 @@ fun ViewMapScreen(
                         )
                         mapView.mapboxMap.style?.moveStyleLayer("touch-map-route", null)
 
-
                         mapView.mapboxMap.style?.styleLayers?.forEachIndexed { index, layer ->
                             Log.d("MapLayers", "Layer $index: ${layer.id}")
                         }
@@ -411,9 +448,9 @@ fun ViewMapScreen(
 
                 MapEffect(routeItems) {
                     currentIndex = 0
-                    routeItems.forEachIndexed { index, item ->
+                    routeItems.forEachIndexed { _, item ->
                         val coords =
-                            LineString.fromPolyline(item.geometry ?: "", 6).coordinates()
+                            LineString.fromPolyline(item.geometry, 6).coordinates()
                         drawRoute(currentIndex.toString(), coords)
                         currentIndex++
                     }
@@ -469,32 +506,7 @@ fun ViewMapScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.End
                 ) {
-                    if (mapViewportState.mapViewportStatus == ViewportStatus.Idle) {
-                        FloatingActionButton(
-                            containerColor = Color.White,
-                            contentColor = Color.Black,
-                            shape = CircleShape,
-                            onClick = {
-                                mapViewportState.transitionToFollowPuckState(
-                                    followOptions,
-                                    completionListener = { isFinish ->
-                                        if (isFinish) {
-                                            mapViewportState.setCameraOptions {
-                                                bearing(null)
-                                                zoom(ZOOM)
-                                                pitch(0.0)
-                                            }
-                                        }
-                                    })
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(id = android.R.drawable.ic_menu_mylocation),
-                                contentDescription = "Locate button",
-                                tint = Color.Black
-                            )
-                        }
-                    }
+                    mapView?.let { FocusUserLocationButton(mapView = it) }
                     IconButton(
                         onClick = { showSheet = true },
                         colors = IconButtonDefaults.iconButtonColors(
@@ -512,7 +524,7 @@ fun ViewMapScreen(
                     }
                 }
 
-                if (routeItems.size > 0) {
+                if (routeItems.isNotEmpty()) {
                     RoutePager(
                         state = pagerState,
                         routeItems,
