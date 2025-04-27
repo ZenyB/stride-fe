@@ -31,6 +31,10 @@ annotation class ProfileBaseUrl
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class CoreBaseUrl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class Unauthorized
 
 @Qualifier
