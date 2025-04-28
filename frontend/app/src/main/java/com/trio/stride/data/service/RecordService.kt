@@ -1,4 +1,4 @@
-package com.trio.stride
+package com.trio.stride.data.service
 
 import android.Manifest
 import android.app.Notification
@@ -11,9 +11,9 @@ import android.bluetooth.BluetoothDevice.EXTRA_DEVICE
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Looper
-import android.content.IntentFilter
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -25,10 +25,12 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.mapbox.geojson.Point
-import com.trio.stride.data.RecordRepository
+import com.trio.stride.MainActivity
+import com.trio.stride.R
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.ble.HeartRateReceiveManager
 import com.trio.stride.data.ble.HeartRateResult
+import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.ui.utils.ble.Resource
 import com.trio.stride.ui.utils.formatTimeByMillis
 import dagger.hilt.android.AndroidEntryPoint
@@ -325,7 +327,6 @@ class RecordService : LifecycleService() {
         const val STOP_RECORDING = "STOP_RECORDING"
         const val PAUSE_RECORDING = "PAUSE_RECORDING"
         const val RESUME_RECORDING = "RESUME_RECORDING"
-
     }
 
     private val bluetoothStateReceiver = object : BroadcastReceiver() {

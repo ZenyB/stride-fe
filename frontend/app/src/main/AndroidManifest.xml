@@ -40,8 +40,12 @@
         </activity>
 
         <service
-            android:name=".RecordService"
+            android:name=".data.service.RecordService"
             android:foregroundServiceType="connectedDevice|location" />
+
+        <service
+            android:name=".data.service.GpsService"
+            android:foregroundServiceType="location" />
 
     </application>
 

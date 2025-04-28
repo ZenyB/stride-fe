@@ -1,43 +1,33 @@
-package com.trio.stride.ui.screens.heartrate
+package com.trio.stride.ui.screens.record.heartrate
 
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.ERROR
-import android.bluetooth.BluetoothAdapter.EXTRA_STATE
-import android.bluetooth.BluetoothAdapter.STATE_OFF
-import android.bluetooth.BluetoothAdapter.STATE_ON
-import android.content.Intent
+import android.bluetooth.BluetoothDevice
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,56 +36,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.trio.stride.R
-import com.trio.stride.RecordService
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.ui.components.StatusMessage
 import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.RequestNotificationPermission
 import com.trio.stride.ui.utils.ble.PermissionUtils
-import com.trio.stride.ui.utils.ble.SystemBroadcastReceiver
 
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun HeartRateScreen(
-    viewModel: HeartRateViewModel
+fun HeartRateView(
+    bleConnectionState: ConnectionState,
+    devices: List<BluetoothDevice>,
+    isBluetoothOn: Boolean,
+    selectedDevice: BluetoothDevice?,
+    heartRate: Int,
+    connectDevice: (BluetoothDevice) -> Unit,
+    reconnect: () -> Unit,
+    disconnect: () -> Unit,
+    initializeConnection: () -> Unit,
 ) {
-//    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
-//        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
-//        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-//            val state = bluetoothState.getIntExtra(EXTRA_STATE, ERROR)
-//            when (state) {
-//                STATE_ON -> viewModel.setBluetoothState(true)
-//                STATE_OFF -> viewModel.setBluetoothState(false)
-//            }
-//        }
-//    }
-    val context = LocalContext.current
+    var menuExpanded by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val permissionState =
         rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val bleConnectionState by viewModel.connectionState.collectAsStateWithLifecycle()
-    val devices by viewModel.scannedDevices.collectAsStateWithLifecycle()
-    var menuExpanded by remember { mutableStateOf(false) }
-    val isBluetoothOn by viewModel.isBluetoothOn.collectAsStateWithLifecycle()
-    val selectedDevice by viewModel.selectedDevice.collectAsStateWithLifecycle()
-
-    val heartRate by viewModel.heartRate.collectAsState()
 
 
     DisposableEffect(key1 = lifecycleOwner, effect = {
@@ -103,7 +78,7 @@ fun HeartRateScreen(
             if (event == Lifecycle.Event.ON_START) {
                 permissionState.launchMultiplePermissionRequest()
                 if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
-                    viewModel.reconnect(context)
+                    reconnect()
                 }
             }
 
@@ -124,13 +99,12 @@ fun HeartRateScreen(
 
     LaunchedEffect(key1 = permissionState.allPermissionsGranted) {
         if (permissionState.allPermissionsGranted) {
-            Log.d("bluetoothScan", "in launch effect ${bleConnectionState.toString()}")
+            Log.d("bluetoothScan", "in launch effect $bleConnectionState")
             if (bleConnectionState == ConnectionState.Uninitialized) {
-                viewModel.initializeConnection(context)
+                initializeConnection()
             }
         }
     }
-
 
     Scaffold(modifier = Modifier.background(StrideTheme.colors.white)) { paddingValues ->
         Column(
@@ -174,18 +148,6 @@ fun HeartRateScreen(
                 }
             )
 
-            Button(onClick = {
-                viewModel.startWorkout(context)
-            }) {
-                Text("Start Workout")
-            }
-
-            Button(onClick = {
-                viewModel.stopWorkout(context)
-            }) {
-                Text("Stop Workout")
-            }
-
             Spacer(Modifier.height(16.dp))
             LazyColumn {
                 itemsIndexed(devices) { index, device ->
@@ -193,7 +155,7 @@ fun HeartRateScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                viewModel.connectToDevice(context, device)
+                                connectDevice(device)
                             }
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -258,7 +220,7 @@ fun HeartRateScreen(
                                             text = { Text("Disconnect") },
                                             onClick = {
                                                 menuExpanded = false
-                                                viewModel.disconnect(context)
+                                                disconnect()
                                             },
                                             contentPadding = PaddingValues(
                                                 horizontal = 12.dp,

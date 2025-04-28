@@ -1,7 +1,7 @@
 package com.trio.stride.ui.screens.activity
 
 import androidx.lifecycle.ViewModel
-import com.trio.stride.data.RecordRepository
+import com.trio.stride.data.repositoryimpl.RecordRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject

@@ -1,5 +1,6 @@
-package com.trio.stride.data
+package com.trio.stride.data.repositoryimpl
 
+import android.content.Context
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
@@ -16,6 +17,7 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.domain.model.Coordinate
 import com.trio.stride.ui.screens.record.RecordViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -26,7 +28,9 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Singleton
-class RecordRepository @Inject constructor() {
+class RecordRepository @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
     val MIN_METER_TO_ADD_NEW_POINT = 1
 
     private val _heartRate = MutableStateFlow(0)

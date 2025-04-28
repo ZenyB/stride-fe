@@ -1,9 +1,5 @@
-package com.trio.stride.ui.components.button
+package com.trio.stride.ui.components.button.userlocation
 
-import android.app.Activity
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
@@ -21,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.viewport.ViewportStatus
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateBearing
@@ -28,8 +25,10 @@ import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
 import com.mapbox.maps.plugin.viewport.data.ViewportStatusChangeReason
 import com.mapbox.maps.plugin.viewport.viewport
 import com.trio.stride.R
+import com.trio.stride.ui.screens.record.RecordViewModel
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.BearingStatus
+import com.trio.stride.ui.utils.map.GpsUtils
 import com.trio.stride.ui.utils.map.checkLocationOn
 import com.trio.stride.ui.utils.map.isLocationEnabled
 
@@ -38,18 +37,13 @@ fun FocusUserLocationButton(
     mapView: MapView,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
+    state: FocusUserLocationButtonState = hiltViewModel()
 ) {
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val launcher = GpsUtils.createGpsLauncher(context, mapView, updateGpsStatus = { status ->
+        state.updateGpsStatus(status)
+    })
 
     val followPuckWithBearing by remember {
         mutableStateOf(
@@ -103,9 +97,9 @@ fun FocusUserLocationButton(
     FloatingActionButton(
         modifier = modifier
             .size(44.dp)
-            .background(StrideTheme.colorScheme.background, CircleShape)
+            .background(StrideTheme.colorScheme.surfaceContainerLowest, CircleShape)
             .clip(CircleShape),
-        containerColor = StrideTheme.colorScheme.background,
+        containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
         shape = CircleShape,
         onClick = {
             if (isLocationEnabled(context)) {
@@ -127,20 +121,28 @@ fun FocusUserLocationButton(
                             mapView.viewport.transitionTo(followPuckNoBearing)
                         }
                     }
+                    state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
                 } else {
                     mapView.viewport.transitionTo(followPuckNoBearing)
+                    state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
                 }
             } else {
-                checkLocationOn(context, mapView, launcher)
+                state.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS)
+                checkLocationOn(context, mapView, launcher,
+                    successAction = {
+                        state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
+                    },
+                    failureAction = {
+                        state.updateGpsStatus(RecordViewModel.GPSStatus.NO_GPS)
+                    })
             }
         }
     ) {
         Crossfade(targetState = bearingStatus.value, label = "Bearing Icon") { status ->
             val icon = when (status) {
-                BearingStatus.NONE -> painterResource(R.drawable.user_location_icon)
                 BearingStatus.HEADING -> painterResource(R.drawable.compass_icon)
                 BearingStatus.FOCUS -> painterResource(R.drawable.gps_focus_icon)
-                BearingStatus.NO_GPS -> painterResource(R.drawable.gps_off_icon)
+                else -> painterResource(R.drawable.user_location_icon)
             }
 
             Icon(

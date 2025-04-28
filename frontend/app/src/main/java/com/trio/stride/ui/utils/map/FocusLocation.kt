@@ -49,7 +49,8 @@ fun checkLocationOn(
     context: Context,
     mapView: MapView?,
     launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
-    successAction: () -> Unit = {}
+    successAction: () -> Unit = {},
+    failureAction: () -> Unit = {},
 ) {
 
     val locationRequest =
@@ -75,9 +76,11 @@ fun checkLocationOn(
                         IntentSenderRequest.Builder(exception.resolution).build()
                     launcher.launch(intentSenderRequest)
                 } catch (e: Exception) {
+                    failureAction()
                     e.printStackTrace()
                 }
             } else {
+                failureAction()
                 Toast.makeText(context, "Can't check location", Toast.LENGTH_SHORT)
                     .show()
             }
