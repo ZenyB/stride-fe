@@ -16,4 +16,5 @@ object ApiConstants {
     const val RECOMMEND = "stride-routes/recommend"
     const val SPORT = "sports"
     const val CATEGORY = "categories"
+    const val ACTIVITY = "activities"
 }
