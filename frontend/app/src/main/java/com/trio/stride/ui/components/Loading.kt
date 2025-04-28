@@ -23,6 +23,11 @@ fun Loading() {
             .zIndex(100000f),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(modifier = Modifier.size(88.dp), color = StrideTheme.colorScheme.primary, strokeWidth = 16.dp, strokeCap = StrokeCap.Round)
+        CircularProgressIndicator(
+            modifier = Modifier.size(64.dp),
+            color = StrideTheme.colorScheme.primary,
+            strokeWidth = 12.dp,
+            strokeCap = StrokeCap.Round
+        )
     }
 }

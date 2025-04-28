@@ -5,9 +5,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.EXTRA_DEVICE
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Looper
 import android.util.Log
@@ -25,6 +29,7 @@ import com.trio.stride.MainActivity
 import com.trio.stride.R
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.ble.HeartRateReceiveManager
+import com.trio.stride.data.ble.HeartRateResult
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.ui.utils.ble.Resource
 import com.trio.stride.ui.utils.formatTimeByMillis
@@ -54,6 +59,7 @@ class RecordService : LifecycleService() {
 
     private var observeJob: Job? = null
     private var timeJob: Job? = null
+    private var gpsMonitorJob: Job? = null
 
     private var isPaused = false
 
@@ -122,6 +128,9 @@ class RecordService : LifecycleService() {
             LocationServices.getFusedLocationProviderClient(applicationContext)
 
         createNotificationChannel()
+
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(bluetoothStateReceiver, filter)
     }
 
     private fun startForeground() {
@@ -215,7 +224,10 @@ class RecordService : LifecycleService() {
     }
 
     fun startTracking() {
-        if (!hasLocationPermission()) return
+        if (!hasLocationPermission()) {
+            Log.w("RecordService", "Cannot start tracking due to GPS issues")
+            return
+        }
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setMinUpdateIntervalMillis(1000)
@@ -303,6 +315,7 @@ class RecordService : LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        unregisterReceiver(bluetoothStateReceiver)
         serviceScope.cancel()
     }
 
@@ -318,6 +331,39 @@ class RecordService : LifecycleService() {
         const val STOP_RECORDING = "STOP_RECORDING"
         const val PAUSE_RECORDING = "PAUSE_RECORDING"
         const val RESUME_RECORDING = "RESUME_RECORDING"
+        const val START_GPS_CHECK = "START_GPS_CHECK"
+    }
+
+    private val bluetoothStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.action
+            if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+                when (state) {
+                    BluetoothAdapter.STATE_ON -> {
+                        heartRateReceiveManager.setBluetoothState(true)
+                        heartRateReceiveManager.reconnect()
+                    }
+
+                    BluetoothAdapter.STATE_OFF -> {
+                        heartRateReceiveManager.setBluetoothState(false)
+                        heartRateReceiveManager.disconnect()
+                        heartRateReceiveManager.closeConnection()
+
+                        serviceScope.launch {
+                            heartRateReceiveManager.data.emit(
+                                Resource.Success(
+                                    data = HeartRateResult(
+                                        0,
+                                        ConnectionState.Disconnected
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

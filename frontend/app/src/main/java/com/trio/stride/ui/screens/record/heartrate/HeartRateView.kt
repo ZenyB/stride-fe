@@ -46,6 +46,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.trio.stride.R
 import com.trio.stride.data.ble.ConnectionState
+import com.trio.stride.ui.components.StatusMessage
+import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.RequestNotificationPermission
 import com.trio.stride.ui.utils.ble.PermissionUtils
@@ -57,19 +59,19 @@ fun HeartRateView(
     bleConnectionState: ConnectionState,
     devices: List<BluetoothDevice>,
     isBluetoothOn: Boolean,
-    selectedDeviceAddress: String,
+    selectedDevice: BluetoothDevice?,
     heartRate: Int,
     connectDevice: (BluetoothDevice) -> Unit,
     reconnect: () -> Unit,
     disconnect: () -> Unit,
     initializeConnection: () -> Unit,
 ) {
-
     var menuExpanded by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val permissionState =
         rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
+
 
     DisposableEffect(key1 = lifecycleOwner, effect = {
         val observer = LifecycleEventObserver { _, event ->
@@ -95,8 +97,9 @@ fun HeartRateView(
         }
     })
 
-    LaunchedEffect(key1 = permissionState.allPermissionsGranted, key2 = isBluetoothOn) {
+    LaunchedEffect(key1 = permissionState.allPermissionsGranted) {
         if (permissionState.allPermissionsGranted) {
+            Log.d("bluetoothScan", "in launch effect $bleConnectionState")
             if (bleConnectionState == ConnectionState.Uninitialized) {
                 initializeConnection()
             }
@@ -117,14 +120,15 @@ fun HeartRateView(
             )
 
             Spacer(Modifier.height(16.dp))
-            Text(
-                "One heart rate sensor can be connected at a time",
-                style = StrideTheme.typography.labelLarge,
-            )
             if (isBluetoothOn) {
-                Text("Bluetooth is ON ✅")
-            } else {
-                Text("Bluetooth is OFF ❌")
+                Text(
+                    "One heart rate sensor can be connected at a time",
+                    style = StrideTheme.typography.labelLarge,
+                )
+            }
+
+            if (!isBluetoothOn) {
+                StatusMessage(text = "bluetooth off", type = StatusMessageType.ERROR)
             }
             Spacer(Modifier.height(32.dp))
             Text(
@@ -172,7 +176,9 @@ fun HeartRateView(
                                     text = device.name ?: "Unnamed",
                                     style = StrideTheme.typography.bodyLarge,
                                 )
-                                if (device.address == selectedDeviceAddress) {
+                                if (device.address == selectedDevice?.address
+                                    && bleConnectionState == ConnectionState.Connected
+                                ) {
                                     Text(
                                         text = "Heart rate: $heartRate",
                                         style = StrideTheme.typography.labelMedium,
@@ -182,47 +188,50 @@ fun HeartRateView(
                             }
                         }
 
-                        if (bleConnectionState == ConnectionState.CurrentlyInitializing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = StrideTheme.colorScheme.primary,
-                                strokeCap = StrokeCap.Round,
-                                strokeWidth = 2.dp
-                            )
-                        } else if (bleConnectionState == ConnectionState.Connected) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Connected",
-                                    style = StrideTheme.typography.labelMedium,
-                                    color = StrideTheme.colors.gray600
+                        if (device.address == selectedDevice?.address) {
+                            if (bleConnectionState == ConnectionState.CurrentlyInitializing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = StrideTheme.colorScheme.primary,
+                                    strokeCap = StrokeCap.Round,
+                                    strokeWidth = 2.dp
                                 )
-                                Spacer(modifier = Modifier.width(2.dp))
-                                IconButton(onClick = { menuExpanded = true }) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ellipsis_more),
-                                        contentDescription = "More Options",
-                                        tint = StrideTheme.colorScheme.primary
+                            } else if (bleConnectionState == ConnectionState.Connected) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Connected",
+                                        style = StrideTheme.typography.labelMedium,
+                                        color = StrideTheme.colors.gray600
                                     )
-                                }
-
-                                DropdownMenu(
-                                    expanded = menuExpanded,
-                                    onDismissRequest = { menuExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Disconnect") },
-                                        onClick = {
-                                            menuExpanded = false
-                                            disconnect()
-                                        },
-                                        contentPadding = PaddingValues(
-                                            horizontal = 12.dp,
-                                            vertical = 4.dp
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ellipsis_more),
+                                            contentDescription = "More Options",
+                                            tint = StrideTheme.colorScheme.primary
                                         )
-                                    )
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Disconnect") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                disconnect()
+                                            },
+                                            contentPadding = PaddingValues(
+                                                horizontal = 12.dp,
+                                                vertical = 4.dp
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
+
                     }
                 }
 

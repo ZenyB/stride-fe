@@ -29,8 +29,13 @@ import com.trio.stride.ui.theme.StrideTheme
 @Composable
 fun BottomNavBar(navController: NavHostController) {
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination
+    val statusBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    Column(modifier = Modifier.background(Color.White)) {
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .height(statusBarHeight + 72.dp)
+    ) {
         BottomNavigation(
             backgroundColor = Color.White
         ) {

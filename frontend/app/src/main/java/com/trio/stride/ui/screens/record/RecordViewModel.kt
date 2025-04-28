@@ -13,6 +13,7 @@ import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.ble.HeartRateReceiveManager
+import com.trio.stride.data.repositoryimpl.GpsRepository
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService
 import com.trio.stride.domain.model.ActivityMetric
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecordViewModel @Inject constructor(
     private val recordRepository: RecordRepository,
+    private val gpsRepository: GpsRepository,
     private val heartRateReceiveManager: HeartRateReceiveManager
 ) : BaseViewModel<RecordViewModel.RecordViewState>() {
 
@@ -36,11 +38,12 @@ class RecordViewModel @Inject constructor(
     var connectionState = recordRepository.connectionState
     val scannedDevices = heartRateReceiveManager.scannedDevices
     val isBluetoothOn: StateFlow<Boolean> = heartRateReceiveManager.isBluetoothOn
-    val selectedDeviceAddress: StateFlow<String> = heartRateReceiveManager.selectedDeviceAddress
+    val selectedDevice: StateFlow<BluetoothDevice?> = heartRateReceiveManager.selectedDevice
 
     val activityType: StateFlow<ActivityType> = recordRepository.activityType
     val screenStatus: StateFlow<ScreenStatus> = recordRepository.screenStatus
     val recordStatus: StateFlow<RecordStatus> = recordRepository.recordStatus
+    val gpsStatus: StateFlow<GPSStatus> = gpsRepository.gpsStatus
 
     val startPoint: StateFlow<Point?> = recordRepository.startPoint
     val mapView: StateFlow<MapView?> = recordRepository.mapView
@@ -101,6 +104,7 @@ class RecordViewModel @Inject constructor(
         context.startService(startIntent)
     }
 
+
     fun disconnect(context: Context) {
         val startIntent = Intent(context, RecordService::class.java).apply {
             action = RecordService.DISCONNECT
@@ -109,7 +113,6 @@ class RecordViewModel @Inject constructor(
     }
 
     fun initializeConnection(context: Context) {
-        setState { currentState.copy(bluetoothErrMessage = null) }
         val startIntent = Intent(context, RecordService::class.java).apply {
             action = RecordService.START_RECEIVING
         }

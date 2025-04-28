@@ -2,11 +2,6 @@ package com.trio.stride.ui.screens.record
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.ERROR
-import android.bluetooth.BluetoothAdapter.EXTRA_STATE
-import android.bluetooth.BluetoothAdapter.STATE_OFF
-import android.bluetooth.BluetoothAdapter.STATE_ON
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -50,7 +45,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,8 +60,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -80,16 +72,16 @@ import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.R
-import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.ui.components.CustomCenterTopAppBar
-import com.trio.stride.ui.components.button.UserLocationButton
+import com.trio.stride.ui.components.StatusMessage
+import com.trio.stride.ui.components.StatusMessageType
+import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.ble.PermissionUtils
-import com.trio.stride.ui.utils.ble.SystemBroadcastReceiver
 import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatSpeed
 import com.trio.stride.ui.utils.formatTimeByMillis
@@ -132,6 +124,7 @@ fun RecordScreen(
     val activityType by viewModel.activityType.collectAsStateWithLifecycle()
     val screenStatus by viewModel.screenStatus.collectAsStateWithLifecycle()
     val recordStatus by viewModel.recordStatus.collectAsStateWithLifecycle()
+    val gpsStatus by viewModel.gpsStatus.collectAsStateWithLifecycle()
     val startPoint by viewModel.startPoint.collectAsStateWithLifecycle()
     val mapView by viewModel.mapView.collectAsStateWithLifecycle()
     val locationPoints by viewModel.locationPoints.collectAsStateWithLifecycle()
@@ -140,7 +133,7 @@ fun RecordScreen(
     val bleConnectionState by viewModel.connectionState.collectAsStateWithLifecycle()
     val devices by viewModel.scannedDevices.collectAsStateWithLifecycle()
     val isBluetoothOn by viewModel.isBluetoothOn.collectAsStateWithLifecycle()
-    val selectedDeviceAddress by viewModel.selectedDeviceAddress.collectAsStateWithLifecycle()
+    val selectedDevice by viewModel.selectedDevice.collectAsStateWithLifecycle()
     val heartRate by viewModel.heartRate.collectAsState()
 
     val startButtonGPSLauncher = rememberLauncherForActivityResult(
@@ -148,22 +141,22 @@ fun RecordScreen(
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
-            focusToUser(mapView, mapViewportState)
+            focusToUser(mapView)
         } else {
             Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
         }
     }
 
-    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
-        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
-        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-            val state = bluetoothState.getIntExtra(EXTRA_STATE, ERROR)
-            when (state) {
-                STATE_ON -> viewModel.setBluetoothState(true)
-                STATE_OFF -> viewModel.setBluetoothState(false)
-            }
-        }
-    }
+//    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
+//        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
+//        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+//            val state = bluetoothState.getIntExtra(EXTRA_STATE, ERROR)
+//            when (state) {
+//                STATE_ON -> viewModel.setBluetoothState(true)
+//                STATE_OFF -> viewModel.setBluetoothState(false)
+//            }
+//        }
+//    }
 
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     BackHandler {
@@ -175,39 +168,7 @@ fun RecordScreen(
     }
 
     LaunchedEffect(Unit) {
-        focusToUser(mapView, mapViewportState)
-    }
-
-    DisposableEffect(key1 = lifecycleOwner, effect = {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) {
-                permissionState.launchMultiplePermissionRequest()
-                if (permissionState.allPermissionsGranted && bleConnectionState == ConnectionState.Disconnected) {
-                    viewModel.reconnect(context)
-                }
-            }
-
-            if (event == Lifecycle.Event.ON_STOP) {
-                if (bleConnectionState == ConnectionState.Connected) {
-                    //TODO
-//                    viewModel.disconnect()
-                }
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    })
-
-    LaunchedEffect(key1 = permissionState.allPermissionsGranted, key2 = isBluetoothOn) {
-        if (permissionState.allPermissionsGranted) {
-            if (bleConnectionState == ConnectionState.Uninitialized) {
-                viewModel.initializeConnection(context)
-            }
-        }
+        focusToUser(mapView)
     }
 
     Scaffold(
@@ -266,15 +227,9 @@ fun RecordScreen(
                         tint = StrideTheme.colorScheme.onBackground
                     )
                 }
-                UserLocationButton(
-                    mapViewportState = mapViewportState,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(StrideTheme.colorScheme.background, CircleShape)
-                        .clip(CircleShape),
-                    iconModifier = Modifier.size(28.dp),
-                    mapView = mapView
-                )
+                mapView?.let { mv ->
+                    FocusUserLocationButton(mapView = mv)
+                }
             }
         },
         bottomBar = {
@@ -354,7 +309,6 @@ fun RecordScreen(
                                         else
                                             checkLocationOn(
                                                 context,
-                                                mapViewportState,
                                                 mapView,
                                                 startButtonGPSLauncher
                                             )
@@ -548,7 +502,6 @@ fun RecordScreen(
                     viewModel.setMapView(mv)
                     viewModel.drawRoute(mv, emptyList())
                     viewModel.reloadMapStyle()
-//                    viewModel.trackingLocation()
                     viewModel.enableUserLocation()
                 }
                 if (startPoint != null) {
@@ -560,6 +513,8 @@ fun RecordScreen(
                     }
                 }
             }
+
+            GPSStatusMessage(Modifier.padding(top = padding.calculateTopPadding()), gpsStatus)
 
             AnimatedVisibility(
                 screenStatus == RecordViewModel.ScreenStatus.DETAIL,
@@ -614,65 +569,84 @@ fun RecordScreen(
 
                 }
             }
-        }
 
-        if (showRequestPermissionButton) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(modifier = Modifier.align(Alignment.Center)) {
-                    Button(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        onClick = {
-                            permissionRequestCount += 1
+            if (showRequestPermissionButton) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.align(Alignment.Center)) {
+                        Button(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            onClick = {
+                                permissionRequestCount += 1
+                            }
+                        ) {
+                            Text("Request permission again ($permissionRequestCount)")
                         }
-                    ) {
-                        Text("Request permission again ($permissionRequestCount)")
-                    }
-                    Button(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        onClick = {
-                            context.startActivity(
-                                Intent(
-                                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                    Uri.fromParts("package", context.packageName, null)
+                        Button(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            onClick = {
+                                context.startActivity(
+                                    Intent(
+                                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        Uri.fromParts("package", context.packageName, null)
 
+                                    )
                                 )
-                            )
+                            }
+                        ) {
+                            Text("Show App Settings page")
                         }
-                    ) {
-                        Text("Show App Settings page")
                     }
                 }
             }
+
+
+            AnimatedVisibility(
+                screenStatus == RecordViewModel.ScreenStatus.SENSOR,
+                enter = slideInVertically(
+                    initialOffsetY = { it }
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it }
+                )
+            ) {
+                HeartRateView(
+                    bleConnectionState = bleConnectionState,
+                    devices = devices,
+                    isBluetoothOn = isBluetoothOn,
+                    selectedDevice = selectedDevice,
+                    heartRate = heartRate,
+                    connectDevice = { device ->
+                        viewModel.connectToDevice(context, device)
+                    },
+                    reconnect = {
+                        viewModel.reconnect(context)
+                    },
+                    disconnect = {
+                        viewModel.disconnect(context)
+                    },
+                    initializeConnection = {
+                        viewModel.initializeConnection(context)
+                    }
+                )
+            }
         }
     }
+}
 
-    AnimatedVisibility(
-        screenStatus == RecordViewModel.ScreenStatus.SENSOR,
-        enter = slideInVertically(
-            initialOffsetY = { it }
-        ),
-        exit = slideOutVertically(
-            targetOffsetY = { it }
-        )
-    ) {
-        HeartRateView(
-            bleConnectionState = bleConnectionState,
-            devices = devices,
-            isBluetoothOn = isBluetoothOn,
-            selectedDeviceAddress = selectedDeviceAddress,
-            heartRate = heartRate,
-            connectDevice = { device ->
-                viewModel.connectToDevice(context, device)
-            },
-            reconnect = {
-                viewModel.reconnect(context)
-            },
-            disconnect = {
-                viewModel.disconnect(context)
-            },
-            initializeConnection = {
-                viewModel.initializeConnection(context)
-            }
-        )
+@Composable
+private fun GPSStatusMessage(modifier: Modifier = Modifier, gpsStatus: RecordViewModel.GPSStatus) {
+    when (gpsStatus) {
+        RecordViewModel.GPSStatus.NO_GPS -> {
+            StatusMessage("NO GPS", StatusMessageType.ERROR, modifier)
+        }
+
+        RecordViewModel.GPSStatus.ACQUIRING_GPS -> {
+            StatusMessage("ACQUIRING GPS...", StatusMessageType.PROCESSING, modifier)
+        }
+
+        RecordViewModel.GPSStatus.GPS_READY -> {
+            StatusMessage("GPS READY", StatusMessageType.SUCCESS, modifier)
+        }
     }
 }
+

@@ -1,6 +1,7 @@
 package com.trio.stride.ui.utils.map
 
 import android.content.Context
+import android.location.LocationManager
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
@@ -14,17 +15,42 @@ import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.mapbox.maps.MapView
-import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
-import com.mapbox.maps.plugin.PuckBearing
-import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
-import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateBearing
+import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
+import com.mapbox.maps.plugin.viewport.viewport
+
+enum class BearingStatus {
+    NONE, // Not focus user location
+    HEADING,
+    FOCUS,
+    NO_GPS
+}
+
+val followPuckWithBearingBuilder =
+    FollowPuckViewportStateOptions.Builder()
+        .bearing(FollowPuckViewportStateBearing.SyncWithLocationPuck)
+        .pitch(0.6)
+        .zoom(16.0)
+        .build()
+
+val followPuckWithoutBearingBuilder =
+    FollowPuckViewportStateOptions.Builder()
+        .bearing(FollowPuckViewportStateBearing.Constant(0.0))
+        .pitch(0.0)
+        .zoom(16.0)
+        .build()
+
+fun isLocationEnabled(context: Context): Boolean {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+}
 
 fun checkLocationOn(
     context: Context,
-    mapViewportState: MapViewportState,
     mapView: MapView?,
     launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
-    successAction: () -> Unit = {}
+    successAction: () -> Unit = {},
+    failureAction: () -> Unit = {},
 ) {
 
     val locationRequest =
@@ -40,7 +66,7 @@ fun checkLocationOn(
 
     client.checkLocationSettings(builder.build())
         .addOnSuccessListener(OnSuccessListener {
-            focusToUser(mapView, mapViewportState)
+            focusToUser(mapView)
             successAction()
         })
         .addOnFailureListener(OnFailureListener { exception ->
@@ -50,9 +76,11 @@ fun checkLocationOn(
                         IntentSenderRequest.Builder(exception.resolution).build()
                     launcher.launch(intentSenderRequest)
                 } catch (e: Exception) {
+                    failureAction()
                     e.printStackTrace()
                 }
             } else {
+                failureAction()
                 Toast.makeText(context, "Can't check location", Toast.LENGTH_SHORT)
                     .show()
             }
@@ -61,22 +89,14 @@ fun checkLocationOn(
 
 fun focusToUser(
     mapView: MapView?,
-    mapViewportState: MapViewportState
+    followUserHeading: Boolean = false
 ) {
-    mapView?.let {
-        it.location.updateSettings {
-            locationPuck = createDefault2DPuck(withBearing = true)
-            puckBearingEnabled = true
-            puckBearing = PuckBearing.HEADING
-            enabled = true
-        }
-    }
+    val viewportState = if (followUserHeading)
+        mapView?.viewport?.makeFollowPuckViewportState(followPuckWithBearingBuilder)
+    else
+        mapView?.viewport?.makeFollowPuckViewportState(followPuckWithoutBearingBuilder)
 
-    mapViewportState.transitionToFollowPuckState(
-        completionListener = { isFinish ->
-            if (isFinish) {
-                mapViewportState.setCameraOptions { bearing(null) }
-            }
-        }
-    )
+    viewportState?.let {
+        mapView?.viewport?.transitionTo(it)
+    }
 }
