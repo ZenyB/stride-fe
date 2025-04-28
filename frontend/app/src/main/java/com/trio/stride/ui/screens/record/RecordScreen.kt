@@ -88,6 +88,7 @@ import com.trio.stride.ui.utils.formatTimeByMillis
 import com.trio.stride.ui.utils.map.RequestLocationPermission
 import com.trio.stride.ui.utils.map.checkLocationOn
 import com.trio.stride.ui.utils.map.focusToUser
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -514,7 +515,20 @@ fun RecordScreen(
                 }
             }
 
-            GPSStatusMessage(Modifier.padding(top = padding.calculateTopPadding()), gpsStatus)
+            if (screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
+                if (recordStatus == RecordViewModel.RecordStatus.NONE)
+                    GPSStatusMessage(
+                        Modifier.padding(top = padding.calculateTopPadding()),
+                        gpsStatus
+                    )
+                if (recordStatus == RecordViewModel.RecordStatus.STOP)
+                    StatusMessage(
+                        text = "STOP",
+                        type = StatusMessageType.ERROR,
+                        Modifier.padding(top = padding.calculateTopPadding())
+                    )
+            }
+
 
             AnimatedVisibility(
                 screenStatus == RecordViewModel.ScreenStatus.DETAIL,
@@ -598,46 +612,54 @@ fun RecordScreen(
                     }
                 }
             }
-
-
-            AnimatedVisibility(
-                screenStatus == RecordViewModel.ScreenStatus.SENSOR,
-                enter = slideInVertically(
-                    initialOffsetY = { it }
-                ),
-                exit = slideOutVertically(
-                    targetOffsetY = { it }
-                )
-            ) {
-                HeartRateView(
-                    bleConnectionState = bleConnectionState,
-                    devices = devices,
-                    isBluetoothOn = isBluetoothOn,
-                    selectedDevice = selectedDevice,
-                    heartRate = heartRate,
-                    connectDevice = { device ->
-                        viewModel.connectToDevice(context, device)
-                    },
-                    reconnect = {
-                        viewModel.reconnect(context)
-                    },
-                    disconnect = {
-                        viewModel.disconnect(context)
-                    },
-                    initializeConnection = {
-                        viewModel.initializeConnection(context)
-                    }
-                )
-            }
         }
+    }
+    AnimatedVisibility(
+        screenStatus == RecordViewModel.ScreenStatus.SENSOR,
+        enter = slideInVertically(
+            initialOffsetY = { it }
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it }
+        )
+    ) {
+        HeartRateView(
+            bleConnectionState = bleConnectionState,
+            devices = devices,
+            isBluetoothOn = isBluetoothOn,
+            selectedDevice = selectedDevice,
+            heartRate = heartRate,
+            connectDevice = { device ->
+                viewModel.connectToDevice(context, device)
+            },
+            reconnect = {
+                viewModel.reconnect(context)
+            },
+            disconnect = {
+                viewModel.disconnect(context)
+            },
+            initializeConnection = {
+                viewModel.initializeConnection(context)
+            }
+        )
     }
 }
 
 @Composable
 private fun GPSStatusMessage(modifier: Modifier = Modifier, gpsStatus: RecordViewModel.GPSStatus) {
+    val showMessage = remember { mutableStateOf(true) }
+
+    LaunchedEffect(gpsStatus) {
+        if (gpsStatus == RecordViewModel.GPSStatus.GPS_READY) {
+            delay(5000)
+            showMessage.value = false
+        } else {
+            showMessage.value = true
+        }
+    }
     when (gpsStatus) {
         RecordViewModel.GPSStatus.NO_GPS -> {
-            StatusMessage("NO GPS", StatusMessageType.ERROR, modifier)
+            StatusMessage("NO GPS SIGNAL", StatusMessageType.ERROR, modifier)
         }
 
         RecordViewModel.GPSStatus.ACQUIRING_GPS -> {
@@ -645,7 +667,8 @@ private fun GPSStatusMessage(modifier: Modifier = Modifier, gpsStatus: RecordVie
         }
 
         RecordViewModel.GPSStatus.GPS_READY -> {
-            StatusMessage("GPS READY", StatusMessageType.SUCCESS, modifier)
+            if (showMessage.value)
+                StatusMessage("GPS SIGNAL ACQUIRED", StatusMessageType.SUCCESS, modifier)
         }
     }
 }
