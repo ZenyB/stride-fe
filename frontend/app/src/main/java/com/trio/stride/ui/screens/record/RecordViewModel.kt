@@ -170,6 +170,10 @@ class RecordViewModel @Inject constructor(
         recordRepository.updateScreenStatus(ScreenStatus.DEFAULT)
     }
 
+    fun updateGpsStatus(status: GPSStatus) {
+        gpsRepository.updateGpsStatus(status)
+    }
+
     data class RecordViewState(
         val isLoading: Boolean = false,
         val bluetoothErrMessage: String? = null,

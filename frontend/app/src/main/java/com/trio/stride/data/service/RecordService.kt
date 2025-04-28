@@ -59,7 +59,6 @@ class RecordService : LifecycleService() {
 
     private var observeJob: Job? = null
     private var timeJob: Job? = null
-    private var gpsMonitorJob: Job? = null
 
     private var isPaused = false
 
@@ -224,10 +223,7 @@ class RecordService : LifecycleService() {
     }
 
     fun startTracking() {
-        if (!hasLocationPermission()) {
-            Log.w("RecordService", "Cannot start tracking due to GPS issues")
-            return
-        }
+        if (!hasLocationPermission()) return
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setMinUpdateIntervalMillis(1000)
@@ -331,7 +327,6 @@ class RecordService : LifecycleService() {
         const val STOP_RECORDING = "STOP_RECORDING"
         const val PAUSE_RECORDING = "PAUSE_RECORDING"
         const val RESUME_RECORDING = "RESUME_RECORDING"
-        const val START_GPS_CHECK = "START_GPS_CHECK"
     }
 
     private val bluetoothStateReceiver = object : BroadcastReceiver() {

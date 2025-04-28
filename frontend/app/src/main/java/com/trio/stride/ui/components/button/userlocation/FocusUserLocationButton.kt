@@ -1,9 +1,5 @@
 package com.trio.stride.ui.components.button.userlocation
 
-import android.app.Activity
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
@@ -32,6 +28,7 @@ import com.trio.stride.R
 import com.trio.stride.ui.screens.record.RecordViewModel
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.BearingStatus
+import com.trio.stride.ui.utils.map.GpsUtils
 import com.trio.stride.ui.utils.map.checkLocationOn
 import com.trio.stride.ui.utils.map.isLocationEnabled
 
@@ -44,17 +41,9 @@ fun FocusUserLocationButton(
 ) {
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
-            state.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS)
-        } else {
-            Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
-            state.updateGpsStatus(RecordViewModel.GPSStatus.NO_GPS)
-        }
-    }
+    val launcher = GpsUtils.createGpsLauncher(context, mapView, updateGpsStatus = { status ->
+        state.updateGpsStatus(status)
+    })
 
     val followPuckWithBearing by remember {
         mutableStateOf(
@@ -138,7 +127,7 @@ fun FocusUserLocationButton(
                     state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
                 }
             } else {
-                state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
+                state.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS)
                 checkLocationOn(context, mapView, launcher,
                     successAction = {
                         state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
