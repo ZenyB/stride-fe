@@ -16,15 +16,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -35,7 +38,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,7 +51,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,9 +80,11 @@ fun ActivityFormView(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sports by viewModel.sports.collectAsStateWithLifecycle()
-    val previewImage = remember { mutableStateListOf<Uri>() }
 
+    val previewImage = remember { mutableStateListOf<Uri>() }
     val expandImageOptionMenu = remember { mutableStateOf(false) }
+    val isRpePressed = remember { mutableStateOf(false) }
+    val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
 
     val isCreate = true
 
@@ -130,7 +133,7 @@ fun ActivityFormView(
                     placeholder = {
                         Text(
                             "Title of your run",
-                            style = StrideTheme.typography.bodyMedium.copy(color = StrideTheme.colors.placeHolderText)
+                            style = StrideTheme.typography.labelLarge.copy(color = StrideTheme.colors.placeHolderText)
                         )
                     },
                     keyboardOptions = KeyboardOptions(
@@ -175,6 +178,8 @@ fun ActivityFormView(
                             indication = ripple(bounded = true)
                         ) {
                             feelingBottomSheetState.show()
+                            if (!isRpePressed.value)
+                                isRpePressed.value = true
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -183,16 +188,23 @@ fun ActivityFormView(
                         modifier = Modifier.padding(start = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            painter = rememberAsyncImagePainter(state.sport.image), //replace after
-                            contentDescription = "Rpe Status",
-                            tint = StrideTheme.colorScheme.onBackground
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        val rpe =
-                            if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe
-                        Text(rpe.toRpeString(), style = StrideTheme.typography.labelMedium)
+                        if (isRpePressed.value) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter = rememberAsyncImagePainter(state.sport.image), //replace after
+                                contentDescription = "Rpe Status",
+                                tint = StrideTheme.colorScheme.onBackground
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            val rpe =
+                                if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe
+                            Text(rpe.toRpeString(), style = StrideTheme.typography.labelLarge)
+                        } else {
+                            Text(
+                                "How did that activity feel?",
+                                style = StrideTheme.typography.labelLarge.copy(color = StrideTheme.colors.placeHolderText)
+                            )
+                        }
                     }
                     IconButton(
                         modifier = Modifier.padding(end = 8.dp),
@@ -214,16 +226,23 @@ fun ActivityFormView(
                 //ShowSelectedImage&ImagePicker
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth().height(160.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
                 ) {
                     items(state.activity.images) { image ->
                         Image(
                             painter = rememberAsyncImagePainter(image),
                             contentDescription = null,
                             modifier = Modifier
-                                .fillMaxHeight()
+                                .height(140.dp)
+                                .width(80.dp)
                                 .clip(RoundedCornerShape(6.dp))
-                                .border(1.dp, StrideTheme.colors.grayBorder, RoundedCornerShape(6.dp))
+                                .border(
+                                    1.dp,
+                                    StrideTheme.colors.grayBorder,
+                                    RoundedCornerShape(6.dp)
+                                )
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple()
@@ -232,32 +251,38 @@ fun ActivityFormView(
                                     newImages.remove(image)
                                     viewModel.updateActivityImage(newImages)
                                 },
-                            contentScale = ContentScale.FillHeight
+                            contentScale = ContentScale.Inside
                         )
                     }
 
-                    items(previewImage) { image ->
+                    itemsIndexed(previewImage) { index, image ->
                         Image(
                             painter = rememberAsyncImagePainter(image),
                             contentDescription = null,
                             modifier = Modifier
-                                .fillMaxHeight()
+                                .height(140.dp)
+                                .width(80.dp)
                                 .clip(RoundedCornerShape(6.dp))
-                                .border(1.dp, StrideTheme.colors.grayBorder, RoundedCornerShape(6.dp))
+                                .border(
+                                    1.dp,
+                                    StrideTheme.colors.grayBorder,
+                                    RoundedCornerShape(6.dp)
+                                )
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple()
                                 ) {
-                                    previewImage.remove(image)
+                                    selectedPreviewImageIndex.value = index
+                                    expandImageOptionMenu.value = true
                                 },
                             contentScale = ContentScale.FillHeight
                         )
                     }
 
                     item {
-                        ImagePickerView(modifier = Modifier) { uri ->
+                        ImagePickerView(modifier = Modifier.height(160.dp)) { uri ->
                             if (isCreate)
-                                uri?.let { previewImage.add(it) }
+                                previewImage.add(uri)
                             else
                                 viewModel.updateActivityImage(state.activity.images)
                         }
@@ -266,31 +291,56 @@ fun ActivityFormView(
             }
         }
     }
+    ImageOptionBottomView(
+        showImageOption = expandImageOptionMenu.value,
+        dismissAction = {
+            expandImageOptionMenu.value = false
+            selectedPreviewImageIndex.value = null
+        },
+        onDelete = {
+            selectedPreviewImageIndex.value?.let { previewImage.removeAt(it) }
+            selectedPreviewImageIndex.value = null
+            expandImageOptionMenu.value = false
+        }
+    )
 }
 
 @Composable
 private fun ImageOptionBottomView(
     modifier: Modifier = Modifier,
     showImageOption: Boolean = false,
+    dismissAction: () -> Unit,
     onDelete: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = showImageOption,
         enter = slideInVertically(
-            initialOffsetY = { -it },
+            initialOffsetY = { it },
             animationSpec = tween(durationMillis = 300)
         ),
         exit = slideOutVertically(
-            targetOffsetY = { -it },
+            targetOffsetY = { it },
             animationSpec = tween(durationMillis = 300)
         )
     ) {
         Box(
-            modifier = modifier.fillMaxSize().background(StrideTheme.colors.gray.copy(alpha = 0.5f)),
+            modifier = modifier
+                .fillMaxSize()
+                .background(StrideTheme.colors.gray.copy(alpha = 0.5f))
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    dismissAction()
+                },
             Alignment.BottomCenter
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().background(StrideTheme.colorScheme.surfaceContainerLowest)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(StrideTheme.colorScheme.surfaceContainerLowest)
+                    .padding(16.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -300,17 +350,18 @@ private fun ImageOptionBottomView(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = ripple()
                         ) {
-                        onDelete()
-                    },
+                            onDelete()
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
+                        modifier = Modifier.size(32.dp),
                         imageVector = Icons.Filled.Delete,
                         contentDescription = "Delete",
                         tint = StrideTheme.colorScheme.onBackground
                     )
                     Spacer(Modifier.width(16.dp))
-                    Text("Delete", style = StrideTheme.typography.bodyMedium)
+                    Text("Delete", style = StrideTheme.typography.titleMedium)
                 }
             }
         }
