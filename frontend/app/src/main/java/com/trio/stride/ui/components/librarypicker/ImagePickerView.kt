@@ -1,6 +1,10 @@
 package com.trio.stride.ui.components.librarypicker
 
 import android.graphics.Paint
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +26,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trio.stride.R
 import com.trio.stride.ui.theme.StrideTheme
@@ -29,9 +34,15 @@ import com.trio.stride.ui.theme.StrideTheme
 @Composable
 fun ImagePickerView(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onImageSelected: (Uri?) -> Unit
 ) {
     val primaryColor = StrideTheme.colorScheme.primary
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> onImageSelected(uri) }
+    )
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
@@ -62,7 +73,7 @@ fun ImagePickerView(
                     paint
                 )
             }
-            .clickable { onClick() }
+            .clickable { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
             .padding(24.dp)
     ) {
         Column(

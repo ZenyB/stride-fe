@@ -1,6 +1,13 @@
 package com.trio.stride.ui.screens.activity.detail
 
+import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -9,30 +16,40 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,25 +61,27 @@ import com.trio.stride.data.mapper.toRpeString
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
+import com.trio.stride.ui.components.librarypicker.ImagePickerView
 import com.trio.stride.ui.components.sport.ChooseSportInActivity
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheet
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
-fun ActivityDetailView(
+fun ActivityFormView(
     title: String,
     primaryActionLabel: String,
     dismissAction: () -> Unit,
-    primaryAction: (CreateActivityRequestDTO, UpdateActivityRequestDto) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ActivityDetailViewModel = hiltViewModel(),
+    createActivity: ((CreateActivityRequestDTO) -> Unit)? = null,
+    updateActivity: ((UpdateActivityRequestDto) -> Unit)? = null,
+    viewModel: ActivityFormViewModel = hiltViewModel(),
     feelingBottomSheetState: RateFeelingBottomSheetState = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sports by viewModel.sports.collectAsStateWithLifecycle()
+    val previewImage = remember { mutableStateListOf<Uri>() }
 
-    val expandSportMenu = remember { mutableStateOf(false) }
-    val feelingBottomSheetState = remember { RateFeelingBottomSheetState() }
+    val expandImageOptionMenu = remember { mutableStateOf(false) }
 
     val isCreate = true
 
@@ -85,16 +104,17 @@ fun ActivityDetailView(
                 actions = {
                     TextButton(
                         onClick = {
-                            primaryAction(
-                                state.createActivityDto,
-                                state.updateActivityDto
-                            )
+                            createActivity?.invoke(state.createActivityDto)
+                            updateActivity?.invoke(state.updateActivityDto)
                         }
                     ) {
                         Text(text = primaryActionLabel, style = StrideTheme.typography.titleMedium)
                     }
                 }
             )
+        },
+        bottomBar = {
+
         }
     ) { padding ->
         Box(
@@ -176,7 +196,7 @@ fun ActivityDetailView(
                     }
                     IconButton(
                         modifier = Modifier.padding(end = 8.dp),
-                        onClick = { expandSportMenu.value = true }
+                        onClick = { feelingBottomSheetState.show() }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.park_down_icon),
@@ -190,7 +210,108 @@ fun ActivityDetailView(
                     value = if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe,
                     onValueChange = { viewModel.updateFeelingRate(it) }
                 )
-                //
+
+                //ShowSelectedImage&ImagePicker
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(160.dp)
+                ) {
+                    items(state.activity.images) { image ->
+                        Image(
+                            painter = rememberAsyncImagePainter(image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(6.dp))
+                                .border(1.dp, StrideTheme.colors.grayBorder, RoundedCornerShape(6.dp))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple()
+                                ) {
+                                    val newImages = state.activity.images.toMutableList()
+                                    newImages.remove(image)
+                                    viewModel.updateActivityImage(newImages)
+                                },
+                            contentScale = ContentScale.FillHeight
+                        )
+                    }
+
+                    items(previewImage) { image ->
+                        Image(
+                            painter = rememberAsyncImagePainter(image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(6.dp))
+                                .border(1.dp, StrideTheme.colors.grayBorder, RoundedCornerShape(6.dp))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple()
+                                ) {
+                                    previewImage.remove(image)
+                                },
+                            contentScale = ContentScale.FillHeight
+                        )
+                    }
+
+                    item {
+                        ImagePickerView(modifier = Modifier) { uri ->
+                            if (isCreate)
+                                uri?.let { previewImage.add(it) }
+                            else
+                                viewModel.updateActivityImage(state.activity.images)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImageOptionBottomView(
+    modifier: Modifier = Modifier,
+    showImageOption: Boolean = false,
+    onDelete: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = showImageOption,
+        enter = slideInVertically(
+            initialOffsetY = { -it },
+            animationSpec = tween(durationMillis = 300)
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { -it },
+            animationSpec = tween(durationMillis = 300)
+        )
+    ) {
+        Box(
+            modifier = modifier.fillMaxSize().background(StrideTheme.colors.gray.copy(alpha = 0.5f)),
+            Alignment.BottomCenter
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().background(StrideTheme.colorScheme.surfaceContainerLowest)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = ripple()
+                        ) {
+                        onDelete()
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete",
+                        tint = StrideTheme.colorScheme.onBackground
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Text("Delete", style = StrideTheme.typography.bodyMedium)
+                }
             }
         }
     }

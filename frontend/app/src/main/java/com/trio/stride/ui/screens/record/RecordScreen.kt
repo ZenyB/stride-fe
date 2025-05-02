@@ -74,7 +74,7 @@ import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
-import com.trio.stride.ui.screens.activity.detail.ActivityDetailView
+import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
@@ -644,11 +644,12 @@ fun RecordScreen(
             targetOffsetY = { it }
         )
     ) {
-        ActivityDetailView(
+
+        ActivityFormView(
             "Save",
             "Save",
             dismissAction = { viewModel.handleDismissSaveActivity(context) },
-            primaryAction = { a, b -> viewModel.saveActivity(context) },
+            createActivity = { info -> TODO() }
         )
     }
 }

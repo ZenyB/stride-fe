@@ -12,12 +12,16 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class ActivityDetailViewModel @Inject constructor(
+class ActivityFormViewModel @Inject constructor(
     private val sportManager: SportManager
-) : BaseViewModel<ActivityDetailViewModel.ViewState>() {
+) : BaseViewModel<ActivityFormViewModel.ViewState>() {
     override fun createInitialState(): ViewState = ViewState()
 
     val sports: StateFlow<List<Sport>> = sportManager.sports
+
+    private fun uploadImages() {
+        
+    }
 
     fun updateName(value: String) {
         setState {
@@ -45,6 +49,14 @@ class ActivityDetailViewModel @Inject constructor(
                 createActivityDto = createActivityDto.copy(rpe = value)
             )
         }
+    }
+
+    fun updateActivityImage(images: List<String>) {
+        setState { currentState.copy(
+            activity = currentState.activity.copy(
+                images = images
+            )
+        ) }
     }
 
     data class ViewState(
