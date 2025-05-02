@@ -13,11 +13,11 @@ import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.ble.HeartRateReceiveManager
+import com.trio.stride.data.dto.Coordinate
 import com.trio.stride.data.repositoryimpl.GpsRepository
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService
 import com.trio.stride.domain.model.ActivityMetric
-import com.trio.stride.domain.model.Coordinate
 import com.trio.stride.domain.viewstate.IViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -148,7 +148,7 @@ class RecordViewModel @Inject constructor(
 
     fun finish(context: Context) {
         val startIntent = Intent(context, RecordService::class.java).apply {
-            action = RecordService.STOP_RECORDING
+            action = RecordService.PAUSE_RECORDING
         }
         context.startService(startIntent)
 
@@ -166,12 +166,35 @@ class RecordViewModel @Inject constructor(
         recordRepository.updateScreenStatus(ScreenStatus.SENSOR)
     }
 
+    fun handleShowSaveActivityView() {
+        recordRepository.updateScreenStatus(ScreenStatus.SAVING)
+    }
+
     fun handleBackToDefault() {
         recordRepository.updateScreenStatus(ScreenStatus.DEFAULT)
     }
 
+    fun handleDismissSaveActivity(context: Context) {
+        recordRepository.updateScreenStatus(ScreenStatus.DEFAULT)
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.RESUME_RECORDING
+        }
+        context.startService(startIntent)
+
+        recordRepository.resume()
+    }
+
     fun updateGpsStatus(status: GPSStatus) {
         gpsRepository.updateGpsStatus(status)
+    }
+
+    fun saveActivity(context: Context) {
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.STOP_RECORDING
+        }
+        context.startService(startIntent)
+
+        recordRepository.saved()
     }
 
     data class RecordViewState(
@@ -182,6 +205,6 @@ class RecordViewModel @Inject constructor(
 
     enum class RecordStatus { NONE, RECORDING, FINISH, STOP }
     enum class GPSStatus { NO_GPS, ACQUIRING_GPS, GPS_READY }
-    enum class ScreenStatus { DEFAULT, DETAIL, SENSOR, SAVING }
+    enum class ScreenStatus { DEFAULT, DETAIL, SENSOR, SAVING, SAVED }
     enum class ActivityType { RUN, CLIMB, RIDE }
 }

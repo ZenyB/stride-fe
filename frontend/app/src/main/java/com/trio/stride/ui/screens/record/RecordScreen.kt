@@ -74,6 +74,7 @@ import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
+import com.trio.stride.ui.screens.activity.detail.ActivityDetailView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
@@ -558,21 +559,21 @@ fun RecordScreen(
                 }
             }
 
-            when (screenStatus) {
-                RecordViewModel.ScreenStatus.DEFAULT -> {
-
-                }
-
-                RecordViewModel.ScreenStatus.DETAIL -> {
-
-                }
-
-                RecordViewModel.ScreenStatus.SAVING -> {}
-
-                RecordViewModel.ScreenStatus.SENSOR -> {
-
-                }
-            }
+//            when (screenStatus) {
+//                RecordViewModel.ScreenStatus.DEFAULT -> {
+//
+//                }
+//
+//                RecordViewModel.ScreenStatus.DETAIL -> {
+//
+//                }
+//
+//                RecordViewModel.ScreenStatus.SAVING -> {}
+//
+//                RecordViewModel.ScreenStatus.SENSOR -> {
+//
+//                }
+//            }
 
             if (showRequestPermissionButton) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -631,6 +632,23 @@ fun RecordScreen(
             initializeConnection = {
                 viewModel.initializeConnection(context)
             }
+        )
+    }
+
+    AnimatedVisibility(
+        screenStatus == RecordViewModel.ScreenStatus.SAVING,
+        enter = slideInVertically(
+            initialOffsetY = { it }
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it }
+        )
+    ) {
+        ActivityDetailView(
+            "Save",
+            "Save",
+            dismissAction = { viewModel.handleDismissSaveActivity(context) },
+            primaryAction = { a, b -> viewModel.saveActivity(context) },
         )
     }
 }
