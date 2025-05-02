@@ -27,7 +27,6 @@ import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.sport.ChooseSportIconButton
 import com.trio.stride.ui.components.sport.ChooseSportInSearch
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheet
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -77,9 +76,9 @@ fun HomeScreen(
                 "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png"
             )
             ChooseSportInSearch("https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png")
-            SportBottomSheet(
-                onItemClick = { sport -> TODO() }
-            )
+//            SportBottomSheet(
+//                onItemClick = { sport -> TODO() }
+//            )
         }
     }
 }

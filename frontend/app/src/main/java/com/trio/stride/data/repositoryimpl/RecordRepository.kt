@@ -15,7 +15,7 @@ import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.data.ble.ConnectionState
-import com.trio.stride.domain.model.Coordinate
+import com.trio.stride.data.dto.Coordinate
 import com.trio.stride.ui.screens.record.RecordViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +35,9 @@ class RecordRepository @Inject constructor(
 
     private val _heartRate = MutableStateFlow(0)
     val heartRate: StateFlow<Int> = _heartRate
+
+    private val _heartRates = MutableStateFlow(emptyList<Int>())
+    val heartRates: StateFlow<List<Int>> = _heartRates
 
     private val _distance = MutableStateFlow(0.0)
     val distance: StateFlow<Double> = _distance
@@ -142,6 +145,11 @@ class RecordRepository @Inject constructor(
 
     fun finish() {
         _screenStatus.value = RecordViewModel.ScreenStatus.SAVING
+        _recordStatus.value = RecordViewModel.RecordStatus.STOP
+    }
+
+    fun saved() {
+        _screenStatus.value = RecordViewModel.ScreenStatus.SAVED
         _recordStatus.value = RecordViewModel.RecordStatus.FINISH
     }
 
@@ -164,7 +172,6 @@ class RecordRepository @Inject constructor(
         val lineString = LineString.fromLngLats(points)
 
         val map = mapView.mapboxMap
-
 
         map.getStyle { style ->
             val sourceId = "live-route-source"
@@ -214,9 +221,12 @@ class RecordRepository @Inject constructor(
             newCoordinates.add(
                 Coordinate(
                     coordinate = listOf(point.longitude(), point.latitude()),
-                    timeStamp = System.currentTimeMillis()
+                    timestamp = System.currentTimeMillis()
                 )
             )
+
+            var newHeartRates = heartRates.value.toMutableList()
+            newHeartRates.add(heartRate.value)
 
             var newDistance = distance.value
             routePoints.value.lastOrNull()?.let { lastPoint ->
@@ -232,6 +242,7 @@ class RecordRepository @Inject constructor(
             _distance.value = newDistance
             _routePoints.value = newRoutePoints
             _coordinates.value = newCoordinates
+            _heartRates.value = newHeartRates
 
             updatePolyline(mapView.value!!, routePoints.value)
         }

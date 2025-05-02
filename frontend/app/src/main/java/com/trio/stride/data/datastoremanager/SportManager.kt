@@ -3,6 +3,7 @@ package com.trio.stride.data.datastoremanager
 import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -21,13 +22,66 @@ class SportManager @Inject constructor(
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    private val _categories = MutableStateFlow(emptyList<Category>())
+    private val _categories = MutableStateFlow(
+        listOf(
+            Category(id = "1", name = "Foot Sports"),
+            Category(id = "2", name = "Cycle Sports"),
+            Category(id = "3", name = "Water Sports")
+        )
+    )
     val categories: StateFlow<List<Category>> = _categories
 
-    private val _sports = MutableStateFlow(emptyList<Sport>())
+    private val _sports = MutableStateFlow(
+        listOf(
+            Sport(
+                id = "s1",
+                category = Category(id = "1", name = "Foot Sports"),
+                name = "Running",
+                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
+                sportMapType = SportMapType.WALKING
+            ),
+            Sport(
+                id = "s2",
+                category = Category(id = "1", name = "Foot Sports"),
+                name = "Hiking",
+                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
+                sportMapType = SportMapType.WALKING
+            ),
+            Sport(
+                id = "s3",
+                category = Category(id = "2", name = "Cycle Sports"),
+                name = "Road Cycling",
+                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
+                sportMapType = SportMapType.CYCLING
+            ),
+            Sport(
+                id = "s4",
+                category = Category(id = "2", name = "Cycle Sports"),
+                name = "Mountain Biking",
+                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
+                sportMapType = SportMapType.CYCLING
+            ),
+            Sport(
+                id = "s5",
+                category = Category(id = "3", name = "Water Sports"),
+                name = "Swimming",
+                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
+                sportMapType = SportMapType.WALKING
+            ),
+            Sport(
+                id = "s6",
+                category = Category(id = "3", name = "Water Sports"),
+                name = "Rowing",
+                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
+                sportMapType = SportMapType.WALKING
+            )
+        )
+    )
     val sports: StateFlow<List<Sport>> = _sports
 
-    private val _sportsByCategory = MutableStateFlow(emptyMap<String, List<Sport>>())
+    private val _sportsByCategory = MutableStateFlow(
+        sports.value.groupBy { sport -> sport.category.id }
+    )
     val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
 
     private val _isError = MutableStateFlow(false)
@@ -37,8 +91,8 @@ class SportManager @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage
 
     init {
-        getSports()
-        getCategories()
+//        getSports()
+//        getCategories()
     }
 
     private fun getCategories() {
