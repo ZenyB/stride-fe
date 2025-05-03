@@ -3,6 +3,10 @@ package com.trio.stride.ui.utils
 import com.google.gson.Gson
 import okhttp3.ResponseBody
 import java.text.DecimalFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 fun isValidEmail(email: String): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -51,13 +55,18 @@ fun formatDistance(distance: Double): String {
     return formattedDistance
 }
 
+fun formatKmDistance(distance: Double): String {
+    val df = DecimalFormat("#.##")
+    return df.format(distance)
+}
+
 fun formatSpeed(speed: Double): String {
     val df = DecimalFormat("#.#")
     val formattedSpeed = df.format(speed)
     return formattedSpeed
 }
 
-fun formatDuration(seconds: Int): String {
+fun formatDuration(seconds: Long): String {
     val hours = seconds / 3600
     val minutes = (seconds % 3600) / 60
     val secs = seconds % 60
@@ -65,6 +74,22 @@ fun formatDuration(seconds: Int): String {
     return buildString {
         if (hours > 0) append("${hours}h")
         if (minutes > 0) append("${minutes}m")
-        if (hours == 0 && minutes == 0 || secs > 0) append("${secs}s")
+        if (hours == 0L && minutes == 0L || secs > 0) append("${secs}s")
+    }
+}
+
+fun formatDate(timestamp: Long): String {
+    val zoneId = ZoneId.systemDefault()
+    val now = LocalDate.now(zoneId)
+    val dateTime = Instant.ofEpochMilli(timestamp).atZone(zoneId)
+    val date = dateTime.toLocalDate()
+
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+    val fullDateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy")
+
+    return when {
+        date.isEqual(now) -> "Today at ${dateTime.format(timeFormatter)}"
+        date.isEqual(now.minusDays(1)) -> "Yesterday at ${dateTime.format(timeFormatter)}"
+        else -> "${dateTime.format(fullDateFormatter)} at ${dateTime.format(timeFormatter)}"
     }
 }

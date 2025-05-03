@@ -64,7 +64,7 @@ fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                "${item.avgDistance} km • ${formatDuration(item.avgTime.toInt())}",
+                "${item.avgDistance} km • ${formatDuration(item.avgTime)}",
                 style = StrideTheme.typography.bodySmall
                     .copy(fontWeight = FontWeight.Light),
                 color = StrideTheme.colors.gray600,

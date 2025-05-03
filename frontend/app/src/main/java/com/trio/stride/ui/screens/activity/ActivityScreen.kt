@@ -53,19 +53,3 @@ fun ProfileScreen() {
         }
     }
 }
-
-@Composable
-fun RecordScreen() {
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Record Screen", style = StrideTheme.typography.headlineLarge)
-
-        }
-    }
-}

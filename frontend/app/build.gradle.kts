@@ -65,6 +65,8 @@ dependencies {
 
     implementation(libs.coil.compose)
 
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 
     implementation(libs.accompanist.permissions)
 
