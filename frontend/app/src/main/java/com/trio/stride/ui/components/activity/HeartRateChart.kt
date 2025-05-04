@@ -82,7 +82,8 @@ fun HeartRateChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
             color = StrideTheme.colors.red500,
             avgValue = item.avgHearRate,
             startAxisTitle = "bpm",
-            startAxisFormatter = startAxisValueFormatter
+            startAxisFormatter = startAxisValueFormatter,
+            itemCount = item.heartRates.size
         )
 
         StatRow("Avg Heart Rate", "${item.avgHearRate} bpm")

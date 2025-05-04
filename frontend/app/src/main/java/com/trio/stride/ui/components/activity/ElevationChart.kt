@@ -82,7 +82,8 @@ fun ElevationChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
             elevationMarkerFormatter,
             color = StrideTheme.colors.gray500,
             startAxisTitle = "m",
-            startAxisFormatter = startAxisValueFormatter
+            startAxisFormatter = startAxisValueFormatter,
+            itemCount = item.elevations.size
         )
 
         StatRow("Elevation Gain", "${item.elevationGain} m")

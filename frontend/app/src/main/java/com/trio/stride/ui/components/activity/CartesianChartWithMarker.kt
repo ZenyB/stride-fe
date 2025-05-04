@@ -14,7 +14,9 @@ import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberTop
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
@@ -39,7 +41,6 @@ import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerVisibilityListener
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
-import com.patrykandpatrick.vico.core.cartesian.marker.LineCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.common.LayeredComponent
 import com.patrykandpatrick.vico.core.common.component.ShapeComponent
 import com.patrykandpatrick.vico.core.common.component.TextComponent
@@ -47,6 +48,7 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.trio.stride.ui.theme.StrideTheme
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -58,6 +60,7 @@ fun CartesianChartWithMarker(
     startAxisTitle: String,
     color: Color,
     avgValue: Double? = null,
+    itemCount: Int
 ) {
     val marker = rememberMarker(markerFormatter, color)
     var selectedXTarget by remember { mutableStateOf<Double?>(null) }
@@ -73,12 +76,12 @@ fun CartesianChartWithMarker(
     val markerVisibilityListener = remember {
         object : CartesianMarkerVisibilityListener {
             override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                val target = targets.firstOrNull() as? LineCartesianLayerMarkerTarget ?: return
+                val target = targets.firstOrNull() ?: return
                 selectedXTarget = (if (target.x == selectedXTarget) null else target.x)
             }
 
             override fun onUpdated(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                val target = targets.firstOrNull() as? LineCartesianLayerMarkerTarget ?: return
+                val target = targets.firstOrNull() ?: return
                 selectedXTarget = (if (target.x == selectedXTarget) null else target.x)
             }
         }
@@ -118,16 +121,35 @@ fun CartesianChartWithMarker(
                     title = startAxisTitle,
                     titleComponent = rememberTextComponent()
                 ),
-            bottomAxis = HorizontalAxis.rememberBottom(),
+            bottomAxis = HorizontalAxis.rememberBottom(
+//                itemPlacer = HorizontalAxis.ItemPlacer.segmented(true)
+            ),
+            endAxis = VerticalAxis.rememberEnd(
+                tick = null,
+                label = null
+            ),
+            topAxis = HorizontalAxis.rememberTop(
+                tick = null,
+                label = null
+            ),
             marker = marker,
             persistentMarkers = persistentMarker,
             markerVisibilityListener = markerVisibilityListener,
             decorations = avgValue?.let { listOf(rememberHorizontalLine(avgValue = it)) }
                 ?: emptyList(),
+            getXStep = { model ->
+                (itemCount.toDouble() / 6)
+                    .coerceAtLeast(1.0).roundToInt().toDouble()
+            }
         ),
         modelProducer,
         modifier.offset(y = (-24).dp),
         rememberVicoScrollState(scrollEnabled = false),
+        animationSpec = null,
+//        zoomState = rememberVicoZoomState(
+//            zoomEnabled = false,
+//            initialZoom = Zoom.x(5.0)
+//        )
     )
 }
 

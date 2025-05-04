@@ -85,7 +85,8 @@ fun SpeedChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
             color = StrideTheme.colorScheme.primary,
             avgValue = item.avgSpeed,
             startAxisFormatter = startAxisValueFormatter,
-            startAxisTitle = "km/h"
+            startAxisTitle = "km/h",
+            itemCount = item.speeds.size
         )
 
         StatRow("Avg Speed", "${formatSpeed(item.avgSpeed)} km/h")
