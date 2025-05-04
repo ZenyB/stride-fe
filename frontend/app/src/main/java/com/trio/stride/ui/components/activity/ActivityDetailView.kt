@@ -1,21 +1,22 @@
 package com.trio.stride.ui.components.activity
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,11 +32,24 @@ import com.trio.stride.ui.utils.formatDuration
 import com.trio.stride.ui.utils.formatKmDistance
 import com.trio.stride.ui.utils.formatSpeed
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ActivityDetailView(item: ActivityDetailInfo) {
-    Column {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(StrideTheme.colorScheme.surfaceContainerLowest)
+            .verticalScroll(scrollState)
+            .padding(top = 16.dp, bottom = 32.dp)
+    ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.padding(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier
+                .padding(16.dp)
+
+
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Avatar(
@@ -56,54 +70,60 @@ fun ActivityDetailView(item: ActivityDetailInfo) {
                 item.name,
                 style = StrideTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth(),
+                maxItemsInEachRow = 2,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                item {
-                    StatText(
-                        "Distance",
-                        "${formatKmDistance(item.totalDistance ?: 0.0)} km",
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontal = Alignment.CenterHorizontally
-                    )
-                }
-                item {
-                    StatText(
-                        "Time",
-                        "${formatDuration(item.movingTimeSeconds)} km",
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontal = Alignment.CenterHorizontally
-                    )
-                }
-                item {
-                    StatText(
-                        "Carbon Saved",
-                        "${item.carbonSaved} kg CO2",
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontal = Alignment.CenterHorizontally
-                    )
-                }
+                StatText(
+                    "Distance",
+                    "${formatKmDistance(item.totalDistance ?: 0.0)} km",
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(0.5f),
+                    horizontal = Alignment.CenterHorizontally
+                )
+                StatText(
+                    "Time",
+                    "${formatDuration(item.movingTimeSeconds)} km",
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(0.5f),
+                    horizontal = Alignment.CenterHorizontally
+                )
+                StatText(
+                    "Carbon Saved",
+                    "${item.carbonSaved} kg CO2",
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(0.5f),
+                    horizontal = Alignment.CenterHorizontally
+                )
 
-                item {
-                    StatText(
-                        "Avg Speed",
-                        "${formatSpeed(item.avgSpeed)} km/h",
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontal = Alignment.CenterHorizontally
-                    )
-                }
-                item {
-                    StatText(
-                        "Elevation Gain",
-                        "${item.elevationGain}m",
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontal = Alignment.CenterHorizontally
-                    )
-                }
+                StatText(
+                    "Avg Speed",
+                    "${formatSpeed(item.avgSpeed)} km/h",
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(0.4f),
+                    horizontal = Alignment.CenterHorizontally
+                )
+
+                StatText(
+                    "Elevation Gain",
+                    "${item.elevationGain}m",
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(0.4f),
+                    horizontal = Alignment.CenterHorizontally
+                )
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(0.4f)
+                )
             }
         }
 
@@ -114,7 +134,10 @@ fun ActivityDetailView(item: ActivityDetailInfo) {
                     .fillMaxWidth()
                     .background(StrideTheme.colors.background)
             )
-            SpeedChart(item, modifier = Modifier.padding(16.dp))
+            SpeedChart(
+                item, modifier = Modifier
+                    .padding(16.dp)
+            )
         }
 
         if (item.isNeedMap && item.elevations.isNotEmpty()) {
@@ -124,7 +147,10 @@ fun ActivityDetailView(item: ActivityDetailInfo) {
                     .fillMaxWidth()
                     .background(StrideTheme.colors.background)
             )
-            ElevationChart(item, modifier = Modifier.padding(16.dp))
+            ElevationChart(
+                item, modifier = Modifier
+                    .padding(16.dp)
+            )
         }
 
         if (item.isNeedMap && item.heartRates.isNotEmpty()) {
@@ -134,7 +160,20 @@ fun ActivityDetailView(item: ActivityDetailInfo) {
                     .fillMaxWidth()
                     .background(StrideTheme.colors.background)
             )
-            HeartRateChart(item, modifier = Modifier.padding(16.dp))
+            HeartRateChart(
+                item, modifier = Modifier
+                    .padding(16.dp)
+            )
+        }
+
+        if (item.isNeedMap && item.heartRateZones != null) {
+            Spacer(
+                Modifier
+                    .height(8.dp)
+                    .fillMaxWidth()
+                    .background(StrideTheme.colors.background)
+            )
+            HeartRateZonesChartSample()
         }
     }
 
@@ -200,7 +239,9 @@ fun PreviewDetail() {
             0.41658, 0.4003, 0.41658, 0.11532, 0.4003,
             7.43792, 4.87097, 7.60661, 7.82634, 10.59087, 3.61009,
             0.34596, 1.13692, 2.41286, 1.28645, 2.43331, 1.90815, 3.64856,
-        ),
+            7.43792, 4.87097, 7.60661, 7.82634, 10.59087, 3.61009,
+            0.0, 0.4003, 0.41658, 0.4003, 0.0,
+            ),
         avgSpeed = 5.1,
         maxSpeed = 14.55958,
         heartRates = listOf(
@@ -214,35 +255,4 @@ fun PreviewDetail() {
     )
 
     ActivityDetailView(item)
-}
-
-
-@Preview
-@Composable
-fun DonutChartPreview() {
-    val viewData = DonutChartDataCollection(
-        listOf(
-            DonutChartData(1200.0f, Color.Red, title = "Food & Groceries"),
-            DonutChartData(1500.0f, Color.Blue, title = "Rent"),
-            DonutChartData(300.0f, Color.Green, title = "Gas"),
-            DonutChartData(700.0f, Color.Cyan, title = "Online Purchases"),
-            DonutChartData(300.0f, Color.Magenta, title = "Clothing")
-        )
-    )
-    DonutChart(Modifier.padding(24.dp), data = viewData) { selected ->
-        AnimatedContent(targetState = selected) {
-            val amount = it?.amount ?: viewData.totalAmount
-            val text = it?.title ?: "Total"
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "$${amount}",
-                )
-                Text(text)
-            }
-        }
-    }
 }

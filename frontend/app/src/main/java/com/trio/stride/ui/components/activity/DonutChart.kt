@@ -1,7 +1,5 @@
 package com.trio.stride.ui.components.activity
 
-import androidx.compose.animation.core.TweenSpec
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -13,35 +11,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.trio.stride.domain.model.HeartRateInfo
+import com.trio.stride.ui.utils.formatDuration
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 private const val TOTAL_ANGLE = 360.0f
-private val STROKE_SIZE_UNSELECTED = 60.dp
-private val STROKE_SIZE_SELECTED = 80.dp
-
-data class DonutChartData(
-    val amount: Float,
-    val color: Color,
-    val title: String,
-)
+private val STROKE_SIZE_UNSELECTED = 50.dp
+private val STROKE_SIZE_SELECTED = 58.dp
 
 data class DonutChartDataCollection(
-    var items: List<DonutChartData>
+    var items: List<HeartRateInfo>
 ) {
-    internal var totalAmount: Float = items.sumOf { it.amount.toDouble() }.toFloat()
+    internal var totalDuration: Long = items.sumOf { it.duration }
         private set
 }
 
-private data class DrawingAngles(val start: Float, val end: Float)
+private data class DrawingAngles(val start: Float, val end: Float) {
+    val centerAngle: Float get() = start + end / 2
+}
 
-private fun DrawingAngles.isInsideAngle(angle: Float) = angle > this.start && angle < this.start + this.end
+private fun DrawingAngles.isInsideAngle(angle: Float) =
+    angle > this.start && angle < this.start + this.end
 
 private class DonutChartState(
     val state: State = State.Unselected
@@ -62,19 +59,19 @@ fun DonutChart(
     modifier: Modifier = Modifier,
     chartSize: Dp = 350.dp,
     data: DonutChartDataCollection,
-    gapPercentage: Float = 0.04f,
-    selectionView: @Composable (selectedItem: DonutChartData?) -> Unit = {},
+    gapPercentage: Float = 0.02f,
+    selectionView: @Composable (selectedItem: HeartRateInfo?) -> Unit = {},
 ) {
-    var selectedIndex by remember { mutableStateOf(-1) }
+    var selectedIndex by remember { mutableStateOf(0) }
     val animationTargetState = (0..data.items.size).map {
         remember { mutableStateOf(DonutChartState()) }
     }
-    val animValues = (0..data.items.size).map {
-        animateDpAsState(
-            targetValue = animationTargetState[it].value.stroke,
-            animationSpec = TweenSpec(700)
-        )
-    }
+//    val animValues = (0..data.items.size).map {
+//        animateDpAsState(
+//            targetValue = animationTargetState[it].value.stroke,
+//            animationSpec = TweenSpec(300)
+//        )
+//    }
     val anglesList: MutableList<DrawingAngles> = remember { mutableListOf() }
     val gapAngle = data.calculateGapAngle(gapPercentage)
     var center = Offset(0f, 0f)
@@ -123,7 +120,9 @@ fun DonutChart(
                 data.items.forEachIndexed { ind, item ->
                     val sweepAngle = data.findSweepAngle(ind, gapPercentage)
                     anglesList.add(DrawingAngles(lastAngle, sweepAngle))
-                    val strokeWidth = animValues[ind].value.toPx()
+//                    val strokeWidth = animValues[ind].value.toPx()
+                    val strokeWidth = animationTargetState[ind].value.stroke.toPx()
+
                     drawArc(
                         color = item.color,
                         startAngle = lastAngle,
@@ -131,10 +130,65 @@ fun DonutChart(
                         useCenter = false,
                         topLeft = Offset(defaultStrokeWidth / 2, defaultStrokeWidth / 2),
                         style = Stroke(strokeWidth, cap = StrokeCap.Butt),
-                        size = Size(size.width - defaultStrokeWidth,
-                            size.height - defaultStrokeWidth)
+                        size = Size(
+                            size.width - defaultStrokeWidth,
+                            size.height - defaultStrokeWidth
+                        )
                     )
                     lastAngle += sweepAngle + gapAngle
+                }
+                if (selectedIndex >= 0) {
+                    val selectedAngle = anglesList[selectedIndex].centerAngle
+                    val extraOffset = 4.dp.toPx()
+                    val outerRadius = size.width / 2f
+                    val tooltipRadius = outerRadius + extraOffset
+                    val radians = Math.toRadians(selectedAngle.toDouble())
+                    val x = center.x + tooltipRadius * kotlin.math.cos(radians).toFloat()
+                    val y = center.y + tooltipRadius * kotlin.math.sin(radians).toFloat()
+
+                    val labelText = formatDuration(data.items[selectedIndex].duration)
+                    val paint = android.graphics.Paint().apply {
+                        color = android.graphics.Color.BLACK
+                        textSize = 36f
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        isAntiAlias = true
+                        typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    }
+                    val padding = 32f
+                    val textWidth = paint.measureText(labelText) + padding * 2
+                    val textHeight = paint.descent() - paint.ascent() + padding
+                    drawContext.canvas.nativeCanvas.drawRoundRect(
+                        x - textWidth / 2 + 4f,
+                        y - textHeight / 2 + 4f,
+                        x + textWidth / 2 + 4f,
+                        y + textHeight / 2 + 4f,
+                        12f, 12f,
+                        android.graphics.Paint().apply {
+                            color = android.graphics.Color.GRAY
+                            style = android.graphics.Paint.Style.FILL
+                            isAntiAlias = true
+                            alpha = 70
+                        }
+                    )
+
+                    drawContext.canvas.nativeCanvas.drawRoundRect(
+                        x - textWidth / 2,
+                        y - textHeight / 2,
+                        x + textWidth / 2,
+                        y + textHeight / 2,
+                        12f, 12f,
+                        android.graphics.Paint().apply {
+                            color = android.graphics.Color.WHITE
+                            style = android.graphics.Paint.Style.FILL
+                            isAntiAlias = true
+                        }
+                    )
+                    drawContext.canvas.nativeCanvas.drawText(
+                        labelText,
+                        x,
+                        y + paint.textSize / 2,
+                        paint
+                    )
                 }
             }
         )
@@ -200,7 +254,10 @@ private fun Offset.findNormalizedPointFromTouch(canvasCenter: Offset) =
  * Calculate the touch angle based on the canvas center. Then adjust the angle so that
  * drawing starts from the 4th quadrant instead of the first.
  */
-private fun calculateTouchAngleAccordingToCanvas(canvasCenter: Offset, normalizedPoint: Offset): Float {
+private fun calculateTouchAngleAccordingToCanvas(
+    canvasCenter: Offset,
+    normalizedPoint: Offset
+): Float {
     val angle = calculateTouchAngleInDegrees(canvasCenter, normalizedPoint)
     return adjustAngleToCanvas(angle).toFloat()
 }
@@ -210,8 +267,10 @@ private fun calculateTouchAngleAccordingToCanvas(canvasCenter: Offset, normalize
  * compared to other data points.
  */
 private fun calculateTouchAngleInDegrees(canvasCenter: Offset, normalizedPoint: Offset): Double {
-    val touchInRadian = kotlin.math.atan2(normalizedPoint.y - canvasCenter.y,
-        normalizedPoint.x - canvasCenter.x)
+    val touchInRadian = kotlin.math.atan2(
+        normalizedPoint.y - canvasCenter.y,
+        normalizedPoint.x - canvasCenter.x
+    )
     return touchInRadian * -180 / Math.PI // Convert radians to angle in degrees
 }
 
@@ -227,7 +286,7 @@ private fun adjustAngleToCanvas(angle: Double) = (angle + TOTAL_ANGLE) % TOTAL_A
 private fun DonutChartDataCollection.calculateGap(gapPercentage: Float): Float {
     if (this.items.isEmpty()) return 0f
 
-    return (this.totalAmount / this.items.size) * gapPercentage
+    return (this.totalDuration / this.items.size) * gapPercentage
 }
 
 /**
@@ -236,7 +295,7 @@ private fun DonutChartDataCollection.calculateGap(gapPercentage: Float): Float {
  */
 private fun DonutChartDataCollection.getTotalAmountWithGapIncluded(gapPercentage: Float): Float {
     val gap = this.calculateGap(gapPercentage)
-    return this.totalAmount + (this.items.size * gap)
+    return this.totalDuration + (this.items.size * gap)
 }
 
 /**
@@ -258,7 +317,7 @@ private fun DonutChartDataCollection.findSweepAngle(
     index: Int,
     gapPercentage: Float
 ): Float {
-    val amount = items[index].amount
+    val amount = items[index].duration
     val gap = this.calculateGap(gapPercentage)
     val totalWithGap = getTotalAmountWithGapIncluded(gapPercentage)
     val gapAngle = this.calculateGapAngle(gapPercentage)

@@ -1,5 +1,7 @@
 package com.trio.stride.ui.utils
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import com.google.gson.Gson
 import okhttp3.ResponseBody
 import java.text.DecimalFormat
@@ -92,4 +94,16 @@ fun formatDate(timestamp: Long): String {
         date.isEqual(now.minusDays(1)) -> "Yesterday at ${dateTime.format(timeFormatter)}"
         else -> "${dateTime.format(fullDateFormatter)} at ${dateTime.format(timeFormatter)}"
     }
+}
+
+fun calculateContrast(bg: Color, fg: Color): Float {
+    val l1 = bg.luminance() + 0.05f
+    val l2 = fg.luminance() + 0.05f
+    return if (l1 > l2) l1 / l2 else l2 / l1
+}
+
+fun Color.contrastingTextColor(): Color {
+    val whiteContrast = calculateContrast(this, Color.White)
+    val blackContrast = calculateContrast(this, Color.Black)
+    return if (whiteContrast >= blackContrast) Color.White else Color.Black
 }
