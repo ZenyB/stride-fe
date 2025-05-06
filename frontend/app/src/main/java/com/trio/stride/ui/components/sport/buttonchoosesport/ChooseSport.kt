@@ -1,4 +1,4 @@
-package com.trio.stride.ui.components.sport
+package com.trio.stride.ui.components.sport.buttonchoosesport
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -25,22 +25,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.trio.stride.R
 import com.trio.stride.domain.model.Sport
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetState
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
 fun ChooseSportIconButton(
     iconImage: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
-    state: SportBottomSheetState = hiltViewModel(),
 ) {
     IconButton(
-        onClick = { state.show() },
+        onClick = onClick,
         modifier = modifier
     ) {
         Icon(
@@ -55,12 +53,12 @@ fun ChooseSportIconButton(
 @Composable
 fun ChooseSportInSearch(
     iconImage: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    state: SportBottomSheetState = hiltViewModel(),
 ) {
     Button(
         modifier = modifier,
-        onClick = { state.show() },
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors().copy(
             containerColor = StrideTheme.colors.transparent,
             contentColor = StrideTheme.colorScheme.primary
@@ -90,8 +88,8 @@ fun ChooseSportInSearch(
 @Composable
 fun ChooseSportInActivity(
     sport: Sport,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    state: SportBottomSheetState = hiltViewModel(),
 ) {
     Row(
         modifier = modifier
@@ -105,7 +103,7 @@ fun ChooseSportInActivity(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple(bounded = true)
             ) {
-                state.show()
+                onClick()
             },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -125,7 +123,7 @@ fun ChooseSportInActivity(
         }
         IconButton(
             modifier = Modifier.padding(end = 8.dp),
-            onClick = { state.show() }
+            onClick = onClick,
         ) {
             Icon(
                 painter = painterResource(R.drawable.park_down_icon),

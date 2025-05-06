@@ -22,6 +22,7 @@ import com.trio.stride.data.dto.CreateActivityRequestDTO
 import com.trio.stride.data.repositoryimpl.GpsRepository
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService
+import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.viewstate.IViewState
@@ -63,6 +64,8 @@ class RecordViewModel @Inject constructor(
     val coordinates: StateFlow<List<Coordinate>> = recordRepository.coordinates
     val mapViewportState: MapViewportState = recordRepository.mapViewportState
 
+    val categories: StateFlow<List<Category>> = sportManager.categories
+    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = sportManager.sportsByCategory
     val currentSport: StateFlow<Sport> = sportManager.currentSport
 
     override fun createInitialState(): RecordViewState = RecordViewState()

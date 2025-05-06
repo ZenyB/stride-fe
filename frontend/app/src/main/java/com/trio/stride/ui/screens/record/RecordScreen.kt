@@ -74,8 +74,8 @@ import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
-import com.trio.stride.ui.components.sport.ChooseSportIconButton
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheet
+import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
+import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportIconButton
 import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
@@ -116,7 +116,7 @@ fun RecordScreen(
     var showRequestPermissionButton by remember {
         mutableStateOf(false)
     }
-    var menuExpanded by remember { mutableStateOf(false) }
+    var showSportBottomSheet by remember { mutableStateOf(false) }
 
 
     val distance by viewModel.distance.collectAsStateWithLifecycle()
@@ -137,6 +137,8 @@ fun RecordScreen(
     val selectedDevice by viewModel.selectedDevice.collectAsStateWithLifecycle()
     val heartRate by viewModel.heartRate.collectAsState()
     val currentSport by viewModel.currentSport.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsState()
+    val sportsByCategory by viewModel.sportsByCategory.collectAsState()
 
     val launcher = GpsUtils.createGpsLauncher(context, mapView, updateGpsStatus = { status ->
         viewModel.updateGpsStatus(status)
@@ -243,28 +245,23 @@ fun RecordScreen(
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-//                        Icon(
-//                            modifier = Modifier
-//                                .padding(vertical = 4.dp)
-//                                .size(40.dp)
-//                                .clickable(
-//                                    interactionSource = remember { MutableInteractionSource() },
-//                                    indication = ripple(),
-//                                ) {
-//
-//                                },
-//                            painter = painterResource(R.drawable.run_icon),
-//                            contentDescription = "Choose activity type"
-//                        )
                         ChooseSportIconButton(
                             modifier = Modifier
                                 .padding(vertical = 4.dp),
                             iconModifier = Modifier.size(40.dp),
                             iconImage = currentSport.image,
+                            onClick = { showSportBottomSheet = true }
                         )
-                        SportBottomSheet(
+                        SportBottomSheetWithCategory(
+                            categories = categories,
+                            sportsByCategory = sportsByCategory,
                             selectedSport = currentSport,
-                            onItemClick = { viewModel.updateCurrentSport(it) }
+                            onItemClick = {
+                                viewModel.updateCurrentSport(it)
+                                showSportBottomSheet = false
+                            },
+                            dismissAction = { showSportBottomSheet = false },
+                            visible = showSportBottomSheet
                         )
 
                         Icon(
@@ -557,7 +554,7 @@ fun RecordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    if (currentSport.isNeedMap) {
+                    if (currentSport.sportMapType != null) {
                         RecordValueBlock(
                             title = "Time",
                             value = formatTimeByMillis(time)

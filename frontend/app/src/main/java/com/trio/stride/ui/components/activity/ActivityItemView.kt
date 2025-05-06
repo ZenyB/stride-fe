@@ -20,6 +20,7 @@ import com.trio.stride.domain.model.ActivityItem
 import com.trio.stride.domain.model.ActivityUser
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.Avatar
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDate
@@ -113,7 +114,7 @@ fun PreviewItem() {
             category = Category(),
             name = "Run",
             image = "https://img.freepik.com/free-photo/low-rise-building_1127-3272.jpg?t=st=1745483374~exp=1745486974~hmac=479952fdec79f12dc1585e2f2f74fdec391e62bb62a4b03c49de54df479329bf&w=996",
-            sportMapType = ""
+            sportMapType = SportMapType.WALKING
         ),
         totalDistance = 12.3,
         elevationGain = 40,

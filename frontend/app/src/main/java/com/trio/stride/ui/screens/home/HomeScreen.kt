@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,13 +22,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.Resource
+import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.datastoremanager.UserManager
+import com.trio.stride.domain.model.Category
+import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.ui.components.Loading
-import com.trio.stride.ui.components.sport.ChooseSportIconButton
-import com.trio.stride.ui.components.sport.ChooseSportInSearch
+import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
+import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
+import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportIconButton
+import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -45,6 +52,14 @@ fun HomeScreen(
     val logoutSuccess by viewModel.logoutSuccess.collectAsState()
     val loggingOut by viewModel.isLoggingOut.collectAsState()
     val userInfo by viewModel.userInfo.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+    val sportsWithMap by viewModel.sportsWithMap.collectAsState()
+    val sportsByCategory by viewModel.sportsByCategory.collectAsState()
+
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheet2 by remember { mutableStateOf(false) }
+    var selectedSport by remember { mutableStateOf(sportsByCategory[categories[0]]?.get(0)) }
+    var selectedSport2 by remember { mutableStateOf(sportsWithMap[0]) }
 
     if (loggingOut) {
         Loading()
@@ -73,12 +88,29 @@ fun HomeScreen(
                     color = StrideTheme.colorScheme.error
                 )
             ChooseSportIconButton(
-                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png"
+                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
+                onClick = {
+                    showBottomSheet = true
+                }
             )
-            ChooseSportInSearch("https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png")
-//            SportBottomSheet(
-//                onItemClick = { sport -> TODO() }
-//            )
+            ChooseSportInSearch(
+                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
+                onClick = { showBottomSheet2 = true })
+            SportBottomSheetWithCategory(
+                categories = categories,
+                sportsByCategory = sportsByCategory,
+                selectedSport = selectedSport!!,
+                visible = showBottomSheet,
+                onItemClick = { sport -> selectedSport = sport },
+                dismissAction = { showBottomSheet = false }
+            )
+            SportMapBottomSheet(
+                sports = sportsWithMap,
+                selectedSport = selectedSport2,
+                onItemClick = { selectedSport2 = it },
+                dismissAction = { showBottomSheet2 = false },
+                visible = showBottomSheet2
+            )
         }
     }
 }
@@ -88,7 +120,8 @@ fun HomeScreen(
 class HomeScreenViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val logoutUseCase: LogoutUseCase,
-    private val userManager: UserManager
+    private val userManager: UserManager,
+    private val sportManager: SportManager
 ) : ViewModel() {
 
     private val _logoutSuccess = MutableStateFlow(false)
@@ -100,10 +133,26 @@ class HomeScreenViewModel @Inject constructor(
     private val _userInfo = MutableStateFlow(UserInfo())
     val userInfo: StateFlow<UserInfo> = _userInfo
 
+    private val _categories = sportManager.categories
+    val categories: StateFlow<List<Category>> = _categories
+
+    private val _sportsByCategory = sportManager.sportsByCategory
+    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
+
+    private val _sportsWithMap = sportManager.sportsWithMap
+    val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap
+
+    private val _currentSport = sportManager.currentSport
+    val currentSport: StateFlow<Sport> = _currentSport
+
     val errorMessage = mutableStateOf("")
 
     init {
         getUser()
+    }
+
+    fun updateCurrentSport(sport: Sport) {
+        sportManager.updateCurrentSport(sport)
     }
 
     fun getUser() {

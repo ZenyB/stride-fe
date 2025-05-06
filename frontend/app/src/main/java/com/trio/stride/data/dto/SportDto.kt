@@ -1,5 +1,7 @@
 package com.trio.stride.data.dto
 
+import com.trio.stride.domain.model.SportMapType
+
 data class GetSportResponseDto(
     val data: SportDto,
     val page: PageDto,
@@ -11,9 +13,8 @@ data class SportDto(
     val category: CategoryDto,
     val name: String,
     val image: String,
-    val sportMapType: String,
-    val rules: List<RuleDto>,
-    val isNeedMap: Boolean
+    val sportMapType: SportMapType?,
+    val rules: List<RuleDto>
 )
 
 data class RuleDto(
