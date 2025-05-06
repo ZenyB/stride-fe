@@ -45,6 +45,10 @@ class RecordRepository @Inject constructor(
     private val _time = MutableStateFlow(0L)
     val time: StateFlow<Long> = _time
 
+
+    private val _elapsedTime = MutableStateFlow(0L)
+    val elapsedTime: StateFlow<Long> = _elapsedTime
+
     private val _avgSpeed = MutableStateFlow(0.0)
     val avgSpeed: StateFlow<Double> = _avgSpeed
 
@@ -95,6 +99,10 @@ class RecordRepository @Inject constructor(
 
     fun updateTime(newTime: Long) {
         _time.value = newTime
+    }
+
+    fun updateElapsedTime(newTime: Long) {
+        _elapsedTime.value = newTime
     }
 
     fun updateAvgSpeed(newSpeed: Double) {

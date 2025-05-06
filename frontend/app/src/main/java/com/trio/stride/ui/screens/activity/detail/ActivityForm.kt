@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -40,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,17 +51,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.trio.stride.R
 import com.trio.stride.data.dto.CreateActivityRequestDTO
 import com.trio.stride.data.dto.UpdateActivityRequestDto
 import com.trio.stride.data.mapper.toRpeString
+import com.trio.stride.domain.model.Activity
+import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
@@ -73,20 +82,38 @@ fun ActivityFormView(
     primaryActionLabel: String,
     dismissAction: () -> Unit,
     modifier: Modifier = Modifier,
+    isCreate: Boolean = true,
     createActivity: ((CreateActivityRequestDTO) -> Unit)? = null,
     updateActivity: ((UpdateActivityRequestDto) -> Unit)? = null,
+    sportFromRecord: Sport? = null,
+    activity: Activity? = null,
     viewModel: ActivityFormViewModel = hiltViewModel(),
     feelingBottomSheetState: RateFeelingBottomSheetState = hiltViewModel()
 ) {
+    require(
+        (isCreate && createActivity != null && sportFromRecord != null) ||
+                (!isCreate && updateActivity != null && activity != null)
+    ) {
+        "Invalid parameters: " +
+                if (isCreate) "createActivity and sportFromRecord must be non-null when isCreate is true"
+                else "updateActivity must be non-null when isCreate is false"
+    }
+
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sports by viewModel.sports.collectAsStateWithLifecycle()
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val localConfig = LocalConfiguration.current
+    val focusManager = LocalFocusManager.current
 
     val previewImage = remember { mutableStateListOf<Uri>() }
     val expandImageOptionMenu = remember { mutableStateOf(false) }
     val isRpePressed = remember { mutableStateOf(false) }
     val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
 
-    val isCreate = true
+    LaunchedEffect(Unit) {
+        viewModel.initial(isCreate, activity, sportFromRecord)
+    }
 
     Scaffold(
         topBar = {
@@ -129,6 +156,7 @@ fun ActivityFormView(
             ) {
                 OutlinedTextField(
                     value = if (isCreate) state.createActivityDto.name else state.updateActivityDto.name,
+                    singleLine = true,
                     onValueChange = { viewModel.updateName(it) },
                     placeholder = {
                         Text(
@@ -138,13 +166,14 @@ fun ActivityFormView(
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
+                        imeAction = ImeAction.Done
                     ),
-//                    keyboardActions = KeyboardActions(
-//                        onNext = {
-//                            focusRequesterPassword.requestFocus()
-//                        }
-//                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        }
+                    ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -153,15 +182,119 @@ fun ActivityFormView(
                 Box {
                     ChooseSportInActivity(
                         modifier = Modifier.height(56.dp),
-                        sport = state.sport
+                        sport = if (isCreate) sportFromRecord!! else activity!!.sport
                     )
                     SportBottomSheet(
-                        selectedSport = state.sport,
+                        selectedSport = if (isCreate) sportFromRecord!! else activity!!.sport,
                         onItemClick = { viewModel.updateSport(it) }
                     )
                 }
 
                 //Photo Section
+                //ShowSelectedImage&ImagePicker
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                ) {
+                    val screenWidth = localConfig.screenWidthDp.dp
+                    val halfWidth = (screenWidth - 24.dp) / 2
+
+                    if (state.sport.isNeedMap) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .height(160.dp)
+                                    .width(halfWidth),
+                                Alignment.Center
+                            ) {
+                                if (isCreate)
+                                    Image(
+                                        modifier = Modifier.fillMaxSize(),
+                                        painter = rememberAsyncImagePainter(R.drawable.map_sample_with_noti),
+                                        contentDescription = "Sample map"
+                                    )
+                                else {
+                                    AsyncImage(
+                                        modifier = Modifier.fillMaxSize(),
+                                        model = activity!!.mapImage,
+                                        contentDescription = "Sample map"
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (!isCreate) {
+                        items(activity!!.images) { image ->
+                            Image(
+                                painter = rememberAsyncImagePainter(image),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .height(140.dp)
+                                    .width(80.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .border(
+                                        1.dp,
+                                        StrideTheme.colors.grayBorder,
+                                        RoundedCornerShape(6.dp)
+                                    )
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple()
+                                    ) {
+                                        val newImages = activity.images.toMutableList()
+                                        newImages.remove(image)
+                                        viewModel.updateActivityImage(newImages)
+                                    },
+                                contentScale = ContentScale.Inside
+                            )
+                        }
+                    }
+
+                    itemsIndexed(previewImage) { index, image ->
+                        Image(
+                            painter = rememberAsyncImagePainter(image),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(140.dp)
+                                .width(80.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .border(
+                                    1.dp,
+                                    StrideTheme.colors.grayBorder,
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple()
+                                ) {
+                                    selectedPreviewImageIndex.value = index
+                                    expandImageOptionMenu.value = true
+                                },
+                            contentScale = ContentScale.FillHeight
+                        )
+                    }
+
+                    item {
+                        ImagePickerView(
+                            modifier = Modifier
+                                .height(160.dp)
+                                .width(halfWidth - 24.dp)
+                        ) { uri ->
+                            if (isCreate)
+                                previewImage.add(uri)
+                            else
+                                viewModel.updateActivityImage(activity!!.images)
+                        }
+                    }
+                }
+
+                RateFeelingBottomSheet(
+                    value = if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe,
+                    onValueChange = { viewModel.updateFeelingRate(it) }
+                )
 
                 //Activity Feeling
                 //Feeling value view
@@ -218,76 +351,22 @@ fun ActivityFormView(
                         )
                     }
                 }
-                RateFeelingBottomSheet(
-                    value = if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe,
-                    onValueChange = { viewModel.updateFeelingRate(it) }
-                )
 
-                //ShowSelectedImage&ImagePicker
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                //Description
+                OutlinedTextField(
+                    value = if (isCreate) state.createActivityDto.description else state.updateActivityDto.description,
+                    onValueChange = { viewModel.updateDescription(it) },
+                    placeholder = {
+                        Text(
+                            "Jot down note here",
+                            style = StrideTheme.typography.labelLarge.copy(color = StrideTheme.colors.placeHolderText)
+                        )
+                    },
+                    shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp)
-                ) {
-                    items(state.activity.images) { image ->
-                        Image(
-                            painter = rememberAsyncImagePainter(image),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .height(140.dp)
-                                .width(80.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .border(
-                                    1.dp,
-                                    StrideTheme.colors.grayBorder,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple()
-                                ) {
-                                    val newImages = state.activity.images.toMutableList()
-                                    newImages.remove(image)
-                                    viewModel.updateActivityImage(newImages)
-                                },
-                            contentScale = ContentScale.Inside
-                        )
-                    }
-
-                    itemsIndexed(previewImage) { index, image ->
-                        Image(
-                            painter = rememberAsyncImagePainter(image),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .height(140.dp)
-                                .width(80.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .border(
-                                    1.dp,
-                                    StrideTheme.colors.grayBorder,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple()
-                                ) {
-                                    selectedPreviewImageIndex.value = index
-                                    expandImageOptionMenu.value = true
-                                },
-                            contentScale = ContentScale.FillHeight
-                        )
-                    }
-
-                    item {
-                        ImagePickerView(modifier = Modifier.height(160.dp)) { uri ->
-                            if (isCreate)
-                                previewImage.add(uri)
-                            else
-                                viewModel.updateActivityImage(state.activity.images)
-                        }
-                    }
-                }
+                        .heightIn(max = 120.dp)
+                )
             }
         }
     }

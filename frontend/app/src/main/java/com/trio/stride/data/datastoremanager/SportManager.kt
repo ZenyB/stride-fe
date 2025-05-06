@@ -84,6 +84,9 @@ class SportManager @Inject constructor(
     )
     val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
 
+    private val _currentSport = MutableStateFlow(sports.value[0])
+    val currentSport: StateFlow<Sport> = _currentSport
+
     private val _isError = MutableStateFlow(false)
     val isError: StateFlow<Boolean> = _isError
 
@@ -134,5 +137,9 @@ class SportManager @Inject constructor(
                 }
             }
         }
+    }
+
+    fun updateCurrentSport(sport: Sport) {
+        _currentSport.value = sport
     }
 }

@@ -74,6 +74,8 @@ import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
+import com.trio.stride.ui.components.sport.ChooseSportIconButton
+import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheet
 import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
@@ -134,6 +136,7 @@ fun RecordScreen(
     val isBluetoothOn by viewModel.isBluetoothOn.collectAsStateWithLifecycle()
     val selectedDevice by viewModel.selectedDevice.collectAsStateWithLifecycle()
     val heartRate by viewModel.heartRate.collectAsState()
+    val currentSport by viewModel.currentSport.collectAsStateWithLifecycle()
 
     val launcher = GpsUtils.createGpsLauncher(context, mapView, updateGpsStatus = { status ->
         viewModel.updateGpsStatus(status)
@@ -240,19 +243,30 @@ fun RecordScreen(
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
+//                        Icon(
+//                            modifier = Modifier
+//                                .padding(vertical = 4.dp)
+//                                .size(40.dp)
+//                                .clickable(
+//                                    interactionSource = remember { MutableInteractionSource() },
+//                                    indication = ripple(),
+//                                ) {
+//
+//                                },
+//                            painter = painterResource(R.drawable.run_icon),
+//                            contentDescription = "Choose activity type"
+//                        )
+                        ChooseSportIconButton(
                             modifier = Modifier
-                                .padding(vertical = 4.dp)
-                                .size(40.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(),
-                                ) {
-
-                                },
-                            painter = painterResource(R.drawable.run_icon),
-                            contentDescription = "Choose activity type"
+                                .padding(vertical = 4.dp),
+                            iconModifier = Modifier.size(40.dp),
+                            iconImage = currentSport.image,
                         )
+                        SportBottomSheet(
+                            selectedSport = currentSport,
+                            onItemClick = { viewModel.updateCurrentSport(it) }
+                        )
+
                         Icon(
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
@@ -297,7 +311,7 @@ fun RecordScreen(
                                             userLocation = point
                                         }
                                         if (userLocation != null)
-                                            viewModel.startRecord(userLocation, context)
+                                            viewModel.startRecord(userLocation!!, context)
                                         else
                                             checkLocationOn(
                                                 context,
@@ -377,13 +391,14 @@ fun RecordScreen(
                                         else
                                             StrideTheme.colorScheme.onSecondary
 
-                                    IconButton(modifier = Modifier
-                                        .size(44.dp)
-                                        .background(
-                                            showMetricButtonContainerColor,
-                                            CircleShape
-                                        )
-                                        .clip(CircleShape),
+                                    IconButton(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(
+                                                showMetricButtonContainerColor,
+                                                CircleShape
+                                            )
+                                            .clip(CircleShape),
                                         colors = IconButtonDefaults.iconButtonColors().copy(
                                             containerColor = showMetricButtonContainerColor,
                                             contentColor = showMetricButtonContentColor
@@ -439,15 +454,16 @@ fun RecordScreen(
                                     else
                                         StrideTheme.colorScheme.onSecondary
 
-                                IconButton(modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .padding(end = 16.dp)
-                                    .size(44.dp)
-                                    .background(
-                                        showMetricButtonContainerColor,
-                                        CircleShape
-                                    )
-                                    .clip(CircleShape),
+                                IconButton(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(end = 16.dp)
+                                        .size(44.dp)
+                                        .background(
+                                            showMetricButtonContainerColor,
+                                            CircleShape
+                                        )
+                                        .clip(CircleShape),
                                     colors = IconButtonDefaults.iconButtonColors().copy(
                                         containerColor = showMetricButtonContainerColor,
                                         contentColor = showMetricButtonContentColor
@@ -541,21 +557,35 @@ fun RecordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    RecordValueBlock(
-                        title = "Time",
-                        value = formatTimeByMillis(time)
-                    )
-                    RecordValueBlock(
-                        type = RecordValueBlockType.Large,
-                        title = "Avg Speed",
-                        value = formatSpeed(avgSpeed),
-                        unit = "km/h"
-                    )
-                    RecordValueBlock(
-                        title = "Distance",
-                        value = formatDistance(distance),
-                        unit = "km"
-                    )
+                    if (currentSport.isNeedMap) {
+                        RecordValueBlock(
+                            title = "Time",
+                            value = formatTimeByMillis(time)
+                        )
+                        RecordValueBlock(
+                            type = RecordValueBlockType.Large,
+                            title = "Avg Speed",
+                            value = formatSpeed(avgSpeed),
+                            unit = "km/h"
+                        )
+                        RecordValueBlock(
+                            title = "Distance",
+                            value = formatDistance(distance),
+                            unit = "km"
+                        )
+                    } else {
+                        RecordValueBlock(
+                            type = RecordValueBlockType.Large,
+                            title = "Time",
+                            value = formatTimeByMillis(time),
+                        )
+                        RecordValueBlock(
+                            type = RecordValueBlockType.Large,
+                            title = "Heart Rate",
+                            value = heartRate.toString(),
+                            unit = "BPM"
+                        )
+                    }
                 }
             }
 
@@ -649,7 +679,9 @@ fun RecordScreen(
             "Save",
             "Save",
             dismissAction = { viewModel.handleDismissSaveActivity(context) },
-            createActivity = { info -> TODO() }
+            createActivity = { viewModel.saveActivity(it, context) },
+            sportFromRecord = currentSport,
+            isCreate = true
         )
     }
 }

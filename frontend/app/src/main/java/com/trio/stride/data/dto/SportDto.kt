@@ -12,7 +12,8 @@ data class SportDto(
     val name: String,
     val image: String,
     val sportMapType: String,
-    val rules: List<RuleDto>
+    val rules: List<RuleDto>,
+    val isNeedMap: Boolean
 )
 
 data class RuleDto(

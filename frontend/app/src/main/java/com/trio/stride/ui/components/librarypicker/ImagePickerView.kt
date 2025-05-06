@@ -100,7 +100,7 @@ fun ImagePickerView(
             Text(
                 text = "Add Photos/Videos",
                 color = StrideTheme.colorScheme.primary,
-                style = StrideTheme.typography.bodyMedium
+                style = StrideTheme.typography.labelSmall
             )
         }
     }

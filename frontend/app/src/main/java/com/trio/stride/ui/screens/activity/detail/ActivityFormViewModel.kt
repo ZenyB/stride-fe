@@ -27,7 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ActivityFormViewModel @Inject constructor(
     private val sportManager: SportManager,
-    private val uploadFileUseCase: UploadFileUseCase
+    private val uploadFileUseCase: UploadFileUseCase,
 ) : BaseViewModel<ActivityFormViewModel.ViewState>() {
     override fun createInitialState(): ViewState = ViewState()
 
@@ -102,6 +102,15 @@ class ActivityFormViewModel @Inject constructor(
         }
     }
 
+    fun updateDescription(value: String) {
+        setState {
+            currentState.copy(
+                updateActivityDto = updateActivityDto.copy(description = value),
+                createActivityDto = createActivityDto.copy(description = value)
+            )
+        }
+    }
+
     fun updateSport(value: Sport) {
         setState {
             currentState.copy(
@@ -129,6 +138,31 @@ class ActivityFormViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    fun initial(isCreate: Boolean, activity: Activity?, sportFromRecord: Sport?) {
+        if (isCreate)
+            setState {
+                currentState.copy(
+                    sport = sportFromRecord!!,
+                    createActivityDto = CreateActivityRequestDTO(
+                        sportId = sportFromRecord.id
+                    )
+                )
+            }
+        else
+            setState {
+                currentState.copy(
+                    activity = activity!!,
+                    updateActivityDto = UpdateActivityRequestDto(
+                        sportId = activity.sport.id,
+                        rpe = activity.rpe,
+                        name = activity.name,
+                        description = activity.description,
+                        images = activity.images
+                    )
+                )
+            }
     }
 
     data class ViewState(

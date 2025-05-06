@@ -177,7 +177,7 @@ class RecordService : LifecycleService() {
             val startTime = System.currentTimeMillis()  // Thời gian bắt đầu
             var lastUpdateTime =
                 startTime  // Thời gian cập nhật cuối cùng, ban đầu là thời điểm start
-            var timePaused = 0L  // Tổng thời gian đã pause
+            var movingTime = 0L  // Tổng thời gian đã pause
 
             while (true) {
                 delay(1000)  // Đợi 1 giây
@@ -193,12 +193,15 @@ class RecordService : LifecycleService() {
                 val elapsedSinceLastUpdate =
                     currentTime - lastUpdateTime  // Thời gian trôi qua kể từ lần update trước
 
-                timePaused += elapsedSinceLastUpdate  // Cập nhật thời gian đã trôi qua
+                movingTime += elapsedSinceLastUpdate  // Cập nhật thời gian đã trôi qua
 
-                recordRepository.updateTime(timePaused)
+                val elapsedTime = currentTime - startTime
+                recordRepository.updateElapsedTime(elapsedTime)
+
+                recordRepository.updateTime(movingTime)
 
                 // Tính toán tốc độ trung bình
-                val durationSeconds = timePaused / 1000.0 //seconds
+                val durationSeconds = movingTime / 1000.0 //seconds
                 val distance = recordRepository.distance.value //meters
                 val avgSpeed =
                     if (durationSeconds > 0.0) (distance / durationSeconds) * 3.6 else 0.0
