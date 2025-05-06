@@ -50,7 +50,7 @@ fun RouteItemDetail(item: RouteItem) {
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                "${item.avgDistance} km • ${formatDuration(item.avgTime.toInt())}",
+                "${item.avgDistance} km • ${formatDuration(item.avgTime)}",
                 style = StrideTheme.typography.bodyLarge
                     .copy(fontWeight = FontWeight.Thin),
             )
