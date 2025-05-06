@@ -25,6 +25,7 @@ import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
 import com.mapbox.maps.plugin.viewport.data.ViewportStatusChangeReason
 import com.mapbox.maps.plugin.viewport.viewport
 import com.trio.stride.R
+import com.trio.stride.ui.screens.maps.view.ZOOM
 import com.trio.stride.ui.screens.record.RecordViewModel
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.BearingStatus
@@ -51,7 +52,7 @@ fun FocusUserLocationButton(
                 FollowPuckViewportStateOptions.Builder()
                     .bearing(FollowPuckViewportStateBearing.SyncWithLocationPuck)
                     .pitch(0.6)
-                    .zoom(16.0)
+                    .zoom(ZOOM)
                     .build()
             )
         )
@@ -63,7 +64,7 @@ fun FocusUserLocationButton(
                 FollowPuckViewportStateOptions.Builder()
                     .bearing(FollowPuckViewportStateBearing.Constant(0.0))
                     .pitch(0.0)
-                    .zoom(16.0)
+                    .zoom(ZOOM)
                     .build()
             )
         )

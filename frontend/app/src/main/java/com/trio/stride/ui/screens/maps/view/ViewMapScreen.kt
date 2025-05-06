@@ -84,7 +84,7 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
 import com.trio.stride.R
 import com.trio.stride.navigation.Screen
-import com.trio.stride.ui.components.button.FocusUserLocationButton
+import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.map.MapFallbackScreen
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
@@ -97,8 +97,8 @@ import com.trio.stride.ui.utils.map.RequestLocationPermission
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-const val ZOOM = 12.0
-const val INITIAL_ZOOM = 4.0
+const val ZOOM = 11.0
+const val INITIAL_ZOOM = 9.0
 const val ROAD_LABEL = "road-label"
 
 
@@ -153,12 +153,11 @@ fun ViewMapScreen(
         .zoom(ZOOM)
         .build()
 
-    var currentIndex = 0
     var selectedIndex by remember { mutableIntStateOf(0) }
     val peekHeight = if (uiState is ViewMapState.ViewRouteDetail) {
         400.dp
     } else {
-        200.dp
+        180.dp
     }
     val animatedPeekHeight by animateDpAsState(
         targetValue = peekHeight,
@@ -212,6 +211,12 @@ fun ViewMapScreen(
         Log.d("map route", "map route $id")
     }
 
+    fun clearRoute() {
+        touchManager?.deleteAll()
+        polylineAnnotationManager?.deleteAll()
+        selectedRouteManager?.deleteAll()
+    }
+
     fun selectRoute(index: Int) {
         Log.d("handle tap", "new index $index")
         Log.d("handle tap", "selected index $selectedIndex")
@@ -247,9 +252,9 @@ fun ViewMapScreen(
                         mapViewportState.setCameraOptions { bearing(null) }
                     }
                 })
-            viewModel.getRecommendRoute()
+            viewModel.getRecommendRoute(null)
         } else {
-            viewModel.getRecommendRoute()
+            viewModel.getRecommendRoute(selectedPoint.value)
         }
     }
 
@@ -368,9 +373,7 @@ fun ViewMapScreen(
         if (isMapAvailable) {
             MapboxMap(
                 Modifier
-                    .fillMaxSize()
-                    .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
-                mapViewportState = mapViewportState,
+                    .fillMaxSize(), mapViewportState = mapViewportState,
                 style = { MapStyle(style = mapStyle) },
                 scaleBar = {},
                 compass = {}
@@ -447,10 +450,11 @@ fun ViewMapScreen(
                 }
 
                 MapEffect(routeItems) {
-                    currentIndex = 0
+                    var currentIndex = 0
+                    clearRoute()
                     routeItems.forEachIndexed { _, item ->
                         val coords =
-                            LineString.fromPolyline(item.geometry, 6).coordinates()
+                            LineString.fromPolyline(item.geometry ?: "", 5).coordinates()
                         drawRoute(currentIndex.toString(), coords)
                         currentIndex++
                     }

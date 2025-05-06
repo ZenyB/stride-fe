@@ -1,6 +1,8 @@
 package com.trio.stride.ui.components.map.routesheet
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -15,9 +17,8 @@ import com.trio.stride.domain.model.RouteItem
 fun RouteList(items: List<RouteItem>, onClick: (index: Int) -> Unit) {
     LazyColumn(
         modifier = Modifier
-            .padding(horizontal = 24.dp)
-            .padding(end = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         itemsIndexed(items) { index, item ->
             RouteItemView(
@@ -30,6 +31,9 @@ fun RouteList(items: List<RouteItem>, onClick: (index: Int) -> Unit) {
                     clip = false
                 )
             )
+        }
+        item {
+            Spacer(Modifier.height(0.dp))
         }
     }
 }

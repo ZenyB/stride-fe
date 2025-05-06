@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.trio.stride.R
 import com.trio.stride.domain.model.RouteItem
+import com.trio.stride.domain.model.toFormattedString
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
 
@@ -55,7 +57,7 @@ fun RouteItemDetail(item: RouteItem) {
                     .copy(fontWeight = FontWeight.Thin),
             )
             Text(
-                item.location,
+                item.location.toFormattedString(),
                 style = StrideTheme.typography.bodyLarge
                     .copy(fontWeight = FontWeight.Thin),
             )
@@ -65,9 +67,23 @@ fun RouteItemDetail(item: RouteItem) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(3) { imageUrl ->
+            itemsIndexed(
+                item.images ?: emptyList()
+            ) { _, imgUrl ->
                 AsyncImage(
-                    model = "https://img.freepik.com/free-photo/low-rise-building_1127-3272.jpg?t=st=1745483374~exp=1745486974~hmac=479952fdec79f12dc1585e2f2f74fdec391e62bb62a4b03c49de54df479329bf&w=996",
+                    model = imgUrl,
+                    contentDescription = "route",
+                    modifier = Modifier
+                        .width(300.dp)
+                        .aspectRatio(12f / 7f)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center
+                )
+            }
+            items(1) { _ ->
+                AsyncImage(
+                    model = item.mapImage,
                     contentDescription = "route",
                     modifier = Modifier
                         .width(300.dp)
