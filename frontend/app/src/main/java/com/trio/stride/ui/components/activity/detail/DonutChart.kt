@@ -1,4 +1,4 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.trio.stride.domain.model.HeartRateInfo
+import com.trio.stride.domain.usecase.activity.redShades
 import com.trio.stride.ui.utils.formatDuration
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -29,7 +30,7 @@ private val STROKE_SIZE_SELECTED = 58.dp
 data class DonutChartDataCollection(
     var items: List<HeartRateInfo>
 ) {
-    internal var totalDuration: Long = items.sumOf { it.duration }
+    internal var totalDuration: Long = items.sumOf { it.value }
         private set
 }
 
@@ -124,7 +125,7 @@ fun DonutChart(
                     val strokeWidth = animationTargetState[ind].value.stroke.toPx()
 
                     drawArc(
-                        color = item.color,
+                        color = item.color ?: redShades[0],
                         startAngle = lastAngle,
                         sweepAngle = sweepAngle,
                         useCenter = false,
@@ -146,7 +147,7 @@ fun DonutChart(
                     val x = center.x + tooltipRadius * kotlin.math.cos(radians).toFloat()
                     val y = center.y + tooltipRadius * kotlin.math.sin(radians).toFloat()
 
-                    val labelText = formatDuration(data.items[selectedIndex].duration)
+                    val labelText = formatDuration(data.items[selectedIndex].value)
                     val paint = android.graphics.Paint().apply {
                         color = android.graphics.Color.BLACK
                         textSize = 36f
@@ -317,7 +318,7 @@ private fun DonutChartDataCollection.findSweepAngle(
     index: Int,
     gapPercentage: Float
 ): Float {
-    val amount = items[index].duration
+    val amount = items[index].value
     val gap = this.calculateGap(gapPercentage)
     val totalWithGap = getTotalAmountWithGapIncluded(gapPercentage)
     val gapAngle = this.calculateGapAngle(gapPercentage)

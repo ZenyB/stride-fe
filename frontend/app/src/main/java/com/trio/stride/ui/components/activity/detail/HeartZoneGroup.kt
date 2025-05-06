@@ -1,4 +1,4 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,7 @@ fun HeartZoneGroup(
         verticalAlignment = Alignment.CenterVertically
     ) {
         options.forEachIndexed { index, option ->
-            val isSelected = option.title == selected?.title
+            val isSelected = option.name == selected?.name
 
             Column(
                 modifier = Modifier

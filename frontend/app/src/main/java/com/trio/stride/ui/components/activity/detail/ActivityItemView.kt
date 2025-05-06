@@ -1,5 +1,7 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,11 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.trio.stride.R
 import com.trio.stride.domain.model.ActivityItem
 import com.trio.stride.domain.model.ActivityUser
 import com.trio.stride.domain.model.Category
@@ -27,10 +32,15 @@ import com.trio.stride.ui.utils.formatDate
 import com.trio.stride.ui.utils.formatDuration
 
 @Composable
-fun ActivityItemView(item: ActivityItem, modifier: Modifier) {
+fun ActivityItemView(item: ActivityItem, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier
+            .background(StrideTheme.colorScheme.surface)
+            .clickable {
+                onClick(item.id)
+            }
+            .padding(16.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Avatar(
@@ -69,10 +79,17 @@ fun ActivityItemView(item: ActivityItem, modifier: Modifier) {
             }
         }
 
-        if (item.isNeedMap) {
+        if (item.sport.sportMapType != null) {
             AsyncImage(
-                model = item.mapImage,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(item.mapImage)
+                    .crossfade(true)
+                    .placeholder(R.drawable.image_icon)
+                    .error(R.drawable.image_icon)
+                    .fallback(R.drawable.image_icon)
+                    .build(),
                 contentDescription = "activity",
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(12f / 8f),
@@ -114,7 +131,7 @@ fun PreviewItem() {
             category = Category(),
             name = "Run",
             image = "https://img.freepik.com/free-photo/low-rise-building_1127-3272.jpg?t=st=1745483374~exp=1745486974~hmac=479952fdec79f12dc1585e2f2f74fdec391e62bb62a4b03c49de54df479329bf&w=996",
-            sportMapType = SportMapType.WALKING
+            sportMapType = SportMapType.CYCLING
         ),
         totalDistance = 12.3,
         elevationGain = 40,
@@ -126,8 +143,5 @@ fun PreviewItem() {
             name = "Mark",
             ava = ""
         ),
-        isNeedMap = true
     )
-
-    ActivityItemView(item, Modifier)
 }
