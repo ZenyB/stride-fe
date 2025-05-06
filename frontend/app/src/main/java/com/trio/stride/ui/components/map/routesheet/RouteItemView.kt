@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.trio.stride.domain.model.RouteItem
+import com.trio.stride.domain.model.toFormattedString
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
 
@@ -42,7 +43,7 @@ fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = "https://img.freepik.com/free-photo/low-rise-building_1127-3272.jpg?t=st=1745483374~exp=1745486974~hmac=479952fdec79f12dc1585e2f2f74fdec391e62bb62a4b03c49de54df479329bf&w=996",
+            model = item.images?.getOrNull(0) ?: item.mapImage,
             contentDescription = "route",
             modifier = Modifier
                 .width(80.dp)
@@ -70,7 +71,7 @@ fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier) {
                 color = StrideTheme.colors.gray600,
             )
             Text(
-                item.location,
+                item.location.toFormattedString(),
                 maxLines = 1,
                 style = StrideTheme.typography.bodySmall
                     .copy(fontWeight = FontWeight.Thin),

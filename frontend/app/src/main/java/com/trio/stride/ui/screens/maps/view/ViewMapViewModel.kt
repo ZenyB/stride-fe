@@ -7,10 +7,12 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.mapbox.geojson.Point
+import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,10 +30,16 @@ class ViewMapViewModel @Inject constructor(
     private val _routeItems = MutableStateFlow<List<RouteItem>>(emptyList())
     val routeItems: StateFlow<List<RouteItem>> = _routeItems.asStateFlow()
 
+    private val _mapView = MutableStateFlow<MapView?>(null)
+    val mapView: StateFlow<MapView?> = _mapView
+
     private val _allRoutes = mutableStateMapOf<String, List<Point>>()
 
     private val _drawnRoutes = mutableMapOf<String, PolylineAnnotation?>()
 
+    fun setMapView(newValue: MapView?) {
+        _mapView.value = newValue
+    }
 
     fun onRouteItemClick(index: Int) {
         currentDetailIndex = index
@@ -55,7 +63,7 @@ class ViewMapViewModel @Inject constructor(
         _allRoutes[key] = points
     }
 
-    fun getRecommendRoute() {
+    fun getRecommendRoute(selectedPoint: Point?) {
         Log.d("okhttp", "Getting routes")
         setState { ViewMapState.Loading }
 
@@ -64,19 +72,17 @@ class ViewMapViewModel @Inject constructor(
                 getRecommendedRouteUseCase(
                     request =
                     RecommendRouteRequest(
-                        sportId = "9e0e6469-4a9c-4d18-969d-0cdf600288b3",
-                        latitude = 10.873953237840828,
-                        longitude = 106.74647540531987,
-                        around = 1000,
-                        limit = 5
+                        sportId = "c731a0db-d956-483e-9b9b-252662d66209",
+                        latitude = selectedPoint?.latitude() ?: 10.873953237840828,
+                        longitude = selectedPoint?.longitude() ?: 106.74647540531987,
+                        limit = 5,
+                        sportMapType = SportMapType.CYCLING
                     )
                 )
             result
                 .onSuccess { data ->
                     setState { ViewMapState.Idle }
-                    data.forEachIndexed { index, item ->
-                        _routeItems.value += item
-                    }
+                    _routeItems.value = data
                 }
                 .onFailure {
                     setState { ViewMapState.GetRouteError(it.message ?: "An error occurred") }

@@ -20,8 +20,10 @@ fun RoutePager(
         contentPadding = PaddingValues(horizontal = 16.dp),
         pageSpacing = 8.dp,
     ) { page ->
-        RouteItemView(items[page], onClick = {
-            onClick(page)
-        }, modifier)
+        if (items.getOrNull(page) != null) {
+            RouteItemView(items[page], onClick = {
+                onClick(page)
+            }, modifier)
+        }
     }
 }

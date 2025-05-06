@@ -7,8 +7,18 @@ data class RouteItem(
     val avgTime: Long,
     val avgDistance: Double,
     val totalTime: Long,
-    val location: String,
-    val images: List<String>,
+    val location: RouteLocation,
+    val images: List<String>?,
     val mapImage: String,
     val geometry: String
 )
+
+data class RouteLocation(
+    val ward: String?,
+    val district: String?,
+    val city: String?,
+)
+
+fun RouteLocation.toFormattedString(): String {
+    return listOfNotNull(ward, district, city).joinToString(", ")
+}
