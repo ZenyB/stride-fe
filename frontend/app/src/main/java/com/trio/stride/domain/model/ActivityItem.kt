@@ -15,12 +15,6 @@ data class ActivityItem(
     val isNeedMap: Boolean
 )
 
-data class ActivityUser(
-    val id: String,
-    val name: String,
-    val ava: String,
-)
-
 data class ActivityDetailInfo(
     val id: String,
     val name: String,

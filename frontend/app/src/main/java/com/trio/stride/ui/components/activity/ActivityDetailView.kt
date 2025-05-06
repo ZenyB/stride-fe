@@ -25,6 +25,7 @@ import com.trio.stride.domain.model.ActivityUser
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.HeartRateZones
 import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.Avatar
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDate
@@ -191,7 +192,7 @@ fun PreviewDetail() {
             category = Category(),
             name = "Run",
             image = "",
-            sportMapType = ""
+            sportMapType = SportMapType.WALKING
         ),
         user = ActivityUser(id = "10", name = "Mark", ava = ""),
         totalDistance = 0.37,

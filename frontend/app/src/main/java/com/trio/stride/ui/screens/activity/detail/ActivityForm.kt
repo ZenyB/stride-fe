@@ -43,10 +43,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,8 +74,8 @@ import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
 import com.trio.stride.ui.components.librarypicker.ImagePickerView
-import com.trio.stride.ui.components.sport.ChooseSportInActivity
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheet
+import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
+import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInActivity
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
@@ -100,7 +102,8 @@ fun ActivityFormView(
     }
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val sports by viewModel.sports.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsState()
+    val sportsByCategory by viewModel.sportsByCategory.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val localConfig = LocalConfiguration.current
@@ -110,6 +113,8 @@ fun ActivityFormView(
     val expandImageOptionMenu = remember { mutableStateOf(false) }
     val isRpePressed = remember { mutableStateOf(false) }
     val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
+    var showSportBottomSheet by remember { mutableStateOf(false) }
+    var selectedSport by remember { mutableStateOf(if (isCreate) sportFromRecord!! else activity!!.sport) }
 
     LaunchedEffect(Unit) {
         viewModel.initial(isCreate, activity, sportFromRecord)
@@ -182,11 +187,16 @@ fun ActivityFormView(
                 Box {
                     ChooseSportInActivity(
                         modifier = Modifier.height(56.dp),
-                        sport = if (isCreate) sportFromRecord!! else activity!!.sport
+                        sport = selectedSport,
+                        onClick = { showSportBottomSheet = true }
                     )
-                    SportBottomSheet(
+                    SportBottomSheetWithCategory(
+                        categories = categories,
+                        sportsByCategory = sportsByCategory,
                         selectedSport = if (isCreate) sportFromRecord!! else activity!!.sport,
-                        onItemClick = { viewModel.updateSport(it) }
+                        visible = showSportBottomSheet,
+                        onItemClick = { sport -> selectedSport = sport },
+                        dismissAction = { showSportBottomSheet = false }
                     )
                 }
 
@@ -201,7 +211,7 @@ fun ActivityFormView(
                     val screenWidth = localConfig.screenWidthDp.dp
                     val halfWidth = (screenWidth - 24.dp) / 2
 
-                    if (state.sport.isNeedMap) {
+                    if (state.sport.sportMapType != null) {
                         item {
                             Box(
                                 modifier = Modifier

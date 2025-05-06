@@ -80,12 +80,15 @@ class SportManager @Inject constructor(
     val sports: StateFlow<List<Sport>> = _sports
 
     private val _sportsByCategory = MutableStateFlow(
-        sports.value.groupBy { sport -> sport.category.id }
+        sports.value.groupBy { sport -> sport.category }
     )
-    val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
+    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
 
     private val _currentSport = MutableStateFlow(sports.value[0])
     val currentSport: StateFlow<Sport> = _currentSport
+
+    private val _sportsWithMap = MutableStateFlow(sports.value.filter { it.sportMapType != null })
+    val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap
 
     private val _isError = MutableStateFlow(false)
     val isError: StateFlow<Boolean> = _isError
@@ -126,7 +129,7 @@ class SportManager @Inject constructor(
                         _isError.value = false
                         _errorMessage.value = null
                         _sports.value = response.data
-                        _sportsByCategory.value = response.data.groupBy { it -> it.category.id }
+                        _sportsByCategory.value = response.data.groupBy { it -> it.category }
                     }
 
                     is Resource.Loading -> {}

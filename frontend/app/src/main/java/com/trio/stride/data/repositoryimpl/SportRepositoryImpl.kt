@@ -1,7 +1,6 @@
 package com.trio.stride.data.repositoryimpl
 
 import com.trio.stride.data.apiservice.sport.SportApi
-import com.trio.stride.data.mapper.toSportMapType
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.repository.SportRepository
@@ -23,7 +22,7 @@ class SportRepositoryImpl @Inject constructor(
                 name = response.data.name,
                 category = Category(response.data.category.id, response.data.category.name),
                 image = response.data.image,
-                sportMapType = response.data.sportMapType.toSportMapType()
+                sportMapType = response.data.sportMapType
             )
         }
     }
