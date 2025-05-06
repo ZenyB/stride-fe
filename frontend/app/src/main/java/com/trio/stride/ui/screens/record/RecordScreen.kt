@@ -122,7 +122,6 @@ fun RecordScreen(
     val distance by viewModel.distance.collectAsStateWithLifecycle()
     val time by viewModel.time.collectAsStateWithLifecycle()
     val avgSpeed by viewModel.avgSpeed.collectAsStateWithLifecycle()
-    val activityType by viewModel.activityType.collectAsStateWithLifecycle()
     val screenStatus by viewModel.screenStatus.collectAsStateWithLifecycle()
     val recordStatus by viewModel.recordStatus.collectAsStateWithLifecycle()
     val gpsStatus by viewModel.gpsStatus.collectAsStateWithLifecycle()
@@ -245,24 +244,26 @@ fun RecordScreen(
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ChooseSportIconButton(
-                            modifier = Modifier
-                                .padding(vertical = 4.dp),
-                            iconModifier = Modifier.size(40.dp),
-                            iconImage = currentSport.image,
-                            onClick = { showSportBottomSheet = true }
-                        )
-                        SportBottomSheetWithCategory(
-                            categories = categories,
-                            sportsByCategory = sportsByCategory,
-                            selectedSport = currentSport,
-                            onItemClick = {
-                                viewModel.updateCurrentSport(it)
-                                showSportBottomSheet = false
-                            },
-                            dismissAction = { showSportBottomSheet = false },
-                            visible = showSportBottomSheet
-                        )
+                        if (recordStatus != RecordViewModel.RecordStatus.STOP && currentSport != null) {
+                            ChooseSportIconButton(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp),
+                                iconModifier = Modifier.size(40.dp),
+                                iconImage = currentSport!!.image,
+                                onClick = { showSportBottomSheet = true }
+                            )
+                            SportBottomSheetWithCategory(
+                                categories = categories,
+                                sportsByCategory = sportsByCategory,
+                                selectedSport = currentSport!!,
+                                onItemClick = {
+                                    viewModel.updateCurrentSport(it)
+                                    showSportBottomSheet = false
+                                },
+                                dismissAction = { showSportBottomSheet = false },
+                                visible = showSportBottomSheet
+                            )
+                        }
 
                         Icon(
                             modifier = Modifier
@@ -495,31 +496,33 @@ fun RecordScreen(
                 showMap = true
             }
         )
-        Box() {
-            MapboxMap(
-                Modifier
-                    .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding()),
-                mapViewportState = mapViewportState,
-                style = { MapStyle(style = Style.MAPBOX_STREETS) }
-            ) {
-                MapEffect(Unit) { mv ->
-                    viewModel.setMapView(mv)
-                    viewModel.drawRoute(mv, emptyList())
-                    viewModel.reloadMapStyle()
-                    viewModel.enableUserLocation()
-                }
-                if (startPoint != null) {
-                    CircleAnnotation(point = startPoint!!) {
-                        circleRadius = 5.0
-                        circleColor = StrideColor.green600
-                        circleStrokeWidth = 1.5
-                        circleStrokeColor = Color(0xffffffff)
+        Box {
+            if (currentSport?.sportMapType != null) {
+                MapboxMap(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(top = padding.calculateTopPadding()),
+                    mapViewportState = mapViewportState,
+                    style = { MapStyle(style = Style.MAPBOX_STREETS) }
+                ) {
+                    MapEffect(Unit) { mv ->
+                        viewModel.setMapView(mv)
+                        viewModel.drawRoute(mv, emptyList())
+                        viewModel.reloadMapStyle()
+                        viewModel.enableUserLocation()
+                    }
+                    if (startPoint != null) {
+                        CircleAnnotation(point = startPoint!!) {
+                            circleRadius = 5.0
+                            circleColor = StrideColor.green600
+                            circleStrokeWidth = 1.5
+                            circleStrokeColor = Color(0xffffffff)
+                        }
                     }
                 }
             }
 
-            if (screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
+            if (screenStatus == RecordViewModel.ScreenStatus.DEFAULT && currentSport?.sportMapType != null) {
                 if (recordStatus == RecordViewModel.RecordStatus.NONE)
                     GPSStatusMessage(
                         Modifier.padding(top = padding.calculateTopPadding()),
@@ -535,7 +538,9 @@ fun RecordScreen(
 
 
             AnimatedVisibility(
-                screenStatus == RecordViewModel.ScreenStatus.DETAIL,
+                visible = screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                        || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
+                        && currentSport?.sportMapType == null),
                 enter = slideInHorizontally(
                     initialOffsetX = { -it }
                 ),
@@ -554,7 +559,7 @@ fun RecordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    if (currentSport.sportMapType != null) {
+                    if (currentSport?.sportMapType != null) {
                         RecordValueBlock(
                             title = "Time",
                             value = formatTimeByMillis(time)
@@ -678,7 +683,9 @@ fun RecordScreen(
             dismissAction = { viewModel.handleDismissSaveActivity(context) },
             createActivity = { viewModel.saveActivity(it, context) },
             sportFromRecord = currentSport,
-            isCreate = true
+            isCreate = true,
+            isSaving = state.isLoading,
+            isSavingError = state.isSavingError
         )
     }
 }

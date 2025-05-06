@@ -11,5 +11,5 @@ interface CategoryApi {
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null,
         @Query("name") name: String? = null,
-    ): List<GetCategoryResponseDto>
+    ): GetCategoryResponseDto
 }

@@ -1,9 +1,9 @@
 package com.trio.stride.data.datastoremanager
 
+import android.util.Log
 import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
-import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -22,72 +22,19 @@ class SportManager @Inject constructor(
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    private val _categories = MutableStateFlow(
-        listOf(
-            Category(id = "1", name = "Foot Sports"),
-            Category(id = "2", name = "Cycle Sports"),
-            Category(id = "3", name = "Water Sports")
-        )
-    )
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> = _categories
 
-    private val _sports = MutableStateFlow(
-        listOf(
-            Sport(
-                id = "s1",
-                category = Category(id = "1", name = "Foot Sports"),
-                name = "Running",
-                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
-                sportMapType = SportMapType.WALKING
-            ),
-            Sport(
-                id = "s2",
-                category = Category(id = "1", name = "Foot Sports"),
-                name = "Hiking",
-                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
-                sportMapType = SportMapType.WALKING
-            ),
-            Sport(
-                id = "s3",
-                category = Category(id = "2", name = "Cycle Sports"),
-                name = "Road Cycling",
-                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
-                sportMapType = SportMapType.CYCLING
-            ),
-            Sport(
-                id = "s4",
-                category = Category(id = "2", name = "Cycle Sports"),
-                name = "Mountain Biking",
-                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
-                sportMapType = SportMapType.CYCLING
-            ),
-            Sport(
-                id = "s5",
-                category = Category(id = "3", name = "Water Sports"),
-                name = "Swimming",
-                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
-                sportMapType = SportMapType.WALKING
-            ),
-            Sport(
-                id = "s6",
-                category = Category(id = "3", name = "Water Sports"),
-                name = "Rowing",
-                image = "https://freepngimg.com/download/volleyball/76665-logo-sport-volleyball-download-hd-png.png",
-                sportMapType = SportMapType.WALKING
-            )
-        )
-    )
+    private val _sports = MutableStateFlow<List<Sport>>(emptyList())
     val sports: StateFlow<List<Sport>> = _sports
 
-    private val _sportsByCategory = MutableStateFlow(
-        sports.value.groupBy { sport -> sport.category }
-    )
+    private val _sportsByCategory = MutableStateFlow<Map<Category, List<Sport>>>(emptyMap())
     val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
 
-    private val _currentSport = MutableStateFlow(sports.value[0])
-    val currentSport: StateFlow<Sport> = _currentSport
+    private val _currentSport = MutableStateFlow<Sport?>(null)
+    val currentSport: StateFlow<Sport?> = _currentSport
 
-    private val _sportsWithMap = MutableStateFlow(sports.value.filter { it.sportMapType != null })
+    private val _sportsWithMap = MutableStateFlow<List<Sport>>(emptyList())
     val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap
 
     private val _isError = MutableStateFlow(false)
@@ -97,31 +44,29 @@ class SportManager @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage
 
     init {
-//        getSports()
-//        getCategories()
+        fetchCategories()
+        fetchSports()
     }
 
-    private fun getCategories() {
+    private fun fetchCategories() {
         coroutineScope.launch {
-            getCategoriesUseCase.invoke().collectLatest { response ->
+            getCategoriesUseCase().collectLatest { response ->
                 when (response) {
                     is Resource.Success -> {
                         _isError.value = false
                         _errorMessage.value = null
                         _categories.value = response.data
+                        Log.i("CATEGORYYY", response.data.toString())
                     }
 
-                    is Resource.Loading -> {}
-                    is Resource.Error -> {
-                        _isError.value = true
-                        _errorMessage.value = response.error.message
-                    }
+                    is Resource.Error -> handleError(response.error.message)
+                    else -> Unit
                 }
             }
         }
     }
 
-    private fun getSports() {
+    private fun fetchSports() {
         coroutineScope.launch {
             getSportsUseCase.invoke().collectLatest { response ->
                 when (response) {
@@ -129,17 +74,30 @@ class SportManager @Inject constructor(
                         _isError.value = false
                         _errorMessage.value = null
                         _sports.value = response.data
-                        _sportsByCategory.value = response.data.groupBy { it -> it.category }
+
+                        _sportsByCategory.value = response.data.groupBy { it.category }
+                        _sportsWithMap.value = response.data.filter { it.sportMapType != null }
+                        _currentSport.value = response.data.firstOrNull()
+                        Log.i("SPORTTTT", _sportsByCategory.toString())
                     }
 
-                    is Resource.Loading -> {}
                     is Resource.Error -> {
-                        _isError.value = true
-                        _errorMessage.value = response.error.message
+                        handleError(response.error.message)
+                        Log.i("SPORTTT_ERROR", response.error.message.toString())
+                    }
+
+                    else -> {
+                        Unit
+                        Log.i("SPORTTT_LOADING", "Loading")
                     }
                 }
             }
         }
+    }
+
+    private fun handleError(message: String?) {
+        _isError.value = true
+        _errorMessage.value = message
     }
 
     fun updateCurrentSport(sport: Sport) {

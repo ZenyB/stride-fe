@@ -61,7 +61,8 @@ class ActivityFormViewModel @Inject constructor(
         return name
     }
 
-    private fun uploadImages(images: List<Uri>, context: Context) {
+    fun uploadImages(images: List<Uri>, context: Context, onFinish: () -> Unit) {
+        setState { currentState.copy(isUploadImage = true) }
         viewModelScope.launch {
             val uploadedUrls = coroutineScope {
                 images.map { uri ->
@@ -88,6 +89,7 @@ class ActivityFormViewModel @Inject constructor(
                 }.awaitAll()
             }
 
+            setState { currentState.copy(isUploadImage = false) }
             val newActivityImages = currentState.activity.images.toMutableList()
             uploadedUrls.forEach { newActivityImages.add(it) }
             setState {
@@ -95,6 +97,7 @@ class ActivityFormViewModel @Inject constructor(
                     activity = currentState.activity.copy(images = newActivityImages)
                 )
             }
+            onFinish()
         }
     }
 
@@ -172,6 +175,7 @@ class ActivityFormViewModel @Inject constructor(
 
     data class ViewState(
         val isLoading: Boolean = false,
+        val isUploadImage: Boolean = false,
         val activity: Activity = Activity(),
         val sport: Sport = Sport(),
         val updateActivityDto: UpdateActivityRequestDto = UpdateActivityRequestDto(),

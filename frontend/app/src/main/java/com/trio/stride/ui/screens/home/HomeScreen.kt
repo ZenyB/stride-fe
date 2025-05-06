@@ -58,8 +58,8 @@ fun HomeScreen(
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var showBottomSheet2 by remember { mutableStateOf(false) }
-    var selectedSport by remember { mutableStateOf(sportsByCategory[categories[0]]?.get(0)) }
-    var selectedSport2 by remember { mutableStateOf(sportsWithMap[0]) }
+    var selectedSport by remember { mutableStateOf<Sport?>(null) }
+    var selectedSport2 by remember { mutableStateOf<Sport?>(null) }
 
     if (loggingOut) {
         Loading()
@@ -99,7 +99,7 @@ fun HomeScreen(
             SportBottomSheetWithCategory(
                 categories = categories,
                 sportsByCategory = sportsByCategory,
-                selectedSport = selectedSport!!,
+                selectedSport = selectedSport,
                 visible = showBottomSheet,
                 onItemClick = { sport -> selectedSport = sport },
                 dismissAction = { showBottomSheet = false }
@@ -143,7 +143,7 @@ class HomeScreenViewModel @Inject constructor(
     val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap
 
     private val _currentSport = sportManager.currentSport
-    val currentSport: StateFlow<Sport> = _currentSport
+    val currentSport: StateFlow<Sport?> = _currentSport
 
     val errorMessage = mutableStateOf("")
 

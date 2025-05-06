@@ -4,6 +4,7 @@ import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.apiservice.activity.ActivityApi
 import com.trio.stride.data.apiservice.category.CategoryApi
 import com.trio.stride.data.apiservice.sport.SportApi
+import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.SportRepository
@@ -14,7 +15,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -26,8 +31,26 @@ object CoreModule {
 
     @Provides
     @CoreBaseUrl
-    fun provideRetrofitCoreUrl(): Retrofit {
+    fun provideRetrofitCoreUrl(tokenManager: TokenManager): Retrofit {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        val authInterceptor = Interceptor { chain ->
+            val original = chain.request()
+            val token = runBlocking { tokenManager.getAccessToken().firstOrNull() }
+
+            val requestBuilder = original.newBuilder()
+            if (!token.isNullOrBlank()) {
+                requestBuilder.addHeader("Authorization", "Bearer $token")
+            }
+
+            val request = requestBuilder.build()
+            chain.proceed(request)
+        }
+
         val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

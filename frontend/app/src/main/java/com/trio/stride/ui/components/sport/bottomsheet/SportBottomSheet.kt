@@ -42,7 +42,7 @@ import com.trio.stride.ui.theme.StrideTheme
 fun SportBottomSheetWithCategory(
     categories: List<Category>,
     sportsByCategory: Map<Category, List<Sport>>,
-    selectedSport: Sport,
+    selectedSport: Sport?,
     visible: Boolean,
     dismissAction: () -> Unit,
     onItemClick: (Sport) -> Unit,
@@ -89,7 +89,7 @@ fun SportBottomSheetWithCategory(
                         )
 
                         sports.forEach { sport ->
-                            val contentColor = if (sport.id == selectedSport.id)
+                            val contentColor = if (sport.id == selectedSport?.id)
                                 StrideTheme.colorScheme.primary
                             else
                                 StrideTheme.colorScheme.onBackground
@@ -125,7 +125,7 @@ fun SportBottomSheetWithCategory(
                                         color = contentColor,
                                     )
                                 }
-                                if (sport.id == selectedSport.id) {
+                                if (sport.id == selectedSport?.id) {
                                     Icon(
                                         imageVector = Icons.Filled.Check,
                                         modifier = Modifier.size(32.dp),
@@ -147,7 +147,7 @@ fun SportBottomSheetWithCategory(
 @Composable
 fun SportMapBottomSheet(
     sports: List<Sport>,
-    selectedSport: Sport,
+    selectedSport: Sport?,
     visible: Boolean,
     dismissAction: () -> Unit,
     onItemClick: (Sport) -> Unit,
@@ -183,7 +183,7 @@ fun SportMapBottomSheet(
                     HorizontalDivider()
                 }
                 items(sports) { sport ->
-                    val contentColor = if (sport.id == selectedSport.id)
+                    val contentColor = if (sport.id == selectedSport?.id)
                         StrideTheme.colorScheme.primary
                     else
                         StrideTheme.colorScheme.onBackground
@@ -217,7 +217,7 @@ fun SportMapBottomSheet(
                                 color = contentColor,
                             )
                         }
-                        if (sport.id == selectedSport.id) {
+                        if (sport.id == selectedSport?.id) {
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 modifier = Modifier.size(32.dp),

@@ -154,4 +154,9 @@ class GpsService : LifecycleService() {
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(gpsStateReceiver)
+    }
 }

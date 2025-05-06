@@ -54,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -83,6 +84,8 @@ fun ActivityFormView(
     title: String,
     primaryActionLabel: String,
     dismissAction: () -> Unit,
+    isSaving: Boolean,
+    isSavingError: Boolean,
     modifier: Modifier = Modifier,
     isCreate: Boolean = true,
     createActivity: ((CreateActivityRequestDTO) -> Unit)? = null,
@@ -108,6 +111,7 @@ fun ActivityFormView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val localConfig = LocalConfiguration.current
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     val previewImage = remember { mutableStateListOf<Uri>() }
     val expandImageOptionMenu = remember { mutableStateOf(false) }
@@ -139,9 +143,14 @@ fun ActivityFormView(
                 actions = {
                     TextButton(
                         onClick = {
-                            createActivity?.invoke(state.createActivityDto)
-                            updateActivity?.invoke(state.updateActivityDto)
-                        }
+                            viewModel.uploadImages(previewImage, context, onFinish = {
+                                if (isCreate)
+                                    createActivity?.invoke(state.createActivityDto)
+                                else
+                                    updateActivity?.invoke(state.updateActivityDto)
+                            })
+                        },
+                        enabled = !isSaving
                     ) {
                         Text(text = primaryActionLabel, style = StrideTheme.typography.titleMedium)
                     }
