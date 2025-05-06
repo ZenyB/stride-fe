@@ -19,4 +19,5 @@ object ApiConstants {
     const val CATEGORY = "categories"
     const val ACTIVITY = "activities"
     const val FILE = "files"
+    const val ACTIVITY_LIST = "activities/users/profile"
 }
