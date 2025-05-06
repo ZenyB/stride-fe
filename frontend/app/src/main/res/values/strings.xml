@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Stride</string>
     <!--<string name="google_login_client_id">611639311632-qtm1jnlgr6j40osmm0ups5g0h56cfj92.apps.googleusercontent.com</string>-->
-    <string name="google_login_client_id">611639311632-1k3mbho1h0l6i8aasnohrnkf4ke9bq3q.apps.googleusercontent.com
-</string>
+    <string name="google_login_client_id">611639311632-1k3mbho1h0l6i8aasnohrnkf4ke9bq3q.apps.googleusercontent.com</string>
+    <string name="easy_rpe">What’s Easy?\n\nCould talk normally\nBreathing naturally\nFelt very comfortable</string>
+    <string name="moderate_rpe">What’s Moderate?\n\nCould talk in short spurts\nBreathing more labored\nWithin your comfort zone, but working</string>
+    <string name="hard_rpe">What’s Hard?\n\nCould barely talk\nBreathing heavily\nOutside your comfort zone</string>
+    <string name="max_effort_rpe">What’s Max Effort?\n\nAt your physical limit\nGasping for breath\nCouldn’t talk/could barely remember your name</string>
 </resources>

@@ -1,10 +1,13 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
+import com.trio.stride.data.apiservice.activity.ActivityApi
 import com.trio.stride.data.apiservice.category.CategoryApi
 import com.trio.stride.data.apiservice.sport.SportApi
+import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.SportRepository
+import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
@@ -51,6 +54,12 @@ object CoreModule {
 
     @Provides
     @Singleton
+    fun provideActivityApi(@CoreBaseUrl retrofit: Retrofit): ActivityApi {
+        return retrofit.create(ActivityApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideGetSportsUseCase(sportRepository: SportRepository): GetSportsUseCase {
         return GetSportsUseCase(sportRepository)
     }
@@ -59,5 +68,11 @@ object CoreModule {
     @Singleton
     fun provideGetCategoriesUseCase(categoryRepository: CategoryRepository): GetCategoriesUseCase {
         return GetCategoriesUseCase(categoryRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateActivityUseCase(activityRepository: ActivityRepository): CreateActivityUseCase {
+        return CreateActivityUseCase(activityRepository)
     }
 }

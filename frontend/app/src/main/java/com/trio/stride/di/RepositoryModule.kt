@@ -1,13 +1,17 @@
 package com.trio.stride.di
 
+import com.trio.stride.data.repositoryimpl.ActivityRepositoryImpl
 import com.trio.stride.data.repositoryimpl.AuthRepositoryImpl
 import com.trio.stride.data.repositoryimpl.CategoryRepositoryImpl
+import com.trio.stride.data.repositoryimpl.FileRepositoryImpl
 import com.trio.stride.data.repositoryimpl.IdentityRepositoryImpl
 import com.trio.stride.data.repositoryimpl.RouteRepositoryImpl
 import com.trio.stride.data.repositoryimpl.SportRepositoryImpl
 import com.trio.stride.data.repositoryimpl.UserRepositoryImpl
+import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.CategoryRepository
+import com.trio.stride.domain.repository.FileRepository
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.domain.repository.SportRepository
@@ -56,4 +60,16 @@ abstract class RepositoryModule {
     abstract fun bindCategoryRepository(
         categoryRepositoryImpl: CategoryRepositoryImpl
     ): CategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindActivityRepository(
+        activityRepositoryImpl: ActivityRepositoryImpl
+    ): ActivityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFileRepository(
+        fileRepositoryImpl: FileRepositoryImpl
+    ): FileRepository
 }

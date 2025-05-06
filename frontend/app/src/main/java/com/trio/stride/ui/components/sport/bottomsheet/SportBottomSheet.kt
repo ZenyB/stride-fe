@@ -4,8 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,8 +18,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -26,19 +31,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.theme.StrideTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SportBottomSheet(
+    selectedSport: Sport,
     onItemClick: (Sport) -> Unit,
     modifier: Modifier = Modifier,
     state: SportBottomSheetState = hiltViewModel(),
@@ -61,6 +66,7 @@ fun SportBottomSheet(
         )
     ) {
         ModalBottomSheet(
+            containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
             onDismissRequest = { state.hide() },
             modifier = modifier.zIndex(10000f)
         ) {
@@ -86,11 +92,14 @@ fun SportBottomSheet(
                         Spacer(Modifier.height(16.dp))
                         Text(
                             text = category.name,
-                            modifier = Modifier.fillMaxWidth(),
                             style = StrideTheme.typography.titleMedium
                         )
 
                         sports.forEach { sport ->
+                            val contentColor = if (sport.id == selectedSport.id)
+                                StrideTheme.colorScheme.primary
+                            else
+                                StrideTheme.colorScheme.onBackground
                             Spacer(Modifier.height(16.dp))
                             Row(
                                 modifier = Modifier
@@ -101,20 +110,34 @@ fun SportBottomSheet(
                                     ) {
                                         onItemClick(sport)
                                     },
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                AsyncImage(
-                                    model = sport.image,
-                                    modifier = Modifier.size(32.dp),
-                                    contentDescription = "Sport image",
-                                    contentScale = ContentScale.Fit
-                                )
-                                Spacer(Modifier.width(12.dp)) // Increased spacing
-                                Text(
-                                    text = sport.name,
-                                    style = StrideTheme.typography.labelLarge.copy(fontSize = 16.sp),
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Row(
+                                    modifier = Modifier,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = rememberAsyncImagePainter(sport.image),
+                                        modifier = Modifier.size(32.dp),
+                                        contentDescription = "Sport image",
+                                        tint = contentColor
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = sport.name,
+                                        style = StrideTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                                        color = contentColor,
+                                    )
+                                }
+                                if (sport.id == selectedSport.id) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Check,
+                                        modifier = Modifier.size(32.dp),
+                                        contentDescription = "Is selected sport",
+                                        tint = StrideTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                         Spacer(Modifier.height(16.dp))

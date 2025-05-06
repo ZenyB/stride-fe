@@ -1,9 +1,12 @@
 package com.trio.stride.domain.model
 
 data class Sport(
-    val id: String,
-    val category: Category,
-    val name: String,
-    val image: String,
-    val sportMapType: String,
+    val id: String = "",
+    val category: Category = Category(),
+    val name: String = "",
+    val image: String = "",
+    val sportMapType: SportMapType = SportMapType.WALKING,
+    val isNeedMap: Boolean = true
 )
+
+enum class SportMapType { WALKING, DRIVING, CYCLING }

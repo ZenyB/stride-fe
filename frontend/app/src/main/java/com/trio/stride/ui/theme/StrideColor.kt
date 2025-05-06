@@ -20,5 +20,6 @@ object StrideColor {
     val red600: Color = Color(0xFFDF2824)
     val red700: Color = Color(0xFFB81506)
     val red800: Color = Color(0xFF890E11)
-
+    val placeHolderText: Color = Color(0xFFB3B3B3)
+    val grayBorder: Color = Color(0xFFD9D9D9)
 }

@@ -35,6 +35,10 @@ annotation class CoreBaseUrl
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class BridgeBaseUrl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class Unauthorized
 
 @Qualifier
