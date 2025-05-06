@@ -3,6 +3,7 @@ package com.trio.stride.ui.components.activity
 import android.text.Layout
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
@@ -48,21 +50,31 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.trio.stride.ui.theme.StrideTheme
-import kotlin.math.roundToInt
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.pow
 
 
 @Composable
 fun CartesianChartWithMarker(
     modifier: Modifier = Modifier,
-    modelProducer: CartesianChartModelProducer,
+    items: Collection<Number>,
     markerFormatter: DefaultCartesianMarker.ValueFormatter,
     startAxisFormatter: CartesianValueFormatter,
     startAxisTitle: String,
     color: Color,
     avgValue: Double? = null,
-    itemCount: Int
+    xStep: Double? = null,
+    yStep: Double? = null
 ) {
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    val xStepExtraKey = ExtraStore.Key<Double>()
+    val yStepExtraKey = ExtraStore.Key<Double>()
+
     val marker = rememberMarker(markerFormatter, color)
+
+    val solidGuideline = rememberAxisGuidelineComponent(shape = Shape.Rectangle)
     var selectedXTarget by remember { mutableStateOf<Double?>(null) }
 
     val persistentMarker = remember(selectedXTarget) {
@@ -95,6 +107,24 @@ fun CartesianChartWithMarker(
             minWidth = TextComponent.MinWidth.fixed(20F),
             textSize = 12.sp,
         )
+    val xLabel =
+        rememberTextComponent(
+            color = StrideTheme.colors.gray600,
+            textAlignment = Layout.Alignment.ALIGN_CENTER,
+            padding = insets(0.dp, 4.dp),
+            minWidth = TextComponent.MinWidth.fixed(20F),
+            textSize = 12.sp,
+        )
+
+    LaunchedEffect(Unit) {
+        modelProducer.runTransaction {
+            lineSeries { series(items) }
+            extras { extraStore ->
+                xStep?.let { extraStore[xStepExtraKey] = it }
+                yStep?.let { extraStore[yStepExtraKey] = it }
+            }
+        }
+    }
 
     CartesianChartHost(
         rememberCartesianChart(
@@ -119,14 +149,23 @@ fun CartesianChartWithMarker(
                     label = label,
                     tick = null,
                     title = startAxisTitle,
-                    titleComponent = rememberTextComponent()
+                    titleComponent = rememberTextComponent(),
+                    itemPlacer = remember {
+                        VerticalAxis.ItemPlacer.step({ extraStore ->
+                            extraStore.getOrNull(yStepExtraKey)
+                        })
+                    },
+                    guideline = solidGuideline
                 ),
             bottomAxis = HorizontalAxis.rememberBottom(
-//                itemPlacer = HorizontalAxis.ItemPlacer.segmented(true)
+                guideline = solidGuideline,
+                label = xLabel
             ),
             endAxis = VerticalAxis.rememberEnd(
                 tick = null,
-                label = null
+                label = null,
+                guideline = null
+
             ),
             topAxis = HorizontalAxis.rememberTop(
                 tick = null,
@@ -138,18 +177,13 @@ fun CartesianChartWithMarker(
             decorations = avgValue?.let { listOf(rememberHorizontalLine(avgValue = it)) }
                 ?: emptyList(),
             getXStep = { model ->
-                (itemCount.toDouble() / 6)
-                    .coerceAtLeast(1.0).roundToInt().toDouble()
-            }
+                model.extraStore.getOrNull(xStepExtraKey) ?: model.getXDeltaGcd()
+            },
         ),
         modelProducer,
         modifier.offset(y = (-24).dp),
         rememberVicoScrollState(scrollEnabled = false),
         animationSpec = null,
-//        zoomState = rememberVicoZoomState(
-//            zoomEnabled = false,
-//            initialZoom = Zoom.x(5.0)
-//        )
     )
 }
 
@@ -222,4 +256,22 @@ internal fun rememberMarker(
         indicatorSize = 12.dp,
         guideline = guideline,
     )
+}
+
+fun calculateNiceStep(min: Float, max: Float, maxLabels: Int = 7): Float {
+    val range = max - min
+    if (range == 0f) return 1f
+
+    val approxStep = range / (maxLabels - 1)
+    val magnitude = 10.0.pow(floor(log10(approxStep.toDouble())))
+    val residual = approxStep / magnitude
+
+    val niceResidual = when {
+        residual < 1.5 -> 1.0
+        residual < 3.0 -> 2.0
+        residual < 7.0 -> 5.0
+        else -> 10.0
+    }
+
+    return (niceResidual * magnitude).toFloat()
 }

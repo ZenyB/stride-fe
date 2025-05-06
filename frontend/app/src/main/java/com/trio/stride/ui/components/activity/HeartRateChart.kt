@@ -10,14 +10,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.ui.theme.StrideTheme
@@ -64,12 +60,9 @@ val heartRateMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, 
 
 @Composable
 fun HeartRateChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            lineSeries { series(item.heartRates) }
-        }
-    }
+    val xStep: Double = calculateNiceStep(0f, item.heartRates.size.toFloat()).toDouble()
+    val yStep: Double = calculateNiceStep(0f, item.maxHearRate.toFloat(), 6).toDouble()
+
     Column(modifier) {
         Text(
             "Heart Rate",
@@ -77,13 +70,14 @@ fun HeartRateChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
         )
         CartesianChartWithMarker(
             modifier = Modifier.height(280.dp),
-            modelProducer,
+            items = item.heartRates,
             heartRateMarkerFormatter,
             color = StrideTheme.colors.red500,
             avgValue = item.avgHearRate,
             startAxisTitle = "bpm",
             startAxisFormatter = startAxisValueFormatter,
-            itemCount = item.heartRates.size
+            xStep = xStep,
+            yStep = yStep
         )
 
         StatRow("Avg Heart Rate", "${item.avgHearRate} bpm")

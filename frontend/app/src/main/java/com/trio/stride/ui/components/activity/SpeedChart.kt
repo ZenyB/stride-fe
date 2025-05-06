@@ -10,14 +10,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.ui.theme.StrideTheme
@@ -64,15 +60,11 @@ val speedMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, targ
     return@ValueFormatter spannable
 }
 
-
 @Composable
 fun SpeedChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            lineSeries { series(item.speeds) }
-        }
-    }
+    val xStep: Double = calculateNiceStep(0f, item.speeds.size.toFloat()).toDouble()
+    val yStep: Double = calculateNiceStep(0f, item.maxSpeed.toFloat(), 6).toDouble()
+
     Column(modifier) {
         Text(
             "Speed",
@@ -80,13 +72,14 @@ fun SpeedChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
         )
         CartesianChartWithMarker(
             modifier = Modifier.height(280.dp),
-            modelProducer,
+            items = item.speeds,
             speedMarkerFormatter,
             color = StrideTheme.colorScheme.primary,
             avgValue = item.avgSpeed,
             startAxisFormatter = startAxisValueFormatter,
             startAxisTitle = "km/h",
-            itemCount = item.speeds.size
+            xStep = xStep,
+            yStep = yStep
         )
 
         StatRow("Avg Speed", "${formatSpeed(item.avgSpeed)} km/h")

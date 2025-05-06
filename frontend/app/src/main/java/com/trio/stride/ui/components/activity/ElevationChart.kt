@@ -10,14 +10,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.ui.theme.StrideTheme
@@ -65,12 +61,9 @@ val elevationMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, 
 
 @Composable
 fun ElevationChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            lineSeries { series(item.elevations) }
-        }
-    }
+    val xStep: Double = calculateNiceStep(0f, item.elevations.size.toFloat()).toDouble()
+    val yStep: Double = calculateNiceStep(0f, item.maxElevation.toFloat(), 6).toDouble()
+
     Column(modifier) {
         Text(
             "Elevation",
@@ -78,12 +71,13 @@ fun ElevationChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
         )
         CartesianChartWithMarker(
             modifier = Modifier.height(280.dp),
-            modelProducer,
+            items = item.elevations,
             elevationMarkerFormatter,
             color = StrideTheme.colors.gray500,
             startAxisTitle = "m",
             startAxisFormatter = startAxisValueFormatter,
-            itemCount = item.elevations.size
+            xStep = xStep,
+            yStep = yStep
         )
 
         StatRow("Elevation Gain", "${item.elevationGain} m")
