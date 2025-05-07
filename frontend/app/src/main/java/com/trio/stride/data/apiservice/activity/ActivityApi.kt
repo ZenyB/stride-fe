@@ -7,9 +7,11 @@ import com.trio.stride.data.dto.CreateActivityRequestDTO
 import com.trio.stride.data.dto.SuccessResponse
 import com.trio.stride.domain.model.ActivityDetailInfo
 import retrofit2.Response
+import com.trio.stride.data.dto.UpdateActivityRequestDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -18,6 +20,12 @@ interface ActivityApi {
     @POST(ApiConstants.ACTIVITY)
     suspend fun createActivity(
         @Body requestDTO: CreateActivityRequestDTO
+    ): Resource<Boolean>
+
+    @PUT("${ApiConstants.ACTIVITY}/{id}")
+    suspend fun updateActivity(
+        @Path("id") id: String,
+        @Body requestDTO: UpdateActivityRequestDto
     ): Resource<Boolean>
 
     @GET(ApiConstants.ACTIVITY_LIST)
