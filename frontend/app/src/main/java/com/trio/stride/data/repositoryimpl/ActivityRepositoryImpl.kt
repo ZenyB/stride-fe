@@ -2,6 +2,7 @@ package com.trio.stride.data.repositoryimpl
 
 import com.trio.stride.data.apiservice.activity.ActivityApi
 import com.trio.stride.data.dto.CreateActivityRequestDTO
+import com.trio.stride.data.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.repository.ActivityRepository
 import javax.inject.Inject
 
@@ -10,6 +11,11 @@ class ActivityRepositoryImpl @Inject constructor(
 ) : ActivityRepository {
     override suspend fun createActivity(request: CreateActivityRequestDTO): Boolean {
         val result = activityApi.createActivity(request)
+        return true
+    }
+
+    override suspend fun updateActivity(request: UpdateActivityRequestDto, id: String): Boolean {
+        val result = activityApi.updateActivity(id, request)
         return true
     }
 }
