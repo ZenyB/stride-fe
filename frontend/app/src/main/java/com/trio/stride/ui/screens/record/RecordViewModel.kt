@@ -30,6 +30,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,13 +70,33 @@ class RecordViewModel @Inject constructor(
 
     override fun createInitialState(): RecordViewState = RecordViewState()
 
+    private fun generateActivityName(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+
+        return when (hour) {
+            in 5..10 -> "Morning ${currentSport.value?.name}"
+            in 11..13 -> "Midday ${currentSport.value?.name}"
+            in 14..17 -> "Afternoon ${currentSport.value?.name}"
+            in 18..20 -> "Evening ${currentSport.value?.name}"
+            in 21..23 -> "Night ${currentSport.value?.name}"
+            else -> "Early morning ${currentSport.value?.name}"
+        }
+    }
+
     fun saveActivity(createActivityRequestDto: CreateActivityRequestDTO, context: Context) {
-        val requestDto = createActivityRequestDto.copy(
+        var requestDto = createActivityRequestDto.copy(
             movingTimeSeconds = (time.value / 1000).toInt(),
             elapsedTimeSeconds = (elapsedTime.value / 1000).toInt(),
             coordinates = coordinates.value,
             heartRates = heartRates.value,
         )
+
+        if (requestDto.name.isBlank()) {
+            requestDto = requestDto.copy(name = generateActivityName())
+        }
+
+        setState { currentState.copy(createActivityDto = requestDto) }
+
         viewModelScope.launch {
             createActivityUseCase.invoke(requestDto).collectLatest { response ->
                 when (response) {
@@ -87,13 +108,6 @@ class RecordViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        setState {
-                            currentState.copy(
-                                isLoading = false,
-                                isSavingError = false,
-                                createActivityDto = requestDto
-                            )
-                        }
                         val startIntent = Intent(context, RecordService::class.java).apply {
                             action = RecordService.STOP_RECORDING
                         }
@@ -123,13 +137,6 @@ class RecordViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        setState {
-                            currentState.copy(
-                                isLoading = false,
-                                isSavingError = false,
-                                createActivityDto = currentState.createActivityDto
-                            )
-                        }
                         val startIntent = Intent(context, RecordService::class.java).apply {
                             action = RecordService.STOP_RECORDING
                         }
@@ -137,6 +144,7 @@ class RecordViewModel @Inject constructor(
 
                         Log.i("ACTIVITY_INFO_SAVED", currentState.createActivityDto.toString())
                         recordRepository.end()
+                        setState { currentState.copy(isLoading = false, isSavingError = true) }
                     }
 
                     is Resource.Error -> {
@@ -227,6 +235,8 @@ class RecordViewModel @Inject constructor(
         }
         context.startService(startIntent)
 
+        setState { currentState.copy(isNotEnoughDataToSave = false) }
+
         recordRepository.resume()
     }
 
@@ -259,6 +269,8 @@ class RecordViewModel @Inject constructor(
             action = RecordService.STOP_RECORDING
         }
         context.startService(startIntent)
+
+        setState { currentState.copy(isNotEnoughDataToSave = false) }
 
         recordRepository.end()
     }
