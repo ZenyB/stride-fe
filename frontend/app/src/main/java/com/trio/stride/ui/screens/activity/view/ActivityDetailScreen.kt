@@ -1,23 +1,80 @@
 package com.trio.stride.ui.screens.activity.view
 
+import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.google.gson.JsonObject
+import com.mapbox.geojson.LineString
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.Style
+import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.plugin.annotation.AnnotationConfig
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import com.trio.stride.R
+import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.LoadingSmall
 import com.trio.stride.ui.components.activity.detail.ActivityDetailView
-import com.trio.stride.ui.screens.activity.ActivityListState
+import com.trio.stride.ui.components.activity.detail.BottomSheetIndicator
+import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
+import com.trio.stride.ui.screens.maps.view.INITIAL_ZOOM
+import com.trio.stride.ui.screens.maps.view.ZOOM_MORE
 import com.trio.stride.ui.theme.StrideTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityDetailScreen(
     id: String = "",
@@ -27,39 +84,269 @@ fun ActivityDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val item by viewModel.item.collectAsStateWithLifecycle()
 
+    val sheetState = rememberStandardBottomSheetState(
+        initialValue = SheetValue.PartiallyExpanded,
+    )
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        sheetState
+    )
+    val mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+            center(Point.fromLngLat(106.80259579, 10.87007182))
+            zoom(INITIAL_ZOOM)
+            pitch(0.0)
+        }
+    }
+    var polylineManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
+    var mapStyle by remember { mutableStateOf(Style.MAPBOX_STREETS) }
+    var showStyleSheet by remember { mutableStateOf(false) }
+
+    val headerHeight =
+        if (sheetState.currentValue != SheetValue.Expanded || sheetState.targetValue == SheetValue.PartiallyExpanded) {
+            0.dp
+        } else {
+            WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 52.dp
+        }
+    val animatedSheetHeaderHeight by animateDpAsState(
+        targetValue = headerHeight,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+    )
+    val targetAlpha = if (sheetState.targetValue != SheetValue.Expanded) 0f else 1f
+    val animatedAlpha by animateFloatAsState(
+        targetValue = targetAlpha,
+        label = "AnimatedAlpha"
+    )
+
+    fun drawRoute(points: List<Point>) {
+        polylineManager?.create(
+            PolylineAnnotationOptions()
+                .withPoints(points)
+                .withLineColor("#E90C56")
+                .withLineWidth(5.0)
+                .withData(JsonObject().apply {
+                    addProperty("id", id)
+                })
+        )
+    }
+
     LaunchedEffect(true) {
         viewModel.getActivityDetail(id)
     }
 
-    when (uiState) {
-        is ActivityDetailState.Loading -> {
-            Box(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                LoadingSmall()
+    LaunchedEffect(sheetState.targetValue) {
+        Log.d("sheet state", "current: ${sheetState.currentValue}")
+        Log.d("sheet state", "target: ${sheetState.targetValue}")
+    }
+
+    if (polylineManager != null) {
+        LaunchedEffect(item) {
+            if (item != null) {
+                val coords =
+                    LineString.fromPolyline(item?.geometry ?: "", 5).coordinates()
+                if (coords.isNotEmpty()) {
+                    drawRoute(coords)
+
+                    val cameraOptions =
+                        CameraOptions.Builder().center(coords[0]).zoom(ZOOM_MORE).build()
+
+                    mapViewportState.flyTo(cameraOptions)
+                }
             }
         }
-
-        is ActivityDetailState.Idle -> {
-            item?.let { ActivityDetailView(it) }
-        }
-
-        is ActivityDetailState.Error -> {
-            Box(
+    }
+    Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .zIndex(1f)
+        ) {
+            Column(
                 modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                    .align(Alignment.TopCenter)
             ) {
-                Text(
-                    (uiState as ActivityListState.Error).message,
-                    style = StrideTheme.typography.titleMedium,
-                    color = StrideTheme.colors.red700
+                CustomLeftTopAppBar(
+                    title = item?.sport?.name ?: "Activity",
+                    backgroundColor = StrideTheme.colorScheme.surface.copy(alpha = animatedAlpha),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                navController.popBackStack()
+                            },
+                            modifier = Modifier
+                                .background(
+                                    color = StrideTheme.colors.white,
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = "Close Sheet"
+                            )
+                        }
+                    },
+                    actions = {
+                        Row(
+                            modifier = Modifier,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            IconButton(
+                                onClick = {
+                                },
+                                modifier = Modifier
+                                    .background(
+                                        color = StrideTheme.colors.white,
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_save),
+                                    contentDescription = "Close Sheet"
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                },
+                                modifier = Modifier
+                                    .background(
+                                        color = StrideTheme.colors.white,
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ellipsis_more),
+                                    contentDescription = "Close Sheet"
+                                )
+                            }
+                        }
+                    }
+                )
+                Divider(
+                    thickness = 1.dp,
+                    color = StrideTheme.colors.grayBorder.copy(alpha = animatedAlpha)
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                ) {
+                    IconButton(
+                        onClick = { showStyleSheet = true },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = StrideTheme.colors.white
+                        ),
+                        modifier = Modifier
+                            .size(44.dp)
+                            .align(Alignment.CenterEnd)
+                            .alpha(1 - animatedAlpha),
+                        enabled = sheetState.currentValue != SheetValue.Expanded
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.layers_icon),
+                            contentDescription = "Map option",
+                            tint = Color.Black,
+                        )
+                    }
+                }
+            }
+
+
+        }
+        BottomSheetScaffold(
+            scaffoldState = scaffoldState,
+            sheetPeekHeight = 300.dp,
+            sheetContainerColor = StrideTheme.colors.white,
+            sheetContent = {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                bottom = WindowInsets.navigationBars.asPaddingValues()
+                                    .calculateBottomPadding()
+                            )
+                            .padding(top = animatedSheetHeaderHeight),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (sheetState.currentValue != SheetValue.Expanded) {
+                            BottomSheetIndicator(
+                                color = StrideTheme.colorScheme.outline
+                            )
+                        }
+
+                        when (uiState) {
+                            is ActivityDetailState.Loading -> {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(24.dp)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    LoadingSmall()
+                                }
+                            }
+
+                            is ActivityDetailState.Idle -> {
+                                item?.let { ActivityDetailView(it) }
+                            }
+
+                            is ActivityDetailState.Error -> {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(24.dp)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        (uiState as ActivityDetailState.Error).message,
+                                        style = StrideTheme.typography.titleMedium,
+                                        color = StrideTheme.colors.red700
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+            },
+            sheetDragHandle = null,
+        ) { padding ->
+            MapboxMap(
+                Modifier
+                    .fillMaxSize(), mapViewportState = mapViewportState,
+                style = { MapStyle(style = mapStyle) },
+                scaleBar = {},
+                compass = {}
+            ) {
+                MapEffect(Unit) { mapView ->
+                    val annotationApi = mapView.annotations
+                    polylineManager = annotationApi.createPolylineAnnotationManager(
+                        annotationConfig = AnnotationConfig(
+                            layerId = "touch-map-route"
+                        ),
+                    )
+                    polylineManager?.lineJoin = LineJoin.ROUND
+                    polylineManager?.lineCap = LineCap.ROUND
+                }
+            }
+
+            if (showStyleSheet) {
+                MapStyleBottomSheet(
+                    mapStyle = mapStyle,
+                    onMapStyleSelected = { style ->
+                        mapStyle = style
+                    },
+                    onDismiss = { showStyleSheet = false }
                 )
             }
         }
     }
+
+
 }
+

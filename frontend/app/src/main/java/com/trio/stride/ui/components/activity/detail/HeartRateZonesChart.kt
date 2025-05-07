@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -23,9 +21,14 @@ fun HeartRateZonesChart(
     modifier: Modifier = Modifier,
     items: List<HeartRateInfo>
 ) {
-    var selected by remember { mutableStateOf<HeartRateInfo?>(items[0]) }
+//    var selected by remember { mutableStateOf<HeartRateInfo?>(items[0]) }
+    var selectedIndex = remember { mutableStateOf(0) }
+    var previousSelected = remember { mutableStateOf(-1) }
+
     val viewData = DonutChartDataCollection(
-        items
+        items.filter { it ->
+            it.value > 0
+        }
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -36,11 +39,12 @@ fun HeartRateZonesChart(
                 .padding(top = 16.dp)
         )
         DonutChart(
-            Modifier.padding(bottom = 32.dp),
+            modifier = Modifier.padding(bottom = 32.dp),
             data = viewData,
-            chartSize = 250.dp
+            chartSize = 250.dp,
+            selectedIndex = selectedIndex,
+            previousSelected = previousSelected
         ) { selectedValue ->
-            selected = selectedValue
             val amount = selectedValue?.value
             val percent =
                 if (viewData.totalDuration == 0L) "0%"
@@ -70,7 +74,16 @@ fun HeartRateZonesChart(
 
         HeartZoneGroup(
             options = items,
-            selected = selected,
+            selected = selectedIndex.value,
+            onClick = { index ->
+                if (index < viewData.items.size) {
+                    previousSelected.value = selectedIndex.value
+                    selectedIndex.value = index
+                } else {
+                    previousSelected.value = selectedIndex.value
+                    selectedIndex.value = -1
+                }
+            }
         )
     }
 }

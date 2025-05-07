@@ -61,12 +61,15 @@ fun DonutChart(
     chartSize: Dp = 350.dp,
     data: DonutChartDataCollection,
     gapPercentage: Float = 0.02f,
+    selectedIndex: MutableState<Int>,
+    previousSelected: MutableState<Int>,
     selectionView: @Composable (selectedItem: HeartRateInfo?) -> Unit = {},
 ) {
-    var selectedIndex by remember { mutableStateOf(0) }
     val animationTargetState = (0..data.items.size).map {
         remember { mutableStateOf(DonutChartState()) }
     }
+
+
 //    val animValues = (0..data.items.size).map {
 //        animateDpAsState(
 //            targetValue = animationTargetState[it].value.stroke,
@@ -76,6 +79,23 @@ fun DonutChart(
     val anglesList: MutableList<DrawingAngles> = remember { mutableListOf() }
     val gapAngle = data.calculateGapAngle(gapPercentage)
     var center = Offset(0f, 0f)
+
+    LaunchedEffect(selectedIndex.value) {
+        if (selectedIndex.value >= 0) {
+            animationTargetState[selectedIndex.value].value = DonutChartState(
+                DonutChartState.State.Selected
+            )
+        }
+    }
+
+    LaunchedEffect(previousSelected.value) {
+        if (previousSelected.value >= 0) {
+            animationTargetState[previousSelected.value].value = DonutChartState(
+                DonutChartState.State.Unselected
+            )
+        }
+    }
+
 
     Box(
         modifier = modifier
@@ -93,13 +113,13 @@ fun DonutChart(
                                 center = center,
                                 tapOffset = tapOffset,
                                 anglesList = anglesList,
-                                currentSelectedIndex = selectedIndex,
+                                currentSelectedIndex = selectedIndex.value,
                                 currentStrokeValues = animationTargetState.map { it.value.stroke.toPx() },
                                 onItemSelected = { index ->
-                                    selectedIndex = index
-                                    animationTargetState[index].value = DonutChartState(
-                                        DonutChartState.State.Selected
-                                    )
+                                    selectedIndex.value = index
+//                                    animationTargetState[index].value = DonutChartState(
+//                                        DonutChartState.State.Selected
+//                                    )
                                 },
                                 onItemDeselected = { index ->
                                     animationTargetState[index].value = DonutChartState(
@@ -107,7 +127,7 @@ fun DonutChart(
                                     )
                                 },
                                 onNoItemSelected = {
-                                    selectedIndex = -1
+                                    selectedIndex.value = -1
                                 }
                             )
                         }
@@ -138,8 +158,8 @@ fun DonutChart(
                     )
                     lastAngle += sweepAngle + gapAngle
                 }
-                if (selectedIndex >= 0) {
-                    val selectedAngle = anglesList[selectedIndex].centerAngle
+                if (selectedIndex.value >= 0) {
+                    val selectedAngle = anglesList[selectedIndex.value].centerAngle
                     val extraOffset = 4.dp.toPx()
                     val outerRadius = size.width / 2f
                     val tooltipRadius = outerRadius + extraOffset
@@ -147,7 +167,7 @@ fun DonutChart(
                     val x = center.x + tooltipRadius * kotlin.math.cos(radians).toFloat()
                     val y = center.y + tooltipRadius * kotlin.math.sin(radians).toFloat()
 
-                    val labelText = formatDuration(data.items[selectedIndex].value)
+                    val labelText = formatDuration(data.items[selectedIndex.value].value)
                     val paint = android.graphics.Paint().apply {
                         color = android.graphics.Color.BLACK
                         textSize = 36f
@@ -193,7 +213,7 @@ fun DonutChart(
                 }
             }
         )
-        selectionView(if (selectedIndex >= 0) data.items[selectedIndex] else null)
+        selectionView(if (selectedIndex.value >= 0) data.items[selectedIndex.value] else null)
     }
 }
 

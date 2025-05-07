@@ -7,8 +7,8 @@ import com.trio.stride.ui.utils.parseErrorResponse
 import javax.inject.Inject
 
 val redShades = listOf(
-    Color(0xFFEA4843),
-    Color(0xFFEF7476),
+    Color(0xFFFDB4B5),
+    Color(0xFFF6716D),
     Color(0xFFDF2824),
     Color(0xFFB81506),
     Color(0xFF890E11)
@@ -24,11 +24,13 @@ class GetActivityDetailUseCase @Inject constructor(
             val response = repository.getActivityDetail(id)
             if (response.isSuccessful) {
                 val data = response.body()
-                Result.success(data?.copy(heartRateZones = data.heartRateZones?.mapIndexed { index, it ->
-                    it.copy(
-                        color = redShades[index % redShades.size]
-                    )
-                }))
+                Result.success(
+                    data?.copy(heartRateZones = data.heartRateZones?.mapIndexed { index, it ->
+                        it.copy(
+                            color = redShades[index % redShades.size]
+                        )
+                    })
+                )
             } else {
                 val errorResponse = parseErrorResponse(response.errorBody())
                 Result.failure(Exception(errorResponse.message))
