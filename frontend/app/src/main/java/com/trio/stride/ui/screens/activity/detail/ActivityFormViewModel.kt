@@ -148,29 +148,32 @@ class ActivityFormViewModel @Inject constructor(
         }
     }
 
-    fun initial(isCreate: Boolean, activity: Activity?, sportFromRecord: Sport?) {
-        if (isCreate)
-            setState {
-                currentState.copy(
-                    sport = sportFromRecord!!,
-                    createActivityDto = CreateActivityRequestDTO(
-                        sportId = sportFromRecord.id
+    fun initial(mode: ActivityFormMode) {
+        when (mode) {
+            is ActivityFormMode.Create ->
+                setState {
+                    currentState.copy(
+                        sport = mode.sportFromRecord!!,
+                        createActivityDto = CreateActivityRequestDTO(
+                            sportId = mode.sportFromRecord.id
+                        )
                     )
-                )
-            }
-        else
-            setState {
-                currentState.copy(
-                    activity = activity!!,
-                    updateActivityDto = UpdateActivityRequestDto(
-                        sportId = activity.sport.id,
-                        rpe = activity.rpe,
-                        name = activity.name,
-                        description = activity.description,
-                        images = activity.images
+                }
+
+            is ActivityFormMode.Update ->
+                setState {
+                    currentState.copy(
+                        activity = mode.activity,
+                        updateActivityDto = UpdateActivityRequestDto(
+                            sportId = mode.activity.sport.id,
+                            rpe = mode.activity.rpe,
+                            name = mode.activity.name,
+                            description = mode.activity.description,
+                            images = mode.activity.images
+                        )
                     )
-                )
-            }
+                }
+        }
     }
 
     data class ViewState(
@@ -181,5 +184,4 @@ class ActivityFormViewModel @Inject constructor(
         val updateActivityDto: UpdateActivityRequestDto = UpdateActivityRequestDto(),
         val createActivityDto: CreateActivityRequestDTO = CreateActivityRequestDTO(),
     ) : IViewState
-
 }
