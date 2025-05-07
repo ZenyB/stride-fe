@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,7 +63,14 @@ fun ChooseSportInSearch(
         colors = ButtonDefaults.buttonColors().copy(
             containerColor = StrideTheme.colors.transparent,
             contentColor = StrideTheme.colorScheme.primary
-        )
+        ),
+        contentPadding = PaddingValues(
+            start = 10.dp,
+            top = 8.dp,
+            end = 10.dp,
+            bottom = 8.dp
+        ),
+        shape = RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp)
     ) {
         Row(
             modifier = Modifier,

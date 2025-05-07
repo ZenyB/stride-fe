@@ -10,7 +10,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,11 +23,9 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.BottomSheetScaffold
@@ -53,7 +50,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -91,11 +87,13 @@ import com.trio.stride.R
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.map.MapFallbackScreen
+import com.trio.stride.ui.components.map.SearchFieldWithButton
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
 import com.trio.stride.ui.components.map.routesheet.RouteItemDetail
 import com.trio.stride.ui.components.map.routesheet.RouteList
 import com.trio.stride.ui.components.map.routesheet.RoutePager
+import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.LocationUtils
@@ -491,20 +489,14 @@ fun ViewMapScreen(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                .background(Color.White, RoundedCornerShape(8.dp))
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { navController.navigate(Screen.BottomNavScreen.Search.route) }
-        ) {
-            Text(
-                "Search locations",
-                color = StrideColor.gray,
-                style = StrideTheme.typography.bodyMedium,
-                modifier = Modifier.padding(16.dp)
+        SearchFieldWithButton(onSearchClick = {
+            navController.navigate(Screen.BottomNavScreen.Search.route)
+        }){
+            ChooseSportInSearch(
+                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
+                onClick = {
+
+                }
             )
         }
 
@@ -542,8 +534,7 @@ fun ViewMapScreen(
                             painter = painterResource(id = R.drawable.layers_icon),
                             contentDescription = "Map option",
                             tint = Color.Black,
-
-                            )
+                        )
                     }
                 }
 
