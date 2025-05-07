@@ -3,7 +3,7 @@ package com.trio.stride.data.dto
 import com.trio.stride.domain.model.SportMapType
 
 data class GetSportResponseDto(
-    val data: SportDto,
+    val data: List<SportDto>,
     val page: PageDto,
     val filterDto: SportFilterDto
 )

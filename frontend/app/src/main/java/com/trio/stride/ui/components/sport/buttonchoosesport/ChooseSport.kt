@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.trio.stride.R
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.theme.StrideTheme
@@ -42,7 +44,15 @@ fun ChooseSportIconButton(
         modifier = modifier
     ) {
         Icon(
-            painter = rememberAsyncImagePainter(model = iconImage),
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(iconImage)
+                    .error(R.drawable.image_icon)
+                    .fallback(R.drawable.image_icon)
+                    .placeholder(R.drawable.image_icon)
+                    .crossfade(true)
+                    .build()
+            ),
             contentDescription = "Sport Icon",
             modifier = iconModifier.size(32.dp),
             tint = StrideTheme.colorScheme.primary
@@ -70,7 +80,15 @@ fun ChooseSportInSearch(
         ) {
             Icon(
                 modifier = Modifier.size(32.dp),
-                painter = rememberAsyncImagePainter(model = iconImage),
+                painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(iconImage)
+                        .error(R.drawable.image_icon)
+                        .fallback(R.drawable.image_icon)
+                        .placeholder(R.drawable.image_icon)
+                        .crossfade(true)
+                        .build()
+                ),
                 contentDescription = "Sport Icon",
                 tint = StrideTheme.colorScheme.primary
             )
@@ -114,7 +132,15 @@ fun ChooseSportInActivity(
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
-                painter = rememberAsyncImagePainter(sport.image),
+                painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(sport.image)
+                        .error(R.drawable.image_icon)
+                        .fallback(R.drawable.image_icon)
+                        .placeholder(R.drawable.image_icon)
+                        .crossfade(true)
+                        .build()
+                ),
                 contentDescription = "Sport Image",
                 tint = StrideTheme.colorScheme.onBackground
             )

@@ -18,10 +18,10 @@ class CategoryRepositoryImpl @Inject constructor(
             limit = limit,
             name = name
         )
-        return response.map { categoryDto ->
+        return response.data.map { categoryDto ->
             Category(
-                id = categoryDto.data.id,
-                name = categoryDto.data.name
+                id = categoryDto.id,
+                name = categoryDto.name
             )
         }
     }

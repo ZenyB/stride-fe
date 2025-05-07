@@ -16,13 +16,13 @@ class SportRepositoryImpl @Inject constructor(
         categoryId: String?
     ): List<Sport> {
         val result = sportApi.getSports(page, limit, name, categoryId)
-        return result.map { response ->
+        return result.data.map { response ->
             Sport(
-                id = response.data.id,
-                name = response.data.name,
-                category = Category(response.data.category.id, response.data.category.name),
-                image = response.data.image,
-                sportMapType = response.data.sportMapType
+                id = response.id,
+                name = response.name,
+                category = Category(response.category.id, response.category.name),
+                image = response.image,
+                sportMapType = response.sportMapType
             )
         }
     }

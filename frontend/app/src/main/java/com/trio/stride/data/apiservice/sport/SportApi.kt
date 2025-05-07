@@ -12,5 +12,5 @@ interface SportApi {
         @Query("limit") limit: Int? = null,
         @Query("name") name: String? = null,
         @Query("categoryId") categoryId: String? = null
-    ): List<GetSportResponseDto>
+    ): GetSportResponseDto
 }

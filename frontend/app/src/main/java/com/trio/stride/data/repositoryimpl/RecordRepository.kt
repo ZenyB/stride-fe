@@ -55,9 +55,6 @@ class RecordRepository @Inject constructor(
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Uninitialized)
     val connectionState: StateFlow<ConnectionState> = _connectionState
 
-    private val _activityType = MutableStateFlow(RecordViewModel.ActivityType.RUN)
-    val activityType: StateFlow<RecordViewModel.ActivityType> = _activityType
-
     private val _screenStatus = MutableStateFlow(RecordViewModel.ScreenStatus.DEFAULT)
     val screenStatus: StateFlow<RecordViewModel.ScreenStatus> = _screenStatus
 
@@ -109,10 +106,6 @@ class RecordRepository @Inject constructor(
         _avgSpeed.value = newSpeed
     }
 
-    fun updateActivityType(newValue: RecordViewModel.ActivityType) {
-        _activityType.value = newValue
-    }
-
     fun updateScreenStatus(newValue: RecordViewModel.ScreenStatus) {
         _screenStatus.value = newValue
     }
@@ -156,9 +149,9 @@ class RecordRepository @Inject constructor(
         _recordStatus.value = RecordViewModel.RecordStatus.STOP
     }
 
-    fun saved() {
-        _screenStatus.value = RecordViewModel.ScreenStatus.SAVED
-        _recordStatus.value = RecordViewModel.RecordStatus.FINISH
+    fun end() {
+        _screenStatus.value = RecordViewModel.ScreenStatus.DEFAULT
+        _recordStatus.value = RecordViewModel.RecordStatus.NONE
     }
 
     fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

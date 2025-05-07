@@ -29,10 +29,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.trio.stride.R
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.theme.StrideTheme
@@ -42,7 +45,7 @@ import com.trio.stride.ui.theme.StrideTheme
 fun SportBottomSheetWithCategory(
     categories: List<Category>,
     sportsByCategory: Map<Category, List<Sport>>,
-    selectedSport: Sport,
+    selectedSport: Sport?,
     visible: Boolean,
     dismissAction: () -> Unit,
     onItemClick: (Sport) -> Unit,
@@ -89,7 +92,7 @@ fun SportBottomSheetWithCategory(
                         )
 
                         sports.forEach { sport ->
-                            val contentColor = if (sport.id == selectedSport.id)
+                            val contentColor = if (sport.id == selectedSport?.id)
                                 StrideTheme.colorScheme.primary
                             else
                                 StrideTheme.colorScheme.onBackground
@@ -111,7 +114,15 @@ fun SportBottomSheetWithCategory(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        painter = rememberAsyncImagePainter(sport.image),
+                                        painter = rememberAsyncImagePainter(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(sport.image)
+                                                .error(R.drawable.image_icon)
+                                                .fallback(R.drawable.image_icon)
+                                                .placeholder(R.drawable.image_icon)
+                                                .crossfade(true)
+                                                .build(),
+                                        ),
                                         modifier = Modifier.size(32.dp),
                                         contentDescription = "Sport image",
                                         tint = contentColor
@@ -125,7 +136,7 @@ fun SportBottomSheetWithCategory(
                                         color = contentColor,
                                     )
                                 }
-                                if (sport.id == selectedSport.id) {
+                                if (sport.id == selectedSport?.id) {
                                     Icon(
                                         imageVector = Icons.Filled.Check,
                                         modifier = Modifier.size(32.dp),
@@ -147,7 +158,7 @@ fun SportBottomSheetWithCategory(
 @Composable
 fun SportMapBottomSheet(
     sports: List<Sport>,
-    selectedSport: Sport,
+    selectedSport: Sport?,
     visible: Boolean,
     dismissAction: () -> Unit,
     onItemClick: (Sport) -> Unit,
@@ -183,7 +194,7 @@ fun SportMapBottomSheet(
                     HorizontalDivider()
                 }
                 items(sports) { sport ->
-                    val contentColor = if (sport.id == selectedSport.id)
+                    val contentColor = if (sport.id == selectedSport?.id)
                         StrideTheme.colorScheme.primary
                     else
                         StrideTheme.colorScheme.onBackground
@@ -205,7 +216,15 @@ fun SportMapBottomSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                painter = rememberAsyncImagePainter(sport.image),
+                                painter = rememberAsyncImagePainter(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(sport.image)
+                                        .error(R.drawable.image_icon)
+                                        .fallback(R.drawable.image_icon)
+                                        .placeholder(R.drawable.image_icon)
+                                        .crossfade(true)
+                                        .build()
+                                ),
                                 modifier = Modifier.size(32.dp),
                                 contentDescription = "Sport image",
                                 tint = contentColor
@@ -217,7 +236,7 @@ fun SportMapBottomSheet(
                                 color = contentColor,
                             )
                         }
-                        if (sport.id == selectedSport.id) {
+                        if (sport.id == selectedSport?.id) {
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 modifier = Modifier.size(32.dp),

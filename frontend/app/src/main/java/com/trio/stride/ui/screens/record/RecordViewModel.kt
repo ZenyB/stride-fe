@@ -53,7 +53,6 @@ class RecordViewModel @Inject constructor(
     val isBluetoothOn: StateFlow<Boolean> = heartRateReceiveManager.isBluetoothOn
     val selectedDevice: StateFlow<BluetoothDevice?> = heartRateReceiveManager.selectedDevice
 
-    val activityType: StateFlow<ActivityType> = recordRepository.activityType
     val screenStatus: StateFlow<ScreenStatus> = recordRepository.screenStatus
     val recordStatus: StateFlow<RecordStatus> = recordRepository.recordStatus
     val gpsStatus: StateFlow<GPSStatus> = gpsRepository.gpsStatus
@@ -66,13 +65,19 @@ class RecordViewModel @Inject constructor(
 
     val categories: StateFlow<List<Category>> = sportManager.categories
     val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = sportManager.sportsByCategory
-    val currentSport: StateFlow<Sport> = sportManager.currentSport
+    val currentSport: StateFlow<Sport?> = sportManager.currentSport
 
     override fun createInitialState(): RecordViewState = RecordViewState()
 
-    private fun createActivity(activityRequestDto: CreateActivityRequestDTO) {
+    fun saveActivity(createActivityRequestDto: CreateActivityRequestDTO, context: Context) {
+        val requestDto = createActivityRequestDto.copy(
+            movingTimeSeconds = (time.value / 1000).toInt(),
+            elapsedTimeSeconds = (elapsedTime.value / 1000).toInt(),
+            coordinates = coordinates.value,
+            heartRates = heartRates.value,
+        )
         viewModelScope.launch {
-            createActivityUseCase.invoke(activityRequestDto).collectLatest { response ->
+            createActivityUseCase.invoke(requestDto).collectLatest { response ->
                 when (response) {
                     is Resource.Loading -> setState {
                         currentState.copy(
@@ -82,8 +87,56 @@ class RecordViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        setState { currentState.copy(isLoading = false, isSavingError = false) }
-                        recordRepository.saved()
+                        setState {
+                            currentState.copy(
+                                isLoading = false,
+                                isSavingError = false,
+                                createActivityDto = requestDto
+                            )
+                        }
+                        val startIntent = Intent(context, RecordService::class.java).apply {
+                            action = RecordService.STOP_RECORDING
+                        }
+                        context.startService(startIntent)
+
+                        Log.i("ACTIVITY_INFO_SAVED", requestDto.toString())
+                        recordRepository.end()
+                    }
+
+                    is Resource.Error -> {
+                        setState { currentState.copy(isLoading = false, isSavingError = true) }
+                    }
+                }
+            }
+        }
+    }
+
+    fun saveAgain(context: Context) {
+        viewModelScope.launch {
+            createActivityUseCase.invoke(currentState.createActivityDto).collectLatest { response ->
+                when (response) {
+                    is Resource.Loading -> setState {
+                        currentState.copy(
+                            isLoading = true,
+                            isSavingError = false
+                        )
+                    }
+
+                    is Resource.Success -> {
+                        setState {
+                            currentState.copy(
+                                isLoading = false,
+                                isSavingError = false,
+                                createActivityDto = currentState.createActivityDto
+                            )
+                        }
+                        val startIntent = Intent(context, RecordService::class.java).apply {
+                            action = RecordService.STOP_RECORDING
+                        }
+                        context.startService(startIntent)
+
+                        Log.i("ACTIVITY_INFO_SAVED", currentState.createActivityDto.toString())
+                        recordRepository.end()
                     }
 
                     is Resource.Error -> {
@@ -145,7 +198,6 @@ class RecordViewModel @Inject constructor(
         context.startService(startIntent)
     }
 
-
     fun disconnect(context: Context) {
         val startIntent = Intent(context, RecordService::class.java).apply {
             action = RecordService.DISCONNECT
@@ -188,12 +240,27 @@ class RecordViewModel @Inject constructor(
     }
 
     fun finish(context: Context) {
+        if (currentSport.value?.sportMapType != null && coordinates.value.size < 2) {
+            stop(context)
+            setState { currentState.copy(isNotEnoughDataToSave = true) }
+            return
+        }
+
         val startIntent = Intent(context, RecordService::class.java).apply {
             action = RecordService.PAUSE_RECORDING
         }
         context.startService(startIntent)
 
         recordRepository.finish()
+    }
+
+    fun discard(context: Context) {
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.STOP_RECORDING
+        }
+        context.startService(startIntent)
+
+        recordRepository.end()
     }
 
     fun handleVisibleMetric() {
@@ -233,33 +300,23 @@ class RecordViewModel @Inject constructor(
         sportManager.updateCurrentSport(sport)
     }
 
-    fun saveActivity(createActivityRequestDto: CreateActivityRequestDTO, context: Context) {
-        val startIntent = Intent(context, RecordService::class.java).apply {
-            action = RecordService.STOP_RECORDING
-        }
-        context.startService(startIntent)
+    fun resetSaveActivityError() {
+        setState { currentState.copy(isSavingError = false) }
+    }
 
-        val requestDto = createActivityRequestDto.copy(
-            totalDistance = distance.value,
-            movingTimeSeconds = (time.value / 1000).toInt(),
-            elapsedTimeSeconds = (elapsedTime.value / 1000).toInt(),
-            avgSpeed = avgSpeed.value,
-            coordinates = coordinates.value,
-            heartRates = heartRates.value,
-        )
-        Log.i("ACTIVITY_INFO_SAVED", requestDto.toString())
-        createActivity(requestDto)
+    fun setIsNotEnoughDataToSave(value: Boolean) {
+        setState { currentState.copy(isNotEnoughDataToSave = value) }
     }
 
     data class RecordViewState(
         val isLoading: Boolean = false,
+        val isNotEnoughDataToSave: Boolean = false,
         val isSavingError: Boolean = false,
         val bluetoothErrMessage: String? = null,
-        val sport: Sport = Sport(), //save sport trong manager?
+        val createActivityDto: CreateActivityRequestDTO = CreateActivityRequestDTO(),
     ) : IViewState
 
     enum class RecordStatus { NONE, RECORDING, FINISH, STOP }
     enum class GPSStatus { NO_GPS, ACQUIRING_GPS, GPS_READY }
     enum class ScreenStatus { DEFAULT, DETAIL, SENSOR, SAVING, SAVED }
-    enum class ActivityType { RUN, CLIMB, RIDE }
 }

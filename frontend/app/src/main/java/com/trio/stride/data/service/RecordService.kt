@@ -30,6 +30,7 @@ import com.trio.stride.R
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.ble.HeartRateReceiveManager
 import com.trio.stride.data.ble.HeartRateResult
+import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.ui.utils.ble.Resource
 import com.trio.stride.ui.utils.formatTimeByMillis
@@ -52,6 +53,9 @@ class RecordService : LifecycleService() {
 
     @Inject
     lateinit var heartRateReceiveManager: HeartRateReceiveManager
+
+    @Inject
+    lateinit var sportManager: SportManager
 
 
     private var notificationBuilder: NotificationCompat.Builder? = null
@@ -98,7 +102,9 @@ class RecordService : LifecycleService() {
                 observeDistanceAndTime()
                 startTimer()
                 startForeground()
-                startTracking()
+                if (sportManager.currentSport.value?.sportMapType != null) {
+                    startTracking()
+                }
             }
 
             PAUSE_RECORDING -> {
@@ -113,7 +119,9 @@ class RecordService : LifecycleService() {
                 Log.d("bluetoothScan", "stop foreground")
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopTimer()
-                stopTracking()
+                if (sportManager.currentSport.value?.sportMapType != null) {
+                    stopTracking()
+                }
             }
         }
 
@@ -172,42 +180,39 @@ class RecordService : LifecycleService() {
     }
 
     private fun startTimer() {
-        timeJob?.cancel()  // Hủy job cũ nếu có
+        timeJob?.cancel()
         timeJob = serviceScope.launch {
-            val startTime = System.currentTimeMillis()  // Thời gian bắt đầu
-            var lastUpdateTime =
-                startTime  // Thời gian cập nhật cuối cùng, ban đầu là thời điểm start
-            var movingTime = 0L  // Tổng thời gian đã pause
+            val startTime = System.currentTimeMillis()
+            var lastUpdateTime = startTime
+            var movingTime = 0L
 
             while (true) {
-                delay(1000)  // Đợi 1 giây
+                delay(1000)
 
                 if (isPaused) {
-                    // Nếu paused, lưu lại thời gian pause
                     lastUpdateTime = System.currentTimeMillis()
-                    continue  // Tiếp tục vòng lặp mà không tính thời gian
+                    continue
                 }
 
-                // Nếu không paused, tính toán thời gian đã trôi qua
                 val currentTime = System.currentTimeMillis()
                 val elapsedSinceLastUpdate =
-                    currentTime - lastUpdateTime  // Thời gian trôi qua kể từ lần update trước
+                    currentTime - lastUpdateTime
 
-                movingTime += elapsedSinceLastUpdate  // Cập nhật thời gian đã trôi qua
+                movingTime += elapsedSinceLastUpdate
 
                 val elapsedTime = currentTime - startTime
                 recordRepository.updateElapsedTime(elapsedTime)
 
                 recordRepository.updateTime(movingTime)
 
-                // Tính toán tốc độ trung bình
-                val durationSeconds = movingTime / 1000.0 //seconds
-                val distance = recordRepository.distance.value //meters
-                val avgSpeed =
-                    if (durationSeconds > 0.0) (distance / durationSeconds) * 3.6 else 0.0
-                recordRepository.updateAvgSpeed(avgSpeed)
+                if (sportManager.currentSport.value?.sportMapType != null) {
+                    val durationSeconds = movingTime / 1000.0
+                    val distance = recordRepository.distance.value
+                    val avgSpeed =
+                        if (durationSeconds > 0.0) (distance / durationSeconds) * 3.6 else 0.0
+                    recordRepository.updateAvgSpeed(avgSpeed)
+                }
 
-                // Cập nhật thời gian đã trôi qua sau mỗi vòng lặp
                 lastUpdateTime = currentTime
             }
         }

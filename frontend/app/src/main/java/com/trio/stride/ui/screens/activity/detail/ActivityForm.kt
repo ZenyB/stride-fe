@@ -36,6 +36,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -54,16 +55,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.trio.stride.R
 import com.trio.stride.data.dto.CreateActivityRequestDTO
 import com.trio.stride.data.dto.UpdateActivityRequestDto
@@ -83,8 +87,10 @@ fun ActivityFormView(
     title: String,
     primaryActionLabel: String,
     dismissAction: () -> Unit,
+    isSaving: Boolean,
     modifier: Modifier = Modifier,
     isCreate: Boolean = true,
+    discardActivity: (() -> Unit)? = null,
     createActivity: ((CreateActivityRequestDTO) -> Unit)? = null,
     updateActivity: ((UpdateActivityRequestDto) -> Unit)? = null,
     sportFromRecord: Sport? = null,
@@ -93,7 +99,7 @@ fun ActivityFormView(
     feelingBottomSheetState: RateFeelingBottomSheetState = hiltViewModel()
 ) {
     require(
-        (isCreate && createActivity != null && sportFromRecord != null) ||
+        (isCreate && createActivity != null && sportFromRecord != null && discardActivity != null) ||
                 (!isCreate && updateActivity != null && activity != null)
     ) {
         "Invalid parameters: " +
@@ -108,6 +114,7 @@ fun ActivityFormView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val localConfig = LocalConfiguration.current
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     val previewImage = remember { mutableStateListOf<Uri>() }
     val expandImageOptionMenu = remember { mutableStateOf(false) }
@@ -115,9 +122,52 @@ fun ActivityFormView(
     val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
     var showSportBottomSheet by remember { mutableStateOf(false) }
     var selectedSport by remember { mutableStateOf(if (isCreate) sportFromRecord!! else activity!!.sport) }
+    var isShowDiscardDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.initial(isCreate, activity, sportFromRecord)
+    }
+
+    if (isShowDiscardDialog) {
+        Dialog(
+            onDismissRequest = { isShowDiscardDialog = false }
+        ) {
+            Box(
+                modifier = Modifier.background(StrideTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Discard Activity", style = StrideTheme.typography.titleLarge)
+                    Text(
+                        "Are you sure to discard unsaved activity?",
+                        style = StrideTheme.typography.bodyMedium
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = { discardActivity?.let { it() } }
+                        ) {
+                            Text("Discard", style = StrideTheme.typography.titleMedium)
+                        }
+                        Spacer(Modifier.width(16.dp))
+                        TextButton(
+                            onClick = { isShowDiscardDialog = false }
+                        ) {
+                            Text("Cancel", style = StrideTheme.typography.titleMedium)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -139,9 +189,14 @@ fun ActivityFormView(
                 actions = {
                     TextButton(
                         onClick = {
-                            createActivity?.invoke(state.createActivityDto)
-                            updateActivity?.invoke(state.updateActivityDto)
-                        }
+                            viewModel.uploadImages(previewImage, context, onFinish = {
+                                if (isCreate)
+                                    createActivity?.invoke(state.createActivityDto)
+                                else
+                                    updateActivity?.invoke(state.updateActivityDto)
+                            })
+                        },
+                        enabled = !isSaving
                     ) {
                         Text(text = primaryActionLabel, style = StrideTheme.typography.titleMedium)
                     }
@@ -149,7 +204,25 @@ fun ActivityFormView(
             )
         },
         bottomBar = {
-
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars),
+                Alignment.Center
+            ) {
+                OutlinedButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    border = BorderStroke(1.dp, StrideTheme.colorScheme.error),
+                    onClick = { isShowDiscardDialog = true },
+                ) {
+                    Text(
+                        "Discard Activity",
+                        style = StrideTheme.typography.titleMedium.copy(color = StrideTheme.colorScheme.error)
+                    )
+                }
+            }
         }
     ) { padding ->
         Box(
@@ -228,7 +301,13 @@ fun ActivityFormView(
                                 else {
                                     AsyncImage(
                                         modifier = Modifier.fillMaxSize(),
-                                        model = activity!!.mapImage,
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(activity!!.mapImage)
+                                            .error(R.drawable.image_icon)
+                                            .fallback(R.drawable.image_icon)
+                                            .placeholder(R.drawable.image_icon)
+                                            .crossfade(true)
+                                            .build(),
                                         contentDescription = "Sample map"
                                     )
                                 }
@@ -239,7 +318,15 @@ fun ActivityFormView(
                     if (!isCreate) {
                         items(activity!!.images) { image ->
                             Image(
-                                painter = rememberAsyncImagePainter(image),
+                                painter = rememberAsyncImagePainter(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(image)
+                                        .error(R.drawable.image_icon)
+                                        .fallback(R.drawable.image_icon)
+                                        .placeholder(R.drawable.image_icon)
+                                        .crossfade(true)
+                                        .build()
+                                ),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .height(140.dp)
@@ -265,7 +352,15 @@ fun ActivityFormView(
 
                     itemsIndexed(previewImage) { index, image ->
                         Image(
-                            painter = rememberAsyncImagePainter(image),
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(image)
+                                    .error(R.drawable.image_icon)
+                                    .fallback(R.drawable.image_icon)
+                                    .placeholder(R.drawable.image_icon)
+                                    .crossfade(true)
+                                    .build()
+                            ),
                             contentDescription = null,
                             modifier = Modifier
                                 .height(140.dp)
@@ -334,7 +429,7 @@ fun ActivityFormView(
                         if (isRpePressed.value) {
                             Icon(
                                 modifier = Modifier.size(24.dp),
-                                painter = rememberAsyncImagePainter(state.sport.image), //replace after
+                                painter = rememberAsyncImagePainter(R.drawable.speedometer_outline_icon),
                                 contentDescription = "Rpe Status",
                                 tint = StrideTheme.colorScheme.onBackground
                             )

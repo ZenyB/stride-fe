@@ -1,7 +1,7 @@
 package com.trio.stride.data.dto
 
 data class GetCategoryResponseDto(
-    val data: CategoryDto,
+    val data: List<CategoryDto>,
     val page: PageDto,
     val filterDto: CategoryFilterDto
 )
