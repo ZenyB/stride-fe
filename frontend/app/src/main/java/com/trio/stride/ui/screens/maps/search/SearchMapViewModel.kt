@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import com.mapbox.geojson.Point
 import com.mapbox.search.autocomplete.PlaceAutocomplete
 import com.mapbox.search.autocomplete.PlaceAutocompleteOptions
 import com.mapbox.search.autocomplete.PlaceAutocompleteResult
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 @OptIn(FlowPreview::class)
 class SearchMapViewModel(
@@ -74,6 +74,10 @@ class SearchMapViewModel(
                 setState { SearchMapState.Error(it.message ?: "Error selecting a location") }
             }
         }
+    }
+
+    fun searchCurrentLocation(point: Point) {
+        setState { SearchMapState.Success(point) }
     }
 
     override fun createInitialState(): SearchMapState {

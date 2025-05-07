@@ -11,26 +11,22 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun MapFallbackScreen(
-    isMapAvailable: Boolean,
-    permissionRequestCount: Int,
     onRetry: () -> Unit,
     goToSetting: () -> Unit
 ) {
-    if (!isMapAvailable) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.align(Alignment.Center)) {
-                Button(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = onRetry
-                ) {
-                    Text("Try again")
-                }
-                Button(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = goToSetting
-                ) {
-                    Text("Go to Settings")
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.align(Alignment.Center)) {
+            Button(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = onRetry
+            ) {
+                Text("Try again")
+            }
+            Button(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = goToSetting
+            ) {
+                Text("Go to Settings")
             }
         }
     }

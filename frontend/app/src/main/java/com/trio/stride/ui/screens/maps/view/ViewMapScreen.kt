@@ -9,6 +9,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -60,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.google.android.gms.location.LocationServices
 import com.google.gson.JsonObject
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
@@ -68,7 +71,7 @@ import com.mapbox.maps.LayerPosition
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
+import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
@@ -82,6 +85,8 @@ import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManag
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
+import com.mapbox.maps.viewannotation.geometry
+import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.trio.stride.R
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
@@ -93,6 +98,7 @@ import com.trio.stride.ui.components.map.routesheet.RouteList
 import com.trio.stride.ui.components.map.routesheet.RoutePager
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.map.LocationUtils
 import com.trio.stride.ui.utils.map.RequestLocationPermission
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -109,10 +115,11 @@ fun ViewMapScreen(
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     viewModel: ViewMapViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val mapStyle by mapStyleViewModel.mapStyle.collectAsStateWithLifecycle()
     val mapView by viewModel.mapView.collectAsStateWithLifecycle()
 
-
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     val selectedPoint = navController
         .currentBackStackEntry
         ?.savedStateHandle
@@ -130,7 +137,6 @@ fun ViewMapScreen(
     )
     val pagerState = rememberPagerState(pageCount = { routeItems.size })
 
-    val context = LocalContext.current
     var permissionRequestCount by remember {
         mutableIntStateOf(0)
     }
@@ -167,6 +173,8 @@ fun ViewMapScreen(
     var touchManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
     var polylineAnnotationManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
     var selectedRouteManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
+    var circleAnnotationManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
+
 
     val coroutineScope = rememberCoroutineScope()
     val isScrolling = remember { mutableStateOf(false) }
@@ -240,21 +248,6 @@ fun ViewMapScreen(
                 Log.d("handle tap", "change color darker")
             }
             selectedIndex = index
-        }
-    }
-
-    LaunchedEffect(true) {
-        if (selectedPoint?.value == null) {
-            mapViewportState.transitionToFollowPuckState(
-                followOptions,
-                completionListener = { isFinish ->
-                    if (isFinish) {
-                        mapViewportState.setCameraOptions { bearing(null) }
-                    }
-                })
-            viewModel.getRecommendRoute(null)
-        } else {
-            viewModel.getRecommendRoute(selectedPoint.value)
         }
     }
 
@@ -371,6 +364,22 @@ fun ViewMapScreen(
             }
         )
         if (isMapAvailable) {
+            LaunchedEffect(Unit) {
+                if (selectedPoint?.value == null) {
+                    mapViewportState.transitionToFollowPuckState(
+                        followOptions,
+                        completionListener = { isFinish ->
+                            if (isFinish) {
+                                mapViewportState.setCameraOptions { bearing(null) }
+                            }
+                        })
+                    LocationUtils.getCurrentLocation(fusedLocationClient, context) { point ->
+                        viewModel.getRecommendRoute(point)
+                    }
+                } else {
+                    viewModel.getRecommendRoute(selectedPoint.value)
+                }
+            }
             MapboxMap(
                 Modifier
                     .fillMaxSize(), mapViewportState = mapViewportState,
@@ -420,6 +429,7 @@ fun ViewMapScreen(
                         }
                         true
                     }
+                    circleAnnotationManager = annotationApi.createPolylineAnnotationManager()
 
                     mapView.mapboxMap.subscribeStyleLoaded {
                         mapView.mapboxMap.style?.moveStyleLayer(
@@ -459,16 +469,24 @@ fun ViewMapScreen(
                         currentIndex++
                     }
                 }
+
                 if (selectedPoint != null) {
                     selectedPoint.value?.let {
-                        CircleAnnotation(point = it) {
-                            circleRadius = 5.0
-                            circleColor = StrideColor.green600
-                            circleStrokeWidth = 2.0
-                            circleStrokeColor = StrideColor.white
+                        ViewAnnotation(
+                            options = viewAnnotationOptions {
+                                geometry(it)
+                                allowOverlap(true)
+                                allowOverlapWithPuck(true)
+                            }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .background(StrideColor.green600, shape = CircleShape)
+                                    .border(2.dp, StrideColor.white, shape = CircleShape)
+                            )
                         }
                     }
-
                 }
             }
         }
@@ -479,6 +497,7 @@ fun ViewMapScreen(
                 .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
                 .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                 .background(Color.White, RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .clickable { navController.navigate(Screen.BottomNavScreen.Search.route) }
         ) {
             Text(
@@ -534,7 +553,6 @@ fun ViewMapScreen(
                         routeItems,
                         modifier = Modifier,
                         onClick = { idx ->
-                            Log.d("click item", "item index: ${idx}")
                             viewModel.onRouteItemClick(idx)
                         }
                     )
@@ -542,7 +560,6 @@ fun ViewMapScreen(
             }
 
         }
-
 
         if (showSheet) {
             MapStyleBottomSheet(
@@ -552,17 +569,18 @@ fun ViewMapScreen(
             )
         }
 
-        MapFallbackScreen(
-            isMapAvailable,
-            permissionRequestCount,
-            onRetry = { permissionRequestCount += 1 },
-            goToSetting = {
-                context.startActivity(
-                    Intent(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", context.packageName, null)
+        if (isMapAvailable) {
+            MapFallbackScreen(
+                onRetry = { permissionRequestCount += 1 },
+                goToSetting = {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", context.packageName, null)
+                        )
                     )
-                )
-            })
+                })
+        }
+
     }
 }
