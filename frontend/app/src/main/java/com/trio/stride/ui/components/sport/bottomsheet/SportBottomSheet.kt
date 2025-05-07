@@ -29,10 +29,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.trio.stride.R
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.theme.StrideTheme
@@ -111,7 +114,15 @@ fun SportBottomSheetWithCategory(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        painter = rememberAsyncImagePainter(sport.image),
+                                        painter = rememberAsyncImagePainter(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(sport.image)
+                                                .error(R.drawable.image_icon)
+                                                .fallback(R.drawable.image_icon)
+                                                .placeholder(R.drawable.image_icon)
+                                                .crossfade(true)
+                                                .build(),
+                                        ),
                                         modifier = Modifier.size(32.dp),
                                         contentDescription = "Sport image",
                                         tint = contentColor
@@ -205,7 +216,15 @@ fun SportMapBottomSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                painter = rememberAsyncImagePainter(sport.image),
+                                painter = rememberAsyncImagePainter(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(sport.image)
+                                        .error(R.drawable.image_icon)
+                                        .fallback(R.drawable.image_icon)
+                                        .placeholder(R.drawable.image_icon)
+                                        .crossfade(true)
+                                        .build()
+                                ),
                                 modifier = Modifier.size(32.dp),
                                 contentDescription = "Sport image",
                                 tint = contentColor

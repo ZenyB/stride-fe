@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
@@ -55,11 +54,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.mapbox.geojson.Point
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
@@ -69,6 +66,7 @@ import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.R
 import com.trio.stride.ui.components.CustomCenterTopAppBar
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.StatusMessage
 import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
@@ -80,7 +78,6 @@ import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
-import com.trio.stride.ui.utils.ble.PermissionUtils
 import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatSpeed
 import com.trio.stride.ui.utils.formatTimeByMillis
@@ -91,20 +88,17 @@ import com.trio.stride.ui.utils.map.focusToUser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RecordScreen(
-    viewModel: RecordViewModel = hiltViewModel()
+    back: () -> Unit,
+    viewModel: RecordViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     val scope = rememberCoroutineScope()
-    val permissionState =
-        rememberMultiplePermissionsState(permissions = PermissionUtils.permissions)
 
     val snackbarHostState = remember { SnackbarHostState() }
     var permissionRequestCount by remember {
@@ -127,8 +121,6 @@ fun RecordScreen(
     val gpsStatus by viewModel.gpsStatus.collectAsStateWithLifecycle()
     val startPoint by viewModel.startPoint.collectAsStateWithLifecycle()
     val mapView by viewModel.mapView.collectAsStateWithLifecycle()
-    val locationPoints by viewModel.locationPoints.collectAsStateWithLifecycle()
-    val coordinates by viewModel.coordinates.collectAsStateWithLifecycle()
     val mapViewportState = viewModel.mapViewportState
     val bleConnectionState by viewModel.connectionState.collectAsStateWithLifecycle()
     val devices by viewModel.scannedDevices.collectAsStateWithLifecycle()
@@ -143,28 +135,96 @@ fun RecordScreen(
         viewModel.updateGpsStatus(status)
     })
 
-//    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
-//        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
-//        if (action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-//            val state = bluetoothState.getIntExtra(EXTRA_STATE, ERROR)
-//            when (state) {
-//                STATE_ON -> viewModel.setBluetoothState(true)
-//                STATE_OFF -> viewModel.setBluetoothState(false)
-//            }
-//        }
-//    }
-
-    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     BackHandler {
-        if (screenStatus != RecordViewModel.ScreenStatus.DEFAULT) {
-            viewModel.handleBackToDefault()
+        val isNotDefault = screenStatus != RecordViewModel.ScreenStatus.DEFAULT
+        val isSaving = screenStatus == RecordViewModel.ScreenStatus.SAVING
+        if (isNotDefault) {
+            if (isSaving)
+                viewModel.handleDismissSaveActivity(context)
+            else
+                viewModel.handleBackToDefault()
         } else {
-            backDispatcher?.onBackPressed()
+            back()
         }
     }
 
     LaunchedEffect(Unit) {
         focusToUser(mapView)
+    }
+
+    if (state.isLoading) {
+        Loading()
+    } else if (state.isSavingError) {
+        Dialog(
+            onDismissRequest = { viewModel.resetSaveActivityError() }
+        ) {
+            Box(
+                modifier = Modifier.background(StrideTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Save activity error", style = StrideTheme.typography.titleLarge)
+                    Text(
+                        "There are some error, try again later.",
+                        style = StrideTheme.typography.bodyMedium
+                    )
+                    TextButton(
+                        onClick = { viewModel.saveAgain(context) }
+                    ) {
+                        Text("Try again", style = StrideTheme.typography.titleMedium)
+                    }
+                }
+            }
+        }
+    } else if (state.isNotEnoughDataToSave) {
+        Dialog(
+            onDismissRequest = { viewModel.setIsNotEnoughDataToSave(false) }
+        ) {
+            Box(
+                modifier = Modifier.background(StrideTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Not moving yet?", style = StrideTheme.typography.titleLarge)
+                    Text(
+                        "Stride need a longer activity to upload. Please continue or discard this activity.",
+                        style = StrideTheme.typography.bodyMedium
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = {
+                                viewModel.discard(context)
+                                back()
+                            }
+                        ) {
+                            Text("Discard", style = StrideTheme.typography.titleMedium)
+                        }
+                        Spacer(Modifier.width(16.dp))
+                        TextButton(
+                            onClick = { viewModel.resume(context) }
+                        ) {
+                            Text("Resume", style = StrideTheme.typography.titleMedium)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -182,7 +242,7 @@ fun RecordScreen(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
                     title = "Run",
                     navigationIcon = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = { back() }) {
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(R.drawable.park_down_icon),
@@ -192,11 +252,11 @@ fun RecordScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = { viewModel.handleShowSensorView() }) {
                             Icon(
                                 modifier = Modifier.size(24.dp),
-                                painter = painterResource(R.drawable.setting_icon),
-                                contentDescription = "Setting",
+                                painter = painterResource(R.drawable.heart_pulse),
+                                contentDescription = "Show sensor",
                                 tint = StrideTheme.colorScheme.onBackground
                             )
                         }
@@ -591,22 +651,6 @@ fun RecordScreen(
                 }
             }
 
-//            when (screenStatus) {
-//                RecordViewModel.ScreenStatus.DEFAULT -> {
-//
-//                }
-//
-//                RecordViewModel.ScreenStatus.DETAIL -> {
-//
-//                }
-//
-//                RecordViewModel.ScreenStatus.SAVING -> {}
-//
-//                RecordViewModel.ScreenStatus.SENSOR -> {
-//
-//                }
-//            }
-
             if (showRequestPermissionButton) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Column(modifier = Modifier.align(Alignment.Center)) {
@@ -680,12 +724,15 @@ fun RecordScreen(
         ActivityFormView(
             "Save",
             "Save",
+            discardActivity = {
+                viewModel.discard(context)
+                back()
+            },
             dismissAction = { viewModel.handleDismissSaveActivity(context) },
             createActivity = { viewModel.saveActivity(it, context) },
             sportFromRecord = currentSport,
             isCreate = true,
             isSaving = state.isLoading,
-            isSavingError = state.isSavingError
         )
     }
 }

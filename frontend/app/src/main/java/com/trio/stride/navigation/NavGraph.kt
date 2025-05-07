@@ -112,9 +112,7 @@ fun NavGraphBuilder.mainAppGraph(
         }
 
         composable(Screen.BottomNavScreen.Record.route) {
-//            val heartRateViewModel: HeartRateViewModel = hiltViewModel()
-//            HeartRateScreen(heartRateViewModel)
-            RecordScreen()
+            RecordScreen(back = { navController.popBackStack() })
         }
     }
 

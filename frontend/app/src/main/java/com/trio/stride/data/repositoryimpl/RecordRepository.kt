@@ -149,9 +149,9 @@ class RecordRepository @Inject constructor(
         _recordStatus.value = RecordViewModel.RecordStatus.STOP
     }
 
-    fun saved() {
-        _screenStatus.value = RecordViewModel.ScreenStatus.SAVED
-        _recordStatus.value = RecordViewModel.RecordStatus.FINISH
+    fun end() {
+        _screenStatus.value = RecordViewModel.ScreenStatus.DEFAULT
+        _recordStatus.value = RecordViewModel.RecordStatus.NONE
     }
 
     fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
