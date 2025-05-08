@@ -40,7 +40,7 @@ fun ActivityDetailView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(StrideTheme.colorScheme.surfaceContainerLowest)
+            .background(StrideTheme.colorScheme.surface)
             .verticalScroll(scrollState)
             .padding(bottom = 16.dp)
             .padding(

@@ -422,7 +422,7 @@ fun RecordScreen(
                                             .padding(vertical = 8.dp)
                                             .clip(CircleShape)
                                             .background(
-                                                StrideTheme.colorScheme.surfaceContainerLowest,
+                                                StrideTheme.colorScheme.surface,
                                                 CircleShape
                                             )
                                             .size(95.dp),
@@ -462,7 +462,7 @@ fun RecordScreen(
                                         screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                     val showMetricButtonContainerColor =
                                         if (isVisibleMetric)
-                                            StrideTheme.colorScheme.surfaceContainerLowest
+                                            StrideTheme.colorScheme.surface
                                         else
                                             StrideTheme.colorScheme.secondary
                                     val showMetricButtonContentColor =
@@ -517,7 +517,7 @@ fun RecordScreen(
                                         modifier = Modifier.size(33.dp),
                                         painter = painterResource(R.drawable.filled_round_square_icon),
                                         contentDescription = "Stop record",
-                                        tint = StrideTheme.colorScheme.surfaceContainerLowest
+                                        tint = StrideTheme.colorScheme.surface
                                     )
                                 }
                                 Spacer(Modifier.width(8.dp))
@@ -525,7 +525,7 @@ fun RecordScreen(
                                     screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                 val showMetricButtonContainerColor =
                                     if (isVisibleMetric)
-                                        StrideTheme.colorScheme.surfaceContainerLowest
+                                        StrideTheme.colorScheme.surface
                                     else
                                         StrideTheme.colorScheme.secondary
                                 val showMetricButtonContentColor =

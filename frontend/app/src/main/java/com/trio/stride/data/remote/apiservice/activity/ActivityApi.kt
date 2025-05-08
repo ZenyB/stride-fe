@@ -2,14 +2,12 @@ package com.trio.stride.data.remote.apiservice.activity
 
 import com.trio.stride.base.Resource
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
-import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.SuccessResponse
+import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
 import retrofit2.Response
-import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

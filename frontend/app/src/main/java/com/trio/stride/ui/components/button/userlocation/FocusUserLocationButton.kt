@@ -4,8 +4,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -95,13 +96,14 @@ fun FocusUserLocationButton(
         }
     }
 
-    FloatingActionButton(
+    IconButton(
         modifier = modifier
             .size(44.dp)
-            .background(StrideTheme.colorScheme.surfaceContainerLowest, CircleShape)
+            .background(StrideTheme.colorScheme.surface, CircleShape)
             .clip(CircleShape),
-        containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
-        shape = CircleShape,
+        colors = IconButtonDefaults.iconButtonColors().copy(
+            containerColor = StrideTheme.colorScheme.surface
+        ),
         onClick = {
             if (isLocationEnabled(context)) {
                 val viewportStatus = mapView.viewport.status
@@ -129,7 +131,8 @@ fun FocusUserLocationButton(
                 }
             } else {
                 state.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS)
-                checkLocationOn(context, mapView, launcher,
+                checkLocationOn(
+                    context, mapView, launcher,
                     successAction = {
                         state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
                     },

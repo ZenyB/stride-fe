@@ -557,7 +557,7 @@ private fun ImageOptionBottomView(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(StrideTheme.colorScheme.surfaceContainerLowest)
+                    .background(StrideTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 Row(

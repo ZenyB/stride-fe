@@ -63,7 +63,7 @@ fun SportBottomSheetWithCategory(
         )
     ) {
         ModalBottomSheet(
-            containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
+            containerColor = StrideTheme.colorScheme.surface,
             onDismissRequest = { dismissAction() },
             modifier = modifier.zIndex(10000f)
         ) {
@@ -176,7 +176,7 @@ fun SportMapBottomSheet(
         )
     ) {
         ModalBottomSheet(
-            containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
+            containerColor = StrideTheme.colorScheme.surface,
             onDismissRequest = { dismissAction() },
             modifier = modifier.zIndex(10000f)
         ) {
