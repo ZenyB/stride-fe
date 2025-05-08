@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.trio.stride.ui.screens.activity.ActivityMainTabScreen
 import com.trio.stride.ui.screens.activity.ProfileScreen
+import com.trio.stride.ui.screens.activity.view.ActivityDetailNoMapScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
 import com.trio.stride.ui.screens.home.HomeScreen
@@ -119,6 +120,11 @@ fun NavGraphBuilder.mainAppGraph(
         composable(Screen.ActivityDetail.route) { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id") ?: ""
             ActivityDetailScreen(id, navController)
+        }
+
+        composable(Screen.ActivityDetailNoMap.route) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            ActivityDetailNoMapScreen(id, navController)
         }
     }
 

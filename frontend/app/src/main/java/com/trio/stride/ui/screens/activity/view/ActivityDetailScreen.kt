@@ -66,6 +66,7 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.trio.stride.R
 import com.trio.stride.ui.components.CustomLeftTopAppBar
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.LoadingSmall
 import com.trio.stride.ui.components.activity.detail.ActivityDetailView
 import com.trio.stride.ui.components.activity.detail.BottomSheetIndicator
@@ -154,6 +155,20 @@ fun ActivityDetailScreen(
             }
         }
     }
+
+    if (uiState is ActivityDetailState.Idle) {
+        val savingState = (uiState as ActivityDetailState.Idle).savingState
+        if (savingState is ActivitySavingState.IsSaving) {
+            Loading()
+            Log.d("saving route", "is saving")
+        } else if (savingState is ActivitySavingState.ErrorSaving) {
+            Log.d(
+                "saving route",
+                "error: ${savingState.message}"
+            )
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -166,6 +181,7 @@ fun ActivityDetailScreen(
             ) {
                 CustomLeftTopAppBar(
                     title = item?.sport?.name ?: "Activity",
+                    titleModifier = Modifier.alpha(alpha = animatedAlpha),
                     backgroundColor = StrideTheme.colorScheme.surface.copy(alpha = animatedAlpha),
                     navigationIcon = {
                         IconButton(
@@ -191,6 +207,7 @@ fun ActivityDetailScreen(
                         ) {
                             IconButton(
                                 onClick = {
+                                    viewModel.saveRoute()
                                 },
                                 modifier = Modifier
                                     .background(

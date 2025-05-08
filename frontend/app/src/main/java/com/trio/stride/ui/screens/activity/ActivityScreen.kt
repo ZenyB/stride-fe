@@ -72,7 +72,11 @@ fun ActivityScreen(
         ) {
             items(items.size) { index ->
                 ActivityItemView(item = items[index], onClick = { id ->
-                    navController.navigate(Screen.ActivityDetail.createRoute(id))
+                    if (items[index].sport.sportMapType != null) {
+                        navController.navigate(Screen.ActivityDetail.createRoute(id))
+                    } else {
+                        navController.navigate(Screen.ActivityDetailNoMap.createRoute(id))
+                    }
                 })
 
                 if (index >= items.size - 5) {

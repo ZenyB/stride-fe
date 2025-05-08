@@ -38,4 +38,8 @@ sealed class Screen(val route: String) {
     object ActivityDetail : Screen("activity/{id}") {
         fun createRoute(id: String): String = "activity/$id"
     }
+
+    object ActivityDetailNoMap : Screen("activity/nomap/{id}") {
+        fun createRoute(id: String): String = "activity/nomap/$id"
+    }
 }
