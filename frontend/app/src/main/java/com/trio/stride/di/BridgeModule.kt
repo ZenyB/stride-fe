@@ -1,8 +1,8 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.apiservice.file.FileApi
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.remote.apiservice.file.FileApi
 import com.trio.stride.domain.repository.FileRepository
 import com.trio.stride.domain.usecase.file.UploadFileUseCase
 import dagger.Module

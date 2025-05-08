@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -58,7 +57,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
-import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
@@ -70,10 +68,13 @@ import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.StatusMessage
 import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
+import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
+import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportIconButton
+import com.trio.stride.ui.screens.activity.detail.ActivityFormMode
 import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
@@ -92,6 +93,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RecordScreen(
     back: () -> Unit,
+    mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     viewModel: RecordViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,8 +112,12 @@ fun RecordScreen(
     var showRequestPermissionButton by remember {
         mutableStateOf(false)
     }
+
+    var showSheet by remember { mutableStateOf(false) }
+
     var showSportBottomSheet by remember { mutableStateOf(false) }
 
+    val mapStyle by mapStyleViewModel.mapStyle.collectAsStateWithLifecycle()
 
     val distance by viewModel.distance.collectAsStateWithLifecycle()
     val time by viewModel.time.collectAsStateWithLifecycle()
@@ -174,10 +180,22 @@ fun RecordScreen(
                         "There are some error, try again later.",
                         style = StrideTheme.typography.bodyMedium
                     )
-                    TextButton(
-                        onClick = { viewModel.saveAgain(context) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Text("Try again", style = StrideTheme.typography.titleMedium)
+                        TextButton(
+                            onClick = { viewModel.saveAgain(context) }
+                        ) {
+                            Text("Try again", style = StrideTheme.typography.titleMedium)
+                        }
+                        Spacer(Modifier.width(16.dp))
+                        TextButton(
+                            onClick = { viewModel.resetSaveActivityError() }
+                        ) {
+                            Text("Cancel", style = StrideTheme.typography.titleMedium)
+                        }
                     }
                 }
             }
@@ -240,7 +258,7 @@ fun RecordScreen(
             ) {
                 CustomCenterTopAppBar(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
-                    title = "Run",
+                    title = currentSport?.name ?: "",
                     navigationIcon = {
                         IconButton(onClick = { back() }) {
                             Icon(
@@ -264,27 +282,30 @@ fun RecordScreen(
             }
         },
         floatingActionButton = {
-            Column(
-                modifier = Modifier
-                    .padding(bottom = 52.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FloatingActionButton(
+            if (currentSport?.sportMapType != null && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
+                Column(
                     modifier = Modifier
-                        .size(44.dp)
-                        .background(StrideTheme.colorScheme.background, CircleShape)
-                        .clip(CircleShape),
-                    onClick = {}
+                        .padding(bottom = 52.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        modifier = Modifier.size(28.dp),
-                        painter = painterResource(R.drawable.layers_icon),
-                        contentDescription = "Select map type",
-                        tint = StrideTheme.colorScheme.onBackground
-                    )
-                }
-                mapView?.let { mv ->
-                    FocusUserLocationButton(mapView = mv)
+                    IconButton(
+                        onClick = { showSheet = true },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = StrideTheme.colors.white
+                        ),
+                        modifier = Modifier
+                            .size(44.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.layers_icon),
+                            contentDescription = "Map option",
+                            tint = Color.Black,
+
+                            )
+                    }
+                    mapView?.let { mv ->
+                        FocusUserLocationButton(mapView = mv)
+                    }
                 }
             }
         },
@@ -292,11 +313,11 @@ fun RecordScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(StrideTheme.colorScheme.background),
+                    .background(StrideTheme.colorScheme.surface),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (recordStatus == RecordViewModel.RecordStatus.NONE || recordStatus == RecordViewModel.RecordStatus.STOP) {
+                if ((recordStatus == RecordViewModel.RecordStatus.NONE || recordStatus == RecordViewModel.RecordStatus.STOP) && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
@@ -307,7 +328,8 @@ fun RecordScreen(
                         if (recordStatus != RecordViewModel.RecordStatus.STOP && currentSport != null) {
                             ChooseSportIconButton(
                                 modifier = Modifier
-                                    .padding(vertical = 4.dp),
+                                    .padding(vertical = 4.dp)
+                                    .background(StrideTheme.colors.transparent),
                                 iconModifier = Modifier.size(40.dp),
                                 iconImage = currentSport!!.image,
                                 onClick = { showSportBottomSheet = true }
@@ -400,7 +422,7 @@ fun RecordScreen(
                                             .padding(vertical = 8.dp)
                                             .clip(CircleShape)
                                             .background(
-                                                StrideTheme.colorScheme.surfaceContainerLowest,
+                                                StrideTheme.colorScheme.background,
                                                 CircleShape
                                             )
                                             .size(95.dp),
@@ -440,7 +462,7 @@ fun RecordScreen(
                                         screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                     val showMetricButtonContainerColor =
                                         if (isVisibleMetric)
-                                            StrideTheme.colorScheme.surfaceContainerLowest
+                                            StrideTheme.colorScheme.background
                                         else
                                             StrideTheme.colorScheme.secondary
                                     val showMetricButtonContentColor =
@@ -495,7 +517,7 @@ fun RecordScreen(
                                         modifier = Modifier.size(33.dp),
                                         painter = painterResource(R.drawable.filled_round_square_icon),
                                         contentDescription = "Stop record",
-                                        tint = StrideTheme.colorScheme.surfaceContainerLowest
+                                        tint = StrideTheme.colorScheme.surface
                                     )
                                 }
                                 Spacer(Modifier.width(8.dp))
@@ -503,7 +525,7 @@ fun RecordScreen(
                                     screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                 val showMetricButtonContainerColor =
                                     if (isVisibleMetric)
-                                        StrideTheme.colorScheme.surfaceContainerLowest
+                                        StrideTheme.colorScheme.background
                                     else
                                         StrideTheme.colorScheme.secondary
                                 val showMetricButtonContentColor =
@@ -561,9 +583,10 @@ fun RecordScreen(
                 MapboxMap(
                     Modifier
                         .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding()),
+                        .padding(top = padding.calculateTopPadding())
+                        .padding(bottom = padding.calculateBottomPadding()),
                     mapViewportState = mapViewportState,
-                    style = { MapStyle(style = Style.MAPBOX_STREETS) }
+                    style = { MapStyle(style = mapStyle) },
                 ) {
                     MapEffect(Unit) { mv ->
                         viewModel.setMapView(mv)
@@ -611,7 +634,7 @@ fun RecordScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(StrideTheme.colorScheme.background)
+                        .background(StrideTheme.colorScheme.surface)
                         .padding(
                             top = padding.calculateTopPadding(),
                             bottom = padding.calculateBottomPadding()
@@ -724,15 +747,24 @@ fun RecordScreen(
         ActivityFormView(
             "Save",
             "Save",
-            discardActivity = {
-                viewModel.discard(context)
-                back()
-            },
+            mode = ActivityFormMode.Create(
+                sportFromRecord = currentSport,
+                onCreate = { viewModel.saveActivity(it, context) },
+                onDiscard = {
+                    viewModel.discard(context)
+                    back()
+                }
+            ),
             dismissAction = { viewModel.handleDismissSaveActivity(context) },
-            createActivity = { viewModel.saveActivity(it, context) },
-            sportFromRecord = currentSport,
-            isCreate = true,
             isSaving = state.isLoading,
+        )
+    }
+
+    if (showSheet) {
+        MapStyleBottomSheet(
+            mapStyle = mapStyle,
+            onMapStyleSelected = { mapStyleViewModel.selectStyle(it) },
+            onDismiss = { showSheet = false }
         )
     }
 }

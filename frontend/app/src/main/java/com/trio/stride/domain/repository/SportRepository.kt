@@ -7,6 +7,9 @@ interface SportRepository {
         page: Int? = null,
         limit: Int? = null,
         name: String? = null,
-        categoryId: String? = null
+        categoryId: String? = null,
     ): List<Sport>
+
+    suspend fun getLocalSports(categoryId: String?): List<Sport>
+    suspend fun insertSports(sports: List<Sport>)
 }

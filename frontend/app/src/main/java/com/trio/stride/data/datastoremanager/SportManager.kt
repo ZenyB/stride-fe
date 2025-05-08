@@ -2,6 +2,14 @@ package com.trio.stride.data.datastoremanager
 
 import android.util.Log
 import com.trio.stride.base.Resource
+import com.trio.stride.data.local.dao.CategoryDao
+import com.trio.stride.data.local.dao.CurrentSportDao
+import com.trio.stride.data.local.dao.RouteFilterSportDao
+import com.trio.stride.data.mapper.roomdatabase.toCurrentSportEntity
+import com.trio.stride.data.mapper.roomdatabase.toEntity
+import com.trio.stride.data.mapper.roomdatabase.toModel
+import com.trio.stride.data.mapper.roomdatabase.toRouteFilterSportEntity
+import com.trio.stride.data.mapper.roomdatabase.toSportEntity
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
@@ -18,7 +26,10 @@ import javax.inject.Singleton
 @Singleton
 class SportManager @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val getSportsUseCase: GetSportsUseCase
+    private val getSportsUseCase: GetSportsUseCase,
+    private val currentSportDao: CurrentSportDao,
+    private val routeFilterSportDao: RouteFilterSportDao,
+    private val categoryDao: CategoryDao,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -33,6 +44,9 @@ class SportManager @Inject constructor(
 
     private val _currentSport = MutableStateFlow<Sport?>(null)
     val currentSport: StateFlow<Sport?> = _currentSport
+
+    private val _routeFilterSport = MutableStateFlow<Sport?>(null)
+    val routeFilterSport: StateFlow<Sport?> = _routeFilterSport
 
     private val _sportsWithMap = MutableStateFlow<List<Sport>>(emptyList())
     val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap
@@ -77,8 +91,9 @@ class SportManager @Inject constructor(
 
                         _sportsByCategory.value = response.data.groupBy { it.category }
                         _sportsWithMap.value = response.data.filter { it.sportMapType != null }
-                        _currentSport.value = response.data.firstOrNull()
-                        Log.i("SPORTTTT", _sportsByCategory.toString())
+
+                        getCurrentSport()
+                        getRouteFilterSport()
                     }
 
                     is Resource.Error -> {
@@ -95,6 +110,42 @@ class SportManager @Inject constructor(
         }
     }
 
+    private fun getCurrentSport() {
+        coroutineScope.launch {
+            val localCurrentSport = currentSportDao.getCurrentSport()?.toSportEntity()
+
+            if (localCurrentSport == null) {
+                val sports = _sports.value
+                val currentSportEntity = sports[0].toEntity().toCurrentSportEntity()
+                currentSportDao.saveCurrentSport(currentSportEntity)
+                _currentSport.value = sports[0]
+            } else {
+                val category = categoryDao.getCategoryById(localCurrentSport.categoryId)
+                category?.let {
+                    _currentSport.value = localCurrentSport.toModel(category.toModel())
+                }
+            }
+        }
+    }
+
+    private fun getRouteFilterSport() {
+        coroutineScope.launch {
+            val localRouteFilterSport = routeFilterSportDao.getSport()?.toSportEntity()
+
+            if (localRouteFilterSport == null) {
+                val sportsWithMap = _sportsWithMap.value
+                val routeFilterSportEntity = sportsWithMap[0].toEntity().toCurrentSportEntity()
+                currentSportDao.saveCurrentSport(routeFilterSportEntity)
+                _routeFilterSport.value = sportsWithMap[0]
+            } else {
+                val category = categoryDao.getCategoryById(localRouteFilterSport.categoryId)
+                category?.let {
+                    _routeFilterSport.value = localRouteFilterSport.toModel(category.toModel())
+                }
+            }
+        }
+    }
+
     private fun handleError(message: String?) {
         _isError.value = true
         _errorMessage.value = message
@@ -102,5 +153,15 @@ class SportManager @Inject constructor(
 
     fun updateCurrentSport(sport: Sport) {
         _currentSport.value = sport
+        coroutineScope.launch {
+            currentSportDao.saveCurrentSport(sport.toEntity().toCurrentSportEntity())
+        }
+    }
+
+    fun updateRouteFilterSport(sport: Sport) {
+        _routeFilterSport.value = sport
+        coroutineScope.launch {
+            routeFilterSportDao.saveSport(sport.toEntity().toRouteFilterSportEntity())
+        }
     }
 }

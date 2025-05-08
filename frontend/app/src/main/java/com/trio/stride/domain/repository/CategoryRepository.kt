@@ -8,4 +8,7 @@ interface CategoryRepository {
         limit: Int? = null,
         name: String? = null,
     ): List<Category>
+
+    suspend fun getLocalCategories(): List<Category>
+    suspend fun insertCategories(categories: List<Category>)
 }

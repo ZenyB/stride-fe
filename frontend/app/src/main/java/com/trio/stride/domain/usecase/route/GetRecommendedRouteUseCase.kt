@@ -1,6 +1,6 @@
 package com.trio.stride.domain.usecase.route
 
-import com.trio.stride.data.dto.RecommendRouteRequest
+import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.ui.utils.parseErrorResponse

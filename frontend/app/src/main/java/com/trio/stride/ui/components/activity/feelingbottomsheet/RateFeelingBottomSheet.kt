@@ -4,13 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,7 +55,7 @@ fun RateFeelingBottomSheet(
         )
     ) {
         ModalBottomSheet(
-            containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
+            containerColor = StrideTheme.colorScheme.surface,
             onDismissRequest = { state.hide() },
             modifier = modifier
                 .zIndex(10000f)
@@ -119,18 +117,25 @@ fun RateFeelingBottomSheet(
                     }
 
                     TextButton(
-                        onClick = {  }
+                        onClick = { }
                     ) {
                         Text("Hide Details", style = StrideTheme.typography.bodyMedium)
                     }
 
                     Box(
-                        modifier = Modifier.fillMaxWidth().border(1.dp, StrideTheme.colors.grayBorder)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, StrideTheme.colors.grayBorder)
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                         ) {
-                            Text(stringResource(feelingDetailTextId), style = StrideTheme.typography.bodyMedium)
+                            Text(
+                                stringResource(feelingDetailTextId),
+                                style = StrideTheme.typography.bodyMedium
+                            )
                         }
                     }
                 }

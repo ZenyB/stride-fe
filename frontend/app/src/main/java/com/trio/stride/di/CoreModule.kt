@@ -1,10 +1,10 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.apiservice.activity.ActivityApi
-import com.trio.stride.data.apiservice.category.CategoryApi
-import com.trio.stride.data.apiservice.sport.SportApi
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.remote.apiservice.activity.ActivityApi
+import com.trio.stride.data.remote.apiservice.category.CategoryApi
+import com.trio.stride.data.remote.apiservice.sport.SportApi
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.SportRepository

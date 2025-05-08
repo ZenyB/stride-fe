@@ -15,7 +15,7 @@ import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.data.ble.ConnectionState
-import com.trio.stride.data.dto.Coordinate
+import com.trio.stride.data.remote.dto.Coordinate
 import com.trio.stride.ui.screens.record.RecordViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -152,6 +152,15 @@ class RecordRepository @Inject constructor(
     fun end() {
         _screenStatus.value = RecordViewModel.ScreenStatus.DEFAULT
         _recordStatus.value = RecordViewModel.RecordStatus.NONE
+        _coordinates.value = emptyList()
+        _time.value = 0
+        _distance.value = 0.0
+        _avgSpeed.value = 0.0
+        _elapsedTime.value = 0
+        _startPoint.value = null
+        _routePoints.value = emptyList()
+        _heartRates.value = emptyList()
+        mapView.value?.let { updatePolyline(it, emptyList()) }
     }
 
     fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

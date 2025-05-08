@@ -1,7 +1,6 @@
 package com.trio.stride.data.repositoryimpl
 
-import com.trio.stride.data.apiservice.file.FileApi
-import com.trio.stride.data.dto.UploadFileResponseDto
+import com.trio.stride.data.remote.apiservice.file.FileApi
 import com.trio.stride.domain.repository.FileRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody

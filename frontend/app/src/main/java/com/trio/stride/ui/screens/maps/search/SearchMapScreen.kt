@@ -1,7 +1,5 @@
 package com.trio.stride.ui.screens.maps.search
 
-import android.Manifest
-import android.content.pm.PackageManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,11 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
-import com.mapbox.geojson.Point
 import com.mapbox.search.autocomplete.PlaceAutocomplete
 import com.trio.stride.R
 import com.trio.stride.ui.theme.StrideColor
@@ -87,7 +83,7 @@ fun SearchMapScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(StrideTheme.colorScheme.surfaceContainerLowest)
+                .background(StrideTheme.colorScheme.surface)
                 .padding(top = padding.calculateTopPadding())
                 .padding(bottom = padding.calculateBottomPadding())
         ) {
@@ -132,16 +128,17 @@ fun SearchMapScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 item {
-                    Row(modifier = Modifier
-                        .clickable {
-                            LocationUtils.getCurrentLocation(
-                                fusedLocationClient,
-                                context
-                            ) { point ->
-                                viewModel.searchCurrentLocation(point)
+                    Row(
+                        modifier = Modifier
+                            .clickable {
+                                LocationUtils.getCurrentLocation(
+                                    fusedLocationClient,
+                                    context
+                                ) { point ->
+                                    viewModel.searchCurrentLocation(point)
+                                }
                             }
-                        }
-                        .padding(vertical = 12.dp, horizontal = 24.dp),
+                            .padding(vertical = 12.dp, horizontal = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(
                             modifier = Modifier.size(28.dp),
@@ -157,11 +154,12 @@ fun SearchMapScreen(
                     }
                 }
                 itemsIndexed(viewModel.suggestions) { index, suggestion ->
-                    Column(modifier = Modifier
-                        .clickable {
-                            viewModel.selectSuggestion(suggestion)
-                        }
-                        .padding(vertical = 12.dp, horizontal = 24.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .clickable {
+                                viewModel.selectSuggestion(suggestion)
+                            }
+                            .padding(vertical = 12.dp, horizontal = 24.dp)) {
                         Text(
                             text = suggestion.name,
                             style = StrideTheme.typography.bodyLarge,

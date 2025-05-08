@@ -1,7 +1,7 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.apiservice.route.RouteApi
+import com.trio.stride.data.remote.apiservice.route.RouteApi
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase

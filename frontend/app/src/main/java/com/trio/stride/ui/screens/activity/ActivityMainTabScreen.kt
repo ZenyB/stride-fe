@@ -43,7 +43,7 @@ fun ActivityMainTabScreen(
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 modifier = Modifier
-                    .background(StrideTheme.colorScheme.surfaceContainerLowest)
+                    .background(StrideTheme.colorScheme.surface)
                     .padding(top = padding.calculateTopPadding())
 
             ) {

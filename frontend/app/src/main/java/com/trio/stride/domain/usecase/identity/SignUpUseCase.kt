@@ -1,11 +1,8 @@
 package com.trio.stride.domain.usecase.identity
 
-import android.util.Log
-import com.google.gson.Gson
-import com.trio.stride.data.dto.SignUpRequest
+import com.trio.stride.data.remote.dto.SignUpRequest
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.ui.utils.parseErrorResponse
-import okhttp3.ResponseBody
 import javax.inject.Inject
 
 

@@ -146,7 +146,7 @@ fun MyCustomIndicator(
         modifier = modifier.pullToRefreshIndicator(
             state = state,
             isRefreshing = isRefreshing,
-            containerColor = StrideTheme.colorScheme.surfaceContainerLowest,
+            containerColor = StrideTheme.colorScheme.surface,
             threshold = PositionalThreshold
         ),
         contentAlignment = Alignment.Center

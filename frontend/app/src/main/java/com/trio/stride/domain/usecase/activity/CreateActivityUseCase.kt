@@ -3,7 +3,7 @@ package com.trio.stride.domain.usecase.activity
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
-import com.trio.stride.data.dto.CreateActivityRequestDTO
+import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.domain.repository.ActivityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

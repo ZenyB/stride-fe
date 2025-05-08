@@ -10,7 +10,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.trio.stride.base.BaseViewModel
-import com.trio.stride.data.dto.RecommendRouteRequest
+import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase

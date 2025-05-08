@@ -10,19 +10,29 @@ import kotlinx.coroutines.flow.flow
 import java.io.IOException
 
 class GetCategoriesUseCase(
-    val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository
 ) {
 
     operator fun invoke(
         page: Int? = null,
         limit: Int? = null,
         name: String? = null,
+        forceRefresh: Boolean = false,
     ): Flow<Resource<List<Category>>> = flow {
         emit(Resource.Loading())
 
+        val localData = categoryRepository.getLocalCategories()
+        if (localData.isNotEmpty() && !forceRefresh) {
+            emit(Resource.Success(localData))
+        }
+
         try {
-            val result = categoryRepository.getCategories(page, limit, name)
-            emit(Resource.Success(result))
+            val remoteData = categoryRepository.getCategories(page, limit, name)
+
+            categoryRepository.insertCategories(remoteData)
+
+            val updatedLocal = categoryRepository.getLocalCategories()
+            emit(Resource.Success(updatedLocal))
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))
         } catch (e: Exception) {

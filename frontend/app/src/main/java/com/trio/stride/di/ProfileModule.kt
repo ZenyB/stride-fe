@@ -1,8 +1,8 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.domain.repository.UserRepository
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import dagger.Module

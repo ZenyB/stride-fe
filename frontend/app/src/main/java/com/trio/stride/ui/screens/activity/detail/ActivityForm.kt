@@ -69,11 +69,7 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.trio.stride.R
-import com.trio.stride.data.dto.CreateActivityRequestDTO
-import com.trio.stride.data.dto.UpdateActivityRequestDto
 import com.trio.stride.data.mapper.toRpeString
-import com.trio.stride.domain.model.Activity
-import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
@@ -88,25 +84,11 @@ fun ActivityFormView(
     primaryActionLabel: String,
     dismissAction: () -> Unit,
     isSaving: Boolean,
+    mode: ActivityFormMode,
     modifier: Modifier = Modifier,
-    isCreate: Boolean = true,
-    discardActivity: (() -> Unit)? = null,
-    createActivity: ((CreateActivityRequestDTO) -> Unit)? = null,
-    updateActivity: ((UpdateActivityRequestDto) -> Unit)? = null,
-    sportFromRecord: Sport? = null,
-    activity: Activity? = null,
     viewModel: ActivityFormViewModel = hiltViewModel(),
     feelingBottomSheetState: RateFeelingBottomSheetState = hiltViewModel()
 ) {
-    require(
-        (isCreate && createActivity != null && sportFromRecord != null && discardActivity != null) ||
-                (!isCreate && updateActivity != null && activity != null)
-    ) {
-        "Invalid parameters: " +
-                if (isCreate) "createActivity and sportFromRecord must be non-null when isCreate is true"
-                else "updateActivity must be non-null when isCreate is false"
-    }
-
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val categories by viewModel.categories.collectAsState()
     val sportsByCategory by viewModel.sportsByCategory.collectAsState()
@@ -121,11 +103,16 @@ fun ActivityFormView(
     val isRpePressed = remember { mutableStateOf(false) }
     val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
     var showSportBottomSheet by remember { mutableStateOf(false) }
-    var selectedSport by remember { mutableStateOf(if (isCreate) sportFromRecord!! else activity!!.sport) }
+
+    val sport = when (mode) {
+        is ActivityFormMode.Create -> mode.sportFromRecord!!
+        is ActivityFormMode.Update -> mode.activity.sport
+    }
+    var selectedSport by remember { mutableStateOf(sport) }
     var isShowDiscardDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.initial(isCreate, activity, sportFromRecord)
+        viewModel.initial(mode)
     }
 
     if (isShowDiscardDialog) {
@@ -153,8 +140,19 @@ fun ActivityFormView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.End
                     ) {
+                        val action = {
+                            when (mode) {
+                                is ActivityFormMode.Create -> {
+                                    mode.onDiscard()
+                                }
+
+                                is ActivityFormMode.Update -> {
+                                    mode.onDiscard()
+                                }
+                            }
+                        }
                         TextButton(
-                            onClick = { discardActivity?.let { it() } }
+                            onClick = action
                         ) {
                             Text("Discard", style = StrideTheme.typography.titleMedium)
                         }
@@ -190,10 +188,15 @@ fun ActivityFormView(
                     TextButton(
                         onClick = {
                             viewModel.uploadImages(previewImage, context, onFinish = {
-                                if (isCreate)
-                                    createActivity?.invoke(state.createActivityDto)
-                                else
-                                    updateActivity?.invoke(state.updateActivityDto)
+                                when (mode) {
+                                    is ActivityFormMode.Create -> {
+                                        mode.onCreate(state.createActivityDto)
+                                    }
+
+                                    is ActivityFormMode.Update -> {
+                                        mode.onUpdate(state.updateActivityDto)
+                                    }
+                                }
                             })
                         },
                         enabled = !isSaving
@@ -204,6 +207,22 @@ fun ActivityFormView(
             )
         },
         bottomBar = {
+            val buttonText = when (mode) {
+                is ActivityFormMode.Create -> "Discard Activity"
+                is ActivityFormMode.Update -> "Discard Unsaved Changed"
+            }
+            val action: () -> Unit = {
+                when (mode) {
+                    is ActivityFormMode.Create -> {
+                        isShowDiscardDialog = true
+                    }
+
+                    is ActivityFormMode.Update -> {
+                        mode.onDiscard()
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -215,10 +234,10 @@ fun ActivityFormView(
                         .padding(16.dp)
                         .fillMaxWidth(),
                     border = BorderStroke(1.dp, StrideTheme.colorScheme.error),
-                    onClick = { isShowDiscardDialog = true },
+                    onClick = action,
                 ) {
                     Text(
-                        "Discard Activity",
+                        buttonText,
                         style = StrideTheme.typography.titleMedium.copy(color = StrideTheme.colorScheme.error)
                     )
                 }
@@ -233,7 +252,10 @@ fun ActivityFormView(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 OutlinedTextField(
-                    value = if (isCreate) state.createActivityDto.name else state.updateActivityDto.name,
+                    value = when (mode) {
+                        is ActivityFormMode.Create -> state.createActivityDto.name
+                        is ActivityFormMode.Update -> state.updateActivityDto.name
+                    },
                     singleLine = true,
                     onValueChange = { viewModel.updateName(it) },
                     placeholder = {
@@ -266,7 +288,7 @@ fun ActivityFormView(
                     SportBottomSheetWithCategory(
                         categories = categories,
                         sportsByCategory = sportsByCategory,
-                        selectedSport = if (isCreate) sportFromRecord!! else activity!!.sport,
+                        selectedSport = selectedSport,
                         visible = showSportBottomSheet,
                         onItemClick = { sport -> selectedSport = sport },
                         dismissAction = { showSportBottomSheet = false }
@@ -292,31 +314,33 @@ fun ActivityFormView(
                                     .width(halfWidth),
                                 Alignment.Center
                             ) {
-                                if (isCreate)
-                                    Image(
-                                        modifier = Modifier.fillMaxSize(),
-                                        painter = rememberAsyncImagePainter(R.drawable.map_sample_with_noti),
-                                        contentDescription = "Sample map"
-                                    )
-                                else {
-                                    AsyncImage(
-                                        modifier = Modifier.fillMaxSize(),
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(activity!!.mapImage)
-                                            .error(R.drawable.image_icon)
-                                            .fallback(R.drawable.image_icon)
-                                            .placeholder(R.drawable.image_icon)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = "Sample map"
-                                    )
+                                when (mode) {
+                                    is ActivityFormMode.Create ->
+                                        Image(
+                                            modifier = Modifier.fillMaxSize(),
+                                            painter = rememberAsyncImagePainter(R.drawable.map_sample_with_noti),
+                                            contentDescription = "Sample map"
+                                        )
+
+                                    is ActivityFormMode.Update ->
+                                        AsyncImage(
+                                            modifier = Modifier.fillMaxSize(),
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(mode.activity.mapImage)
+                                                .error(R.drawable.image_icon)
+                                                .fallback(R.drawable.image_icon)
+                                                .placeholder(R.drawable.image_icon)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "Sample map"
+                                        )
                                 }
                             }
                         }
                     }
 
-                    if (!isCreate) {
-                        items(activity!!.images) { image ->
+                    if (mode is ActivityFormMode.Update) {
+                        items(mode.activity.images) { image ->
                             Image(
                                 painter = rememberAsyncImagePainter(
                                     model = ImageRequest.Builder(LocalContext.current)
@@ -341,7 +365,7 @@ fun ActivityFormView(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = ripple()
                                     ) {
-                                        val newImages = activity.images.toMutableList()
+                                        val newImages = mode.activity.images.toMutableList()
                                         newImages.remove(image)
                                         viewModel.updateActivityImage(newImages)
                                     },
@@ -388,16 +412,20 @@ fun ActivityFormView(
                                 .height(160.dp)
                                 .width(halfWidth - 24.dp)
                         ) { uri ->
-                            if (isCreate)
-                                previewImage.add(uri)
-                            else
-                                viewModel.updateActivityImage(activity!!.images)
+                            when (mode) {
+                                is ActivityFormMode.Create -> previewImage.add(uri)
+
+                                is ActivityFormMode.Update -> viewModel.updateActivityImage(mode.activity.images)
+                            }
                         }
                     }
                 }
 
                 RateFeelingBottomSheet(
-                    value = if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe,
+                    value = when (mode) {
+                        is ActivityFormMode.Create -> state.createActivityDto.rpe
+                        is ActivityFormMode.Update -> state.updateActivityDto.rpe
+                    },
                     onValueChange = { viewModel.updateFeelingRate(it) }
                 )
 
@@ -435,7 +463,10 @@ fun ActivityFormView(
                             )
                             Spacer(Modifier.width(8.dp))
                             val rpe =
-                                if (isCreate) state.createActivityDto.rpe else state.updateActivityDto.rpe
+                                when (mode) {
+                                    is ActivityFormMode.Create -> state.createActivityDto.rpe
+                                    is ActivityFormMode.Update -> state.updateActivityDto.rpe
+                                }
                             Text(rpe.toRpeString(), style = StrideTheme.typography.labelLarge)
                         } else {
                             Text(
@@ -459,7 +490,10 @@ fun ActivityFormView(
 
                 //Description
                 OutlinedTextField(
-                    value = if (isCreate) state.createActivityDto.description else state.updateActivityDto.description,
+                    value = when (mode) {
+                        is ActivityFormMode.Create -> state.createActivityDto.description
+                        is ActivityFormMode.Update -> state.updateActivityDto.description
+                    },
                     onValueChange = { viewModel.updateDescription(it) },
                     placeholder = {
                         Text(
@@ -523,7 +557,7 @@ private fun ImageOptionBottomView(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(StrideTheme.colorScheme.surfaceContainerLowest)
+                    .background(StrideTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 Row(

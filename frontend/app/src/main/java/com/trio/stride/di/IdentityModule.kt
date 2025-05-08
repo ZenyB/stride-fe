@@ -1,9 +1,9 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
-import com.trio.stride.data.apiservice.auth.IdentityApi
-import com.trio.stride.data.apiservice.user.UserApi
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.remote.apiservice.auth.IdentityApi
+import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.domain.usecase.auth.LoginUseCase

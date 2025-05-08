@@ -3,10 +3,12 @@ package com.trio.stride.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,86 +31,27 @@ import com.trio.stride.ui.theme.StrideTheme
 fun CustomCenterTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = StrideTheme.colorScheme.background,
-    contentColor: Color = StrideTheme.colorScheme.onBackground,
+    backgroundColor: Color = StrideTheme.colorScheme.surface,
+    contentColor: Color = StrideTheme.colorScheme.onSurface,
     height: Dp = 52.dp,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    Box(
-        modifier = modifier
+    Column(
+        modifier = Modifier
             .fillMaxWidth()
-            .height(height)
-            .background(backgroundColor),
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = title,
-                style = StrideTheme.typography.bodyLarge,
-                color = contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            navigationIcon()
-
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                content = actions
-            )
-        }
-    }
-}
-
-@Composable
-fun CustomLeftTopAppBar(
-    title: String,
-    modifier: Modifier = Modifier,
-    titleModifier: Modifier = Modifier,
-    backgroundColor: Color = StrideTheme.colorScheme.background,
-    contentColor: Color = StrideTheme.colorScheme.onBackground,
-    height: Dp = 52.dp,
-    navigationIcon: @Composable () -> Unit = {},
-    actions: @Composable RowScope.() -> Unit = {}
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = height)
             .background(backgroundColor)
-            .windowInsetsPadding(WindowInsets.statusBars),
     ) {
-        Row(
-            modifier = Modifier
+        Box(Modifier.height(WindowInsets.statusBars.asPaddingValues().calculateBottomPadding()))
+        Box(
+            modifier = modifier
                 .fillMaxWidth()
-                .heightIn(min = height)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+                .height(height)
+                .background(backgroundColor),
         ) {
-            Row(
-                modifier = Modifier,
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                navigationIcon()
-            }
-            Spacer(Modifier.width(8.dp))
             Box(
-                modifier = titleModifier.weight(1f),
-                contentAlignment = Alignment.CenterStart
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = title,
@@ -120,11 +63,83 @@ fun CustomLeftTopAppBar(
             }
 
             Row(
-                modifier = Modifier,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-                content = actions
-            )
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                navigationIcon()
+
+                Row(
+                    modifier = Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = actions
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomLeftTopAppBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
+    backgroundColor: Color = StrideTheme.colorScheme.surface,
+    contentColor: Color = StrideTheme.colorScheme.onSurface,
+    height: Dp = 52.dp,
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(backgroundColor)
+    ) {
+        Box(Modifier.height(WindowInsets.statusBars.asPaddingValues().calculateBottomPadding()))
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .heightIn(min = height)
+                .windowInsetsPadding(WindowInsets.statusBars),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = height)
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Row(
+                    modifier = Modifier,
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    navigationIcon()
+                }
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = titleModifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = title,
+                        style = StrideTheme.typography.bodyLarge,
+                        color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Row(
+                    modifier = Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End,
+                    content = actions
+                )
+            }
         }
     }
 }

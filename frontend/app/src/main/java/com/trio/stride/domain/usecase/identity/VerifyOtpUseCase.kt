@@ -1,6 +1,5 @@
 package com.trio.stride.domain.usecase.identity
 
-import com.trio.stride.data.dto.SignUpRequest
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.ui.utils.parseErrorResponse
 import javax.inject.Inject
