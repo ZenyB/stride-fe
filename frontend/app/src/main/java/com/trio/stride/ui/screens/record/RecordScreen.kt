@@ -11,8 +11,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +34,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -291,19 +288,19 @@ fun RecordScreen(
                             )
                         }
 
-                        Icon(
+                        IconButton(
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
-                                .size(40.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(),
-                                ) {
-                                    viewModel.handleShowSensorView()
-                                },
-                            painter = painterResource(R.drawable.heart_pulse),
-                            contentDescription = "Show sensor"
-                        )
+                                .size(40.dp),
+                            onClick = { viewModel.handleShowSensorView() }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.heart_pulse),
+                                contentDescription = "Show sensor",
+                                modifier = Modifier.size(32.dp),
+                                tint = StrideTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
 
@@ -450,6 +447,9 @@ fun RecordScreen(
                                         .align(Alignment.CenterEnd)
                                         .padding(end = 16.dp)
                                         .size(44.dp)
+                                        .advancedShadow(
+                                            cornersRadius = 1000.dp
+                                        )
                                         .background(
                                             showMetricButtonContainerColor,
                                             CircleShape

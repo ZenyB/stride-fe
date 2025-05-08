@@ -46,7 +46,7 @@ fun ChooseSportIconButton(
         modifier = modifier,
         colors = IconButtonDefaults.iconButtonColors().copy(
             containerColor = StrideTheme.colors.transparent,
-            contentColor = StrideTheme.colorScheme.primary
+            contentColor = StrideTheme.colorScheme.onSurface
         )
     ) {
         Icon(
@@ -61,7 +61,7 @@ fun ChooseSportIconButton(
             ),
             contentDescription = "Sport Icon",
             modifier = iconModifier.size(32.dp),
-            tint = StrideTheme.colorScheme.primary
+            tint = StrideTheme.colorScheme.onSurface
         )
     }
 }

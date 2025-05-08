@@ -49,7 +49,7 @@ fun RecordButton(
             )
             .clip(CircleShape)
             .background(colors.containerColor, CircleShape)
-            .size(95.dp)
+            .size(85.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple(bounded = true)
