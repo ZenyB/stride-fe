@@ -258,7 +258,7 @@ fun RecordScreen(
             ) {
                 CustomCenterTopAppBar(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
-                    title = "Run",
+                    title = currentSport?.name ?: "",
                     navigationIcon = {
                         IconButton(onClick = { back() }) {
                             Icon(
@@ -313,11 +313,11 @@ fun RecordScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(StrideTheme.colorScheme.background),
+                    .background(StrideTheme.colorScheme.surface),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (recordStatus == RecordViewModel.RecordStatus.NONE || recordStatus == RecordViewModel.RecordStatus.STOP) {
+                if ((recordStatus == RecordViewModel.RecordStatus.NONE || recordStatus == RecordViewModel.RecordStatus.STOP) && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
@@ -422,7 +422,7 @@ fun RecordScreen(
                                             .padding(vertical = 8.dp)
                                             .clip(CircleShape)
                                             .background(
-                                                StrideTheme.colorScheme.surface,
+                                                StrideTheme.colorScheme.background,
                                                 CircleShape
                                             )
                                             .size(95.dp),
@@ -462,7 +462,7 @@ fun RecordScreen(
                                         screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                     val showMetricButtonContainerColor =
                                         if (isVisibleMetric)
-                                            StrideTheme.colorScheme.surface
+                                            StrideTheme.colorScheme.background
                                         else
                                             StrideTheme.colorScheme.secondary
                                     val showMetricButtonContentColor =
@@ -525,7 +525,7 @@ fun RecordScreen(
                                     screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                 val showMetricButtonContainerColor =
                                     if (isVisibleMetric)
-                                        StrideTheme.colorScheme.surface
+                                        StrideTheme.colorScheme.background
                                     else
                                         StrideTheme.colorScheme.secondary
                                 val showMetricButtonContentColor =
@@ -583,7 +583,8 @@ fun RecordScreen(
                 MapboxMap(
                     Modifier
                         .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding()),
+                        .padding(top = padding.calculateTopPadding())
+                        .padding(bottom = padding.calculateBottomPadding()),
                     mapViewportState = mapViewportState,
                     style = { MapStyle(style = mapStyle) },
                 ) {
@@ -633,7 +634,7 @@ fun RecordScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(StrideTheme.colorScheme.background)
+                        .background(StrideTheme.colorScheme.surface)
                         .padding(
                             top = padding.calculateTopPadding(),
                             bottom = padding.calculateBottomPadding()
