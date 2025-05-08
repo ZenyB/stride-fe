@@ -63,6 +63,7 @@ import com.google.gson.JsonObject
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.LayerPosition
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -72,7 +73,6 @@ import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.PuckBearing
-import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.AnnotationConfig
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
@@ -81,6 +81,7 @@ import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManag
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
+import com.mapbox.maps.util.isEmpty
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.trio.stride.R
@@ -93,7 +94,9 @@ import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
 import com.trio.stride.ui.components.map.routesheet.RouteItemDetail
 import com.trio.stride.ui.components.map.routesheet.RouteList
 import com.trio.stride.ui.components.map.routesheet.RoutePager
+import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
+import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearchViewModel
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.LocationUtils
@@ -112,11 +115,17 @@ const val ROAD_LABEL = "road-label"
 fun ViewMapScreen(
     navController: NavController,
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
+    searchSportViewModel: ChooseSportInSearchViewModel = hiltViewModel(),
     viewModel: ViewMapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val mapStyle by mapStyleViewModel.mapStyle.collectAsStateWithLifecycle()
     val mapView by viewModel.mapView.collectAsStateWithLifecycle()
+
+    val selectedSport by searchSportViewModel.selectedSport.collectAsStateWithLifecycle()
+    val sportsList by searchSportViewModel.sportsList.collectAsStateWithLifecycle()
+    var showSportSheet by remember { mutableStateOf(false) }
+
 
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     val selectedPoint = navController
@@ -124,6 +133,7 @@ fun ViewMapScreen(
         ?.savedStateHandle
         ?.getLiveData<Point>("selected_point")
         ?.observeAsState()
+    var currentLocation: Point = Point.fromLngLat(106.80259579, 10.87007182)
 
     val routeItems by viewModel.routeItems.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -162,7 +172,7 @@ fun ViewMapScreen(
     val peekHeight = if (uiState is ViewMapState.ViewRouteDetail) {
         400.dp
     } else {
-        180.dp
+        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 72.dp + 88.dp
     }
     val animatedPeekHeight by animateDpAsState(
         targetValue = peekHeight,
@@ -215,10 +225,26 @@ fun ViewMapScreen(
         viewModel.setDrawnRoute(id.toInt(), polyline)
         viewModel.addRoute(id, points)
 
+        val searchPoint = selectedPoint?.value ?: currentLocation
+        val listPoints = points.toMutableList()
+        listPoints.add(searchPoint)
+        val options =
+            CameraOptions.Builder().center(searchPoint).build()
+        mapView?.mapboxMap?.cameraForCoordinates(
+            listPoints,
+            options, EdgeInsets(500.0, 300.0, 700.0, 300.0), ZOOM, null
+        ) { result ->
+            if (result.isEmpty) {
+                //TODO: error
+            } else {
+                mapViewportState.flyTo(result)
+            }
+        }
         Log.d("map route", "map route $id")
     }
 
     fun clearRoute() {
+        Log.d("map route", "clearing routes")
         touchManager?.deleteAll()
         polylineAnnotationManager?.deleteAll()
         selectedRouteManager?.deleteAll()
@@ -363,7 +389,7 @@ fun ViewMapScreen(
             }
         )
         if (isMapAvailable) {
-            LaunchedEffect(Unit) {
+            LaunchedEffect(Unit, selectedSport) {
                 if (selectedPoint?.value == null) {
                     mapViewportState.transitionToFollowPuckState(
                         followOptions,
@@ -373,10 +399,17 @@ fun ViewMapScreen(
                             }
                         })
                     LocationUtils.getCurrentLocation(fusedLocationClient, context) { point ->
-                        viewModel.getRecommendRoute(point)
+                        selectedSport?.let {
+                            clearRoute()
+                            viewModel.getRecommendRoute(point, it)
+                        }
+                        currentLocation = point
                     }
                 } else {
-                    viewModel.getRecommendRoute(selectedPoint.value)
+                    selectedSport?.let {
+                        clearRoute()
+                        viewModel.getRecommendRoute(selectedPoint.value, it)
+                    }
                 }
             }
             MapboxMap(
@@ -449,18 +482,10 @@ fun ViewMapScreen(
                         puckBearing = PuckBearing.HEADING
                         enabled = true
                     }
-                    if (selectedPoint != null) {
-                        val cameraOptions =
-                            CameraOptions.Builder().center(selectedPoint.value).build()
-
-                        mapView.mapboxMap.flyTo(cameraOptions)
-                    }
-
                 }
 
                 MapEffect(routeItems) {
                     var currentIndex = 0
-                    clearRoute()
                     routeItems.forEachIndexed { _, item ->
                         val coords =
                             LineString.fromPolyline(item.geometry ?: "", 5).coordinates()
@@ -492,13 +517,15 @@ fun ViewMapScreen(
 
         SearchFieldWithButton(onSearchClick = {
             navController.navigate(Screen.BottomNavScreen.Search.route)
-        }){
-            ChooseSportInSearch(
-                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
-                onClick = {
-
-                }
-            )
+        }) {
+            selectedSport?.let {
+                ChooseSportInSearch(
+                    it.image,
+                    onClick = {
+                        showSportSheet = true
+                    }
+                )
+            }
         }
 
         Box(
@@ -561,7 +588,18 @@ fun ViewMapScreen(
             )
         }
 
-        if (isMapAvailable) {
+        SportMapBottomSheet(
+            sports = sportsList,
+            selectedSport = selectedSport,
+            onItemClick = {
+                searchSportViewModel.selectSport(it)
+                showSportSheet = false
+            },
+            dismissAction = { showSportSheet = false },
+            visible = showSportSheet
+        )
+
+        if (!isMapAvailable) {
             MapFallbackScreen(
                 onRetry = { permissionRequestCount += 1 },
                 goToSetting = {

@@ -12,6 +12,7 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
+import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -63,16 +64,17 @@ class ViewMapViewModel @Inject constructor(
         _allRoutes[key] = points
     }
 
-    fun getRecommendRoute(selectedPoint: Point?) {
+    fun getRecommendRoute(selectedPoint: Point?, selectedSport: Sport) {
         Log.d("okhttp", "Getting routes")
         setState { ViewMapState.Loading }
 
         viewModelScope.launch {
+            _routeItems.value = emptyList()
             val result =
                 getRecommendedRouteUseCase(
                     request =
                     RecommendRouteRequest(
-                        sportId = "c731a0db-d956-483e-9b9b-252662d66209",
+                        sportId = selectedSport.id,
                         latitude = selectedPoint?.latitude() ?: 10.873953237840828,
                         longitude = selectedPoint?.longitude() ?: 106.74647540531987,
                         limit = 5,
