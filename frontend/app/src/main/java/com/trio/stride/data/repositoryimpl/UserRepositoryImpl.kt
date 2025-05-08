@@ -1,6 +1,6 @@
 package com.trio.stride.data.repositoryimpl
 
-import com.trio.stride.data.apiservice.user.UserApi
+import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.di.Authorized
 import com.trio.stride.domain.model.EquipmentsWeight
 import com.trio.stride.domain.model.HeartRateZones

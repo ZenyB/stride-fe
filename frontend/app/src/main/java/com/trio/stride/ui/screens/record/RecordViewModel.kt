@@ -17,8 +17,8 @@ import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
 import com.trio.stride.data.ble.HeartRateReceiveManager
 import com.trio.stride.data.datastoremanager.SportManager
-import com.trio.stride.data.dto.Coordinate
-import com.trio.stride.data.dto.CreateActivityRequestDTO
+import com.trio.stride.data.remote.dto.Coordinate
+import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.repositoryimpl.GpsRepository
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService

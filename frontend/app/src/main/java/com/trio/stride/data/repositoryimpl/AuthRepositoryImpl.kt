@@ -1,10 +1,10 @@
 package com.trio.stride.data.repositoryimpl
 
-import com.trio.stride.data.apiservice.user.UserApi
-import com.trio.stride.data.dto.LoginGoogleRequestDto
-import com.trio.stride.data.dto.LoginRequestDto
-import com.trio.stride.data.dto.LogoutRequestDTO
 import com.trio.stride.data.mapper.toDomain
+import com.trio.stride.data.remote.apiservice.user.UserApi
+import com.trio.stride.data.remote.dto.LoginGoogleRequestDto
+import com.trio.stride.data.remote.dto.LoginRequestDto
+import com.trio.stride.data.remote.dto.LogoutRequestDTO
 import com.trio.stride.di.Unauthorized
 import com.trio.stride.domain.model.AuthInfo
 import com.trio.stride.domain.repository.AuthRepository

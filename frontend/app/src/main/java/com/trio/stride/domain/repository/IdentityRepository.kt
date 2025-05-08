@@ -1,10 +1,10 @@
 package com.trio.stride.domain.repository
 
-import com.trio.stride.data.dto.ResetPasswordVerifyResponse
-import com.trio.stride.data.dto.SignUpRequest
-import com.trio.stride.data.dto.SignUpResponse
-import com.trio.stride.data.dto.SuccessResponse
-import com.trio.stride.data.dto.VerifyOtpResponse
+import com.trio.stride.data.remote.dto.ResetPasswordVerifyResponse
+import com.trio.stride.data.remote.dto.SignUpRequest
+import com.trio.stride.data.remote.dto.SignUpResponse
+import com.trio.stride.data.remote.dto.SuccessResponse
+import com.trio.stride.data.remote.dto.VerifyOtpResponse
 import retrofit2.Response
 
 interface IdentityRepository {

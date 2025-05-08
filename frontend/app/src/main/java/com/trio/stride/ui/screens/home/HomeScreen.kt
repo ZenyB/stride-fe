@@ -55,11 +55,11 @@ fun HomeScreen(
     val categories by viewModel.categories.collectAsState()
     val sportsWithMap by viewModel.sportsWithMap.collectAsState()
     val sportsByCategory by viewModel.sportsByCategory.collectAsState()
+    val selectedSport by viewModel.currentSport.collectAsState()
+    val selectedSport2 by viewModel.routeFilterSport.collectAsState()
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var showBottomSheet2 by remember { mutableStateOf(false) }
-    var selectedSport by remember { mutableStateOf<Sport?>(null) }
-    var selectedSport2 by remember { mutableStateOf<Sport?>(null) }
 
     if (loggingOut) {
         Loading()
@@ -101,13 +101,13 @@ fun HomeScreen(
                 sportsByCategory = sportsByCategory,
                 selectedSport = selectedSport,
                 visible = showBottomSheet,
-                onItemClick = { sport -> selectedSport = sport },
+                onItemClick = { sport -> viewModel.updateCurrentSport(sport) },
                 dismissAction = { showBottomSheet = false }
             )
             SportMapBottomSheet(
                 sports = sportsWithMap,
                 selectedSport = selectedSport2,
-                onItemClick = { selectedSport2 = it },
+                onItemClick = { viewModel.updateRouteFilterSport(it) },
                 dismissAction = { showBottomSheet2 = false },
                 visible = showBottomSheet2
             )
@@ -145,6 +145,9 @@ class HomeScreenViewModel @Inject constructor(
     private val _currentSport = sportManager.currentSport
     val currentSport: StateFlow<Sport?> = _currentSport
 
+    private val _routeFilterSport = sportManager.routeFilterSport
+    val routeFilterSport: StateFlow<Sport?> = _routeFilterSport
+
     val errorMessage = mutableStateOf("")
 
     init {
@@ -153,6 +156,10 @@ class HomeScreenViewModel @Inject constructor(
 
     fun updateCurrentSport(sport: Sport) {
         sportManager.updateCurrentSport(sport)
+    }
+
+    fun updateRouteFilterSport(sport: Sport) {
+        sportManager.updateRouteFilterSport(sport)
     }
 
     fun getUser() {

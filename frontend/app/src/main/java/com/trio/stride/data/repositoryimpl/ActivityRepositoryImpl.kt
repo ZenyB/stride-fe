@@ -1,10 +1,10 @@
 package com.trio.stride.data.repositoryimpl
 
-import com.trio.stride.data.apiservice.activity.ActivityApi
-import com.trio.stride.data.dto.ActivityListDto
-import com.trio.stride.data.dto.CreateActivityRequestDTO
-import com.trio.stride.data.dto.UpdateActivityRequestDto
-import com.trio.stride.data.dto.SuccessResponse
+import com.trio.stride.data.remote.apiservice.activity.ActivityApi
+import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
+import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
+import com.trio.stride.data.remote.dto.ActivityListDto
+import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.domain.repository.ActivityRepository
 import retrofit2.Response

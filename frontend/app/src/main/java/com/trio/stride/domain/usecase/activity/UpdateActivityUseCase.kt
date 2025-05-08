@@ -3,7 +3,7 @@ package com.trio.stride.domain.usecase.activity
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
-import com.trio.stride.data.dto.UpdateActivityRequestDto
+import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.repository.ActivityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -16,7 +16,7 @@ class UpdateActivityUseCase @Inject constructor(
     operator fun invoke(id: String, requestDto: UpdateActivityRequestDto): Flow<Resource<Boolean>> =
         flow {
             emit(Resource.Loading())
-            
+
             try {
                 val result = activityRepository.updateActivity(requestDto, id)
                 emit(Resource.Success(result))

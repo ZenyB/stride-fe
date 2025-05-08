@@ -1,7 +1,7 @@
 package com.trio.stride.ui.screens.activity.detail
 
-import com.trio.stride.data.dto.CreateActivityRequestDTO
-import com.trio.stride.data.dto.UpdateActivityRequestDto
+import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
+import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.Activity
 import com.trio.stride.domain.model.Sport
 

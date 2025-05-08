@@ -1,7 +1,7 @@
 package com.trio.stride.data.repositoryimpl
 
-import com.trio.stride.data.apiservice.route.RouteApi
-import com.trio.stride.data.dto.RecommendRouteRequest
+import com.trio.stride.data.remote.apiservice.route.RouteApi
+import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.repository.RouteRepository
 import retrofit2.Response

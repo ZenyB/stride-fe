@@ -15,7 +15,7 @@ import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.data.ble.ConnectionState
-import com.trio.stride.data.dto.Coordinate
+import com.trio.stride.data.remote.dto.Coordinate
 import com.trio.stride.ui.screens.record.RecordViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

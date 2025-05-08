@@ -1,15 +1,15 @@
 package com.trio.stride.data.repositoryimpl
 
-import com.trio.stride.data.apiservice.auth.IdentityApi
-import com.trio.stride.data.dto.ChangePasswordRequest
-import com.trio.stride.data.dto.ResetPasswordVerifyRequest
-import com.trio.stride.data.dto.ResetPasswordVerifyResponse
-import com.trio.stride.data.dto.SendOTPResetPasswordRequest
-import com.trio.stride.data.dto.SignUpRequest
-import com.trio.stride.data.dto.SignUpResponse
-import com.trio.stride.data.dto.SuccessResponse
-import com.trio.stride.data.dto.VerifyOtpRequest
-import com.trio.stride.data.dto.VerifyOtpResponse
+import com.trio.stride.data.remote.apiservice.auth.IdentityApi
+import com.trio.stride.data.remote.dto.ChangePasswordRequest
+import com.trio.stride.data.remote.dto.ResetPasswordVerifyRequest
+import com.trio.stride.data.remote.dto.ResetPasswordVerifyResponse
+import com.trio.stride.data.remote.dto.SendOTPResetPasswordRequest
+import com.trio.stride.data.remote.dto.SignUpRequest
+import com.trio.stride.data.remote.dto.SignUpResponse
+import com.trio.stride.data.remote.dto.SuccessResponse
+import com.trio.stride.data.remote.dto.VerifyOtpRequest
+import com.trio.stride.data.remote.dto.VerifyOtpResponse
 import com.trio.stride.domain.repository.IdentityRepository
 import retrofit2.Response
 import javax.inject.Inject

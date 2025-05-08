@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.SportManager
-import com.trio.stride.data.dto.CreateActivityRequestDTO
-import com.trio.stride.data.dto.UpdateActivityRequestDto
+import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
+import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.Activity
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
