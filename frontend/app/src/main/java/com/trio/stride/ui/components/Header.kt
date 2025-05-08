@@ -76,6 +76,7 @@ fun CustomCenterTopAppBar(
 fun CustomLeftTopAppBar(
     title: String,
     modifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
     backgroundColor: Color = StrideTheme.colorScheme.background,
     contentColor: Color = StrideTheme.colorScheme.onBackground,
     height: Dp = 52.dp,
@@ -106,7 +107,7 @@ fun CustomLeftTopAppBar(
             }
             Spacer(Modifier.width(8.dp))
             Box(
-                modifier = Modifier.weight(1f),
+                modifier = titleModifier.weight(1f),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(

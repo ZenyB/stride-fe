@@ -12,7 +12,6 @@ data class ActivityItem(
     val mapImage: String,
     val createdAt: Long,
     val user: ActivityUser,
-    val isNeedMap: Boolean
 )
 
 data class ActivityDetailInfo(
@@ -27,7 +26,7 @@ data class ActivityDetailInfo(
     val calories: Long,
     val carbonSaved: Double,
     val rpe: Long,
-    val coordinates: List<List<Double>>,
+    val geometry: String,
     val images: List<Any?>,
     val mapImage: String,
     val elevations: List<Long>,
@@ -37,17 +36,18 @@ data class ActivityDetailInfo(
     val avgSpeed: Double,
     val maxSpeed: Double,
     val heartRates: List<Long>,
-    val heartRateZones: HeartRateZones?,
+    val heartRateZones: List<HeartRateInfo>?,
     val avgHearRate: Double,
     val maxHearRate: Long,
+    val distances: List<Double>,
     val createdAt: Long,
-    val isNeedMap: Boolean
 )
 
 data class HeartRateInfo(
-    val max: Int?,
-    val min: Int,
-    val duration: Long,
-    val title: String,
+    val zoneId: String,
+    val name: String,
+    val min: Long,
+    val max: Long,
+    val value: Long,
     val color: Color
 )

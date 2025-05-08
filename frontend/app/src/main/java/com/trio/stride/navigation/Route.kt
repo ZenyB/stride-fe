@@ -26,7 +26,6 @@ sealed class Screen(val route: String) {
 
         object Search : BottomNavScreen("search", "Search", null)
 
-
         companion object {
             val items = listOf(Home, Maps, Record, Activity, Profile)
             const val ROUTE = "main"
@@ -36,4 +35,11 @@ sealed class Screen(val route: String) {
     }
 
     object MainApp : Screen("main")
+    object ActivityDetail : Screen("activity/{id}") {
+        fun createRoute(id: String): String = "activity/$id"
+    }
+
+    object ActivityDetailNoMap : Screen("activity/nomap/{id}") {
+        fun createRoute(id: String): String = "activity/nomap/$id"
+    }
 }

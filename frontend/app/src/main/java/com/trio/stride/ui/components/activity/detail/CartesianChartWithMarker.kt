@@ -1,4 +1,4 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
 import android.text.Layout
 import androidx.compose.foundation.layout.offset

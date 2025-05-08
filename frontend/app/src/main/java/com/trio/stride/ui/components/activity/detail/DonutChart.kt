@@ -1,4 +1,4 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.trio.stride.domain.model.HeartRateInfo
+import com.trio.stride.domain.usecase.activity.redShades
 import com.trio.stride.ui.utils.formatDuration
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -29,7 +30,7 @@ private val STROKE_SIZE_SELECTED = 58.dp
 data class DonutChartDataCollection(
     var items: List<HeartRateInfo>
 ) {
-    internal var totalDuration: Long = items.sumOf { it.duration }
+    internal var totalDuration: Long = items.sumOf { it.value }
         private set
 }
 
@@ -60,12 +61,15 @@ fun DonutChart(
     chartSize: Dp = 350.dp,
     data: DonutChartDataCollection,
     gapPercentage: Float = 0.02f,
+    selectedIndex: MutableState<Int>,
+    previousSelected: MutableState<Int>,
     selectionView: @Composable (selectedItem: HeartRateInfo?) -> Unit = {},
 ) {
-    var selectedIndex by remember { mutableStateOf(0) }
     val animationTargetState = (0..data.items.size).map {
         remember { mutableStateOf(DonutChartState()) }
     }
+
+
 //    val animValues = (0..data.items.size).map {
 //        animateDpAsState(
 //            targetValue = animationTargetState[it].value.stroke,
@@ -75,6 +79,23 @@ fun DonutChart(
     val anglesList: MutableList<DrawingAngles> = remember { mutableListOf() }
     val gapAngle = data.calculateGapAngle(gapPercentage)
     var center = Offset(0f, 0f)
+
+    LaunchedEffect(selectedIndex.value) {
+        if (selectedIndex.value >= 0) {
+            animationTargetState[selectedIndex.value].value = DonutChartState(
+                DonutChartState.State.Selected
+            )
+        }
+    }
+
+    LaunchedEffect(previousSelected.value) {
+        if (previousSelected.value >= 0) {
+            animationTargetState[previousSelected.value].value = DonutChartState(
+                DonutChartState.State.Unselected
+            )
+        }
+    }
+
 
     Box(
         modifier = modifier
@@ -92,13 +113,13 @@ fun DonutChart(
                                 center = center,
                                 tapOffset = tapOffset,
                                 anglesList = anglesList,
-                                currentSelectedIndex = selectedIndex,
+                                currentSelectedIndex = selectedIndex.value,
                                 currentStrokeValues = animationTargetState.map { it.value.stroke.toPx() },
                                 onItemSelected = { index ->
-                                    selectedIndex = index
-                                    animationTargetState[index].value = DonutChartState(
-                                        DonutChartState.State.Selected
-                                    )
+                                    selectedIndex.value = index
+//                                    animationTargetState[index].value = DonutChartState(
+//                                        DonutChartState.State.Selected
+//                                    )
                                 },
                                 onItemDeselected = { index ->
                                     animationTargetState[index].value = DonutChartState(
@@ -106,7 +127,7 @@ fun DonutChart(
                                     )
                                 },
                                 onNoItemSelected = {
-                                    selectedIndex = -1
+                                    selectedIndex.value = -1
                                 }
                             )
                         }
@@ -124,7 +145,7 @@ fun DonutChart(
                     val strokeWidth = animationTargetState[ind].value.stroke.toPx()
 
                     drawArc(
-                        color = item.color,
+                        color = item.color ?: redShades[0],
                         startAngle = lastAngle,
                         sweepAngle = sweepAngle,
                         useCenter = false,
@@ -137,8 +158,8 @@ fun DonutChart(
                     )
                     lastAngle += sweepAngle + gapAngle
                 }
-                if (selectedIndex >= 0) {
-                    val selectedAngle = anglesList[selectedIndex].centerAngle
+                if (selectedIndex.value >= 0) {
+                    val selectedAngle = anglesList[selectedIndex.value].centerAngle
                     val extraOffset = 4.dp.toPx()
                     val outerRadius = size.width / 2f
                     val tooltipRadius = outerRadius + extraOffset
@@ -146,7 +167,7 @@ fun DonutChart(
                     val x = center.x + tooltipRadius * kotlin.math.cos(radians).toFloat()
                     val y = center.y + tooltipRadius * kotlin.math.sin(radians).toFloat()
 
-                    val labelText = formatDuration(data.items[selectedIndex].duration)
+                    val labelText = formatDuration(data.items[selectedIndex.value].value)
                     val paint = android.graphics.Paint().apply {
                         color = android.graphics.Color.BLACK
                         textSize = 36f
@@ -192,7 +213,7 @@ fun DonutChart(
                 }
             }
         )
-        selectionView(if (selectedIndex >= 0) data.items[selectedIndex] else null)
+        selectionView(if (selectedIndex.value >= 0) data.items[selectedIndex.value] else null)
     }
 }
 
@@ -317,7 +338,7 @@ private fun DonutChartDataCollection.findSweepAngle(
     index: Int,
     gapPercentage: Float
 ): Float {
-    val amount = items[index].duration
+    val amount = items[index].value
     val gap = this.calculateGap(gapPercentage)
     val totalWithGap = getTotalAmountWithGapIncluded(gapPercentage)
     val gapAngle = this.calculateGapAngle(gapPercentage)

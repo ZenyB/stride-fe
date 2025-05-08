@@ -7,8 +7,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
-import com.trio.stride.ui.screens.activity.ActivityScreen
+import com.trio.stride.ui.screens.activity.ActivityMainTabScreen
 import com.trio.stride.ui.screens.activity.ProfileScreen
+import com.trio.stride.ui.screens.activity.view.ActivityDetailNoMapScreen
+import com.trio.stride.ui.screens.activity.view.ActivityDetailScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
 import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
@@ -104,7 +106,7 @@ fun NavGraphBuilder.mainAppGraph(
         }
 
         composable(Screen.BottomNavScreen.Activity.route) {
-            ActivityScreen()
+            ActivityMainTabScreen(navController)
         }
 
         composable(Screen.BottomNavScreen.Profile.route) {
@@ -113,6 +115,16 @@ fun NavGraphBuilder.mainAppGraph(
 
         composable(Screen.BottomNavScreen.Record.route) {
             RecordScreen(back = { navController.popBackStack() })
+        }
+
+        composable(Screen.ActivityDetail.route) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            ActivityDetailScreen(id, navController)
+        }
+
+        composable(Screen.ActivityDetailNoMap.route) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            ActivityDetailNoMapScreen(id, navController)
         }
     }
 

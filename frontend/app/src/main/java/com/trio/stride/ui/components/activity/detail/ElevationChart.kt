@@ -1,4 +1,4 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
 import android.graphics.Typeface
 import android.text.SpannableString

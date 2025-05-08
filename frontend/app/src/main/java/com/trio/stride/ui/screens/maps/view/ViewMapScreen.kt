@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 const val ZOOM = 11.0
+const val ZOOM_MORE = 14.0
 const val INITIAL_ZOOM = 9.0
 const val ROAD_LABEL = "road-label"
 

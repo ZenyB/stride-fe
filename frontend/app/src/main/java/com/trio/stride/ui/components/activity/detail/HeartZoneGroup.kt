@@ -1,6 +1,7 @@
-package com.trio.stride.ui.components.activity
+package com.trio.stride.ui.components.activity.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,8 @@ import com.trio.stride.ui.utils.contrastingTextColor
 @Composable
 fun HeartZoneGroup(
     options: List<HeartRateInfo>,
-    selected: HeartRateInfo?,
+    selected: Int,
+    onClick: (Int) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -35,12 +37,15 @@ fun HeartZoneGroup(
         verticalAlignment = Alignment.CenterVertically
     ) {
         options.forEachIndexed { index, option ->
-            val isSelected = option.title == selected?.title
+            val isSelected = index == selected
 
             Column(
                 modifier = Modifier
                     .weight(1f, true)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .clickable {
+                        onClick(index)
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
