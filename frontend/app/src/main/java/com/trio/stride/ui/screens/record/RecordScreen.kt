@@ -30,14 +30,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,6 +69,8 @@ import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
+import com.trio.stride.ui.components.record.GPSStatusMessage
+import com.trio.stride.ui.components.record.RecordButton
 import com.trio.stride.ui.components.record.RecordValueBlock
 import com.trio.stride.ui.components.record.RecordValueBlockType
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
@@ -81,6 +81,7 @@ import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.RequestNotificationPermission
+import com.trio.stride.ui.utils.advancedShadow
 import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatSpeed
 import com.trio.stride.ui.utils.formatTimeByMillis
@@ -88,7 +89,6 @@ import com.trio.stride.ui.utils.map.GpsUtils
 import com.trio.stride.ui.utils.map.RequestLocationPermission
 import com.trio.stride.ui.utils.map.checkLocationOn
 import com.trio.stride.ui.utils.map.focusToUser
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -318,16 +318,7 @@ fun RecordScreen(
                 ) {
                     when (recordStatus) {
                         RecordViewModel.RecordStatus.NONE ->
-                            TextButton(
-                                modifier = Modifier
-                                    .padding(vertical = 8.dp)
-                                    .clip(CircleShape)
-                                    .background(StrideTheme.colorScheme.secondary, CircleShape)
-                                    .size(95.dp),
-                                colors = ButtonDefaults.textButtonColors().copy(
-                                    containerColor = StrideTheme.colorScheme.secondary,
-                                    contentColor = StrideTheme.colorScheme.onSecondary
-                                ),
+                            RecordButton(
                                 onClick = {
                                     if (mapView != null) {
                                         var userLocation: Point? = null
@@ -346,7 +337,6 @@ fun RecordScreen(
                                 }) {
                                 Text(
                                     "START",
-                                    color = StrideTheme.colorScheme.onSecondary,
                                     style = StrideTheme.typography.titleMedium
                                 )
                             }
@@ -361,15 +351,8 @@ fun RecordScreen(
                                         .padding(end = 4.dp),
                                     Alignment.CenterEnd
                                 ) {
-                                    TextButton(
-                                        modifier = Modifier
-                                            .padding(vertical = 8.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                StrideTheme.colorScheme.background,
-                                                CircleShape
-                                            )
-                                            .size(95.dp),
+                                    RecordButton(
+                                        isPrimary = false,
                                         onClick = { viewModel.resume(context) }) {
                                         Text(
                                             "RESUME",
@@ -385,15 +368,7 @@ fun RecordScreen(
                                         .padding(start = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    TextButton(
-                                        modifier = Modifier
-                                            .padding(vertical = 8.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                StrideTheme.colorScheme.secondary,
-                                                CircleShape
-                                            )
-                                            .size(95.dp),
+                                    RecordButton(
                                         onClick = { viewModel.finish(context) }) {
                                         Text(
                                             "FINISH",
@@ -418,6 +393,9 @@ fun RecordScreen(
                                     IconButton(
                                         modifier = Modifier
                                             .size(44.dp)
+                                            .advancedShadow(
+                                                cornersRadius = 1000.dp
+                                            )
                                             .background(
                                                 showMetricButtonContainerColor,
                                                 CircleShape
@@ -443,25 +421,14 @@ fun RecordScreen(
                             Box(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Button(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(vertical = 8.dp)
-                                        .background(
-                                            StrideTheme.colorScheme.secondary,
-                                            CircleShape
-                                        )
-                                        .clip(CircleShape)
-                                        .size(95.dp),
-                                    colors = ButtonDefaults.buttonColors().copy(
-                                        containerColor = StrideTheme.colorScheme.secondary
-                                    ),
+                                RecordButton(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    isPrimary = true,
                                     onClick = { viewModel.stop(context) }) {
                                     Icon(
                                         modifier = Modifier.size(33.dp),
                                         painter = painterResource(R.drawable.filled_round_square_icon),
                                         contentDescription = "Stop record",
-                                        tint = StrideTheme.colorScheme.surface
                                     )
                                 }
                                 Spacer(Modifier.width(8.dp))
@@ -720,34 +687,6 @@ fun RecordScreen(
             onMapStyleSelected = { mapStyleViewModel.selectStyle(it) },
             onDismiss = { showSheet = false }
         )
-    }
-}
-
-@Composable
-private fun GPSStatusMessage(modifier: Modifier = Modifier, gpsStatus: RecordViewModel.GPSStatus) {
-    val showMessage = remember { mutableStateOf(true) }
-
-    LaunchedEffect(gpsStatus) {
-        if (gpsStatus == RecordViewModel.GPSStatus.GPS_READY) {
-            delay(5000)
-            showMessage.value = false
-        } else {
-            showMessage.value = true
-        }
-    }
-    when (gpsStatus) {
-        RecordViewModel.GPSStatus.NO_GPS -> {
-            StatusMessage("NO GPS SIGNAL", StatusMessageType.ERROR, modifier)
-        }
-
-        RecordViewModel.GPSStatus.ACQUIRING_GPS -> {
-            StatusMessage("ACQUIRING GPS...", StatusMessageType.PROCESSING, modifier)
-        }
-
-        RecordViewModel.GPSStatus.GPS_READY -> {
-            if (showMessage.value)
-                StatusMessage("GPS SIGNAL ACQUIRED", StatusMessageType.SUCCESS, modifier)
-        }
     }
 }
 
