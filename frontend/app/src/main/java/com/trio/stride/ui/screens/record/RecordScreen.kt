@@ -3,6 +3,7 @@ package com.trio.stride.ui.screens.record
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
@@ -53,7 +54,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mapbox.geojson.Point
@@ -68,6 +68,7 @@ import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.StatusMessage
 import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
+import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.components.map.mapstyle.MapStyleViewModel
 import com.trio.stride.ui.components.record.RecordValueBlock
@@ -79,6 +80,7 @@ import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.record.heartrate.HeartRateView
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.RequestNotificationPermission
 import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatSpeed
 import com.trio.stride.ui.utils.formatTimeByMillis
@@ -160,90 +162,33 @@ fun RecordScreen(
 
     if (state.isLoading) {
         Loading()
-    } else if (state.isSavingError) {
-        Dialog(
-            onDismissRequest = { viewModel.resetSaveActivityError() }
-        ) {
-            Box(
-                modifier = Modifier.background(StrideTheme.colorScheme.surface),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Save activity error", style = StrideTheme.typography.titleLarge)
-                    Text(
-                        "There are some error, try again later.",
-                        style = StrideTheme.typography.bodyMedium
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(
-                            onClick = { viewModel.saveAgain(context) }
-                        ) {
-                            Text("Try again", style = StrideTheme.typography.titleMedium)
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        TextButton(
-                            onClick = { viewModel.resetSaveActivityError() }
-                        ) {
-                            Text("Cancel", style = StrideTheme.typography.titleMedium)
-                        }
-                    }
-                }
-            }
-        }
-    } else if (state.isNotEnoughDataToSave) {
-        Dialog(
-            onDismissRequest = { viewModel.setIsNotEnoughDataToSave(false) }
-        ) {
-            Box(
-                modifier = Modifier.background(StrideTheme.colorScheme.surface),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Not moving yet?", style = StrideTheme.typography.titleLarge)
-                    Text(
-                        "Stride need a longer activity to upload. Please continue or discard this activity.",
-                        style = StrideTheme.typography.bodyMedium
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(
-                            onClick = {
-                                viewModel.discard(context)
-                                back()
-                            }
-                        ) {
-                            Text("Discard", style = StrideTheme.typography.titleMedium)
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        TextButton(
-                            onClick = { viewModel.resume(context) }
-                        ) {
-                            Text("Resume", style = StrideTheme.typography.titleMedium)
-                        }
-                    }
-                }
-            }
-        }
     }
+
+    StrideDialog(
+        visible = state.isSavingError,
+        title = "Save activity error",
+        description = "There are some error, try again later.",
+        dismiss = { viewModel.resetSaveActivityError() },
+        dismissText = "Cancel",
+        doneText = "Try Again",
+        done = { viewModel.saveAgain(context) },
+    )
+
+    StrideDialog(
+        visible = state.isNotEnoughDataToSave,
+        title = "Not moving yet?",
+        description = "Stride need a longer activity to upload. Please continue or discard this activity.",
+        dismiss = { viewModel.setIsNotEnoughDataToSave(false) },
+        destructiveText = "Discard",
+        neutralText = "Resume",
+        neutral = {
+            viewModel.resume(context)
+        },
+        destructive = {
+            viewModel.discard(context)
+            back()
+        },
+    )
 
     Scaffold(
         topBar = {
@@ -299,9 +244,8 @@ fun RecordScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.layers_icon),
                             contentDescription = "Map option",
-                            tint = Color.Black,
-
-                            )
+                            tint = Color.Black
+                        )
                     }
                     mapView?.let { mv ->
                         FocusUserLocationButton(mapView = mv)
@@ -578,6 +522,16 @@ fun RecordScreen(
                 showMap = true
             }
         )
+
+        RequestNotificationPermission(
+            onPermissionGranted = {
+                Log.d("bluetoothScan", "notification permission granted")
+            },
+            onPermissionDenied = {
+                Log.d("bluetoothScan", "notification permission denied")
+            }
+        )
+
         Box {
             if (currentSport?.sportMapType != null) {
                 MapboxMap(

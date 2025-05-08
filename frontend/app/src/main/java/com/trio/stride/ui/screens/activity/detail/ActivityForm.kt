@@ -41,6 +41,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,7 +63,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -73,6 +73,7 @@ import com.trio.stride.data.mapper.toRpeString
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
+import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.librarypicker.ImagePickerView
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInActivity
@@ -115,60 +116,29 @@ fun ActivityFormView(
         viewModel.initial(mode)
     }
 
-    if (isShowDiscardDialog) {
-        Dialog(
-            onDismissRequest = { isShowDiscardDialog = false }
-        ) {
-            Box(
-                modifier = Modifier.background(StrideTheme.colorScheme.surface),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Discard Activity", style = StrideTheme.typography.titleLarge)
-                    Text(
-                        "Are you sure to discard unsaved activity?",
-                        style = StrideTheme.typography.bodyMedium
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        val action = {
-                            when (mode) {
-                                is ActivityFormMode.Create -> {
-                                    mode.onDiscard()
-                                }
+    StrideDialog(
+        visible = isShowDiscardDialog,
+        title = "Discard Activity",
+        subtitle = "Are you sure to discard unsaved activity?",
+        dismiss = { isShowDiscardDialog = false },
+        dismissText = "Cancel",
+        destructiveText = "Discard",
+        destructive = {
+            when (mode) {
+                is ActivityFormMode.Create -> {
+                    mode.onDiscard()
+                }
 
-                                is ActivityFormMode.Update -> {
-                                    mode.onDiscard()
-                                }
-                            }
-                        }
-                        TextButton(
-                            onClick = action
-                        ) {
-                            Text("Discard", style = StrideTheme.typography.titleMedium)
-                        }
-                        Spacer(Modifier.width(16.dp))
-                        TextButton(
-                            onClick = { isShowDiscardDialog = false }
-                        ) {
-                            Text("Cancel", style = StrideTheme.typography.titleMedium)
-                        }
-                    }
+                is ActivityFormMode.Update -> {
+                    mode.onDiscard()
                 }
             }
-        }
-    }
+        },
+    )
+
 
     Scaffold(
+        containerColor = StrideTheme.colorScheme.surface,
         topBar = {
             CustomLeftTopAppBar(
                 title = title,
@@ -275,6 +245,11 @@ fun ActivityFormView(
                         }
                     ),
                     shape = RoundedCornerShape(8.dp),
+                    colors = TextFieldDefaults.colors().copy(
+                        unfocusedIndicatorColor = StrideTheme.colors.grayBorder,
+                        unfocusedContainerColor = StrideTheme.colors.transparent,
+                        focusedContainerColor = StrideTheme.colors.transparent
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -502,6 +477,11 @@ fun ActivityFormView(
                         )
                     },
                     shape = RoundedCornerShape(8.dp),
+                    colors = TextFieldDefaults.colors().copy(
+                        unfocusedIndicatorColor = StrideTheme.colors.grayBorder,
+                        unfocusedContainerColor = StrideTheme.colors.transparent,
+                        focusedContainerColor = StrideTheme.colors.transparent
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 120.dp)

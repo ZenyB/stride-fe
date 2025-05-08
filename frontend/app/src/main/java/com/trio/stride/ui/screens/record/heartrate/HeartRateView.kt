@@ -49,7 +49,6 @@ import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.ui.components.StatusMessage
 import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.theme.StrideTheme
-import com.trio.stride.ui.utils.RequestNotificationPermission
 import com.trio.stride.ui.utils.ble.PermissionUtils
 
 @SuppressLint("MissingPermission")
@@ -138,14 +137,6 @@ fun HeartRateView(
                     .fillMaxWidth()
                     .padding(start = 16.dp),
                 textAlign = TextAlign.Start
-            )
-            RequestNotificationPermission(
-                onPermissionGranted = {
-                    Log.d("bluetoothScan", "notification permission granted")
-                },
-                onPermissionDenied = {
-                    Log.d("bluetoothScan", "notification permission denied")
-                }
             )
 
             Spacer(Modifier.height(16.dp))
