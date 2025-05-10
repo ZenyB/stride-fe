@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.advancedShadow
 
@@ -42,14 +43,14 @@ fun RecordButton(
 
     Box(
         modifier = modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp)
             .advancedShadow(
                 cornersRadius = 1000.dp,
                 shadowBlurRadius = 5.dp,
             )
             .clip(CircleShape)
             .background(colors.containerColor, CircleShape)
-            .size(85.dp)
+            .size(80.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple(bounded = true)
@@ -59,8 +60,8 @@ fun RecordButton(
         Alignment.Center,
     ) {
         CompositionLocalProvider(LocalContentColor provides colors.contentColor) {
-            ProvideTextStyle(value = StrideTheme.typography.titleMedium) {
-                Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+            ProvideTextStyle(value = StrideTheme.typography.headlineMedium.copy(fontSize = 16.sp)) {
+                Box(modifier = Modifier.padding(4.dp)) {
                     content()
                 }
             }
