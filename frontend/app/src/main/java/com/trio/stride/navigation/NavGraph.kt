@@ -17,6 +17,7 @@ import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteScreen
 import com.trio.stride.ui.screens.maps.search.SearchMapScreen
 import com.trio.stride.ui.screens.maps.view.ViewMapScreen
+import com.trio.stride.ui.screens.onboarding.OnboardingScreen
 import com.trio.stride.ui.screens.record.RecordScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
@@ -27,6 +28,18 @@ fun AppNavHost(
     startDestination: String = Screen.Auth.ROUTE,
 ) {
     NavHost(navController, startDestination = startDestination) {
+        composable(route = Screen.Onboarding.route) {
+            OnboardingScreen(navigateToHome = {
+                navController.navigate(
+                    Screen.MainApp.route
+                ) {
+                    popUpTo(Screen.MainApp.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            })
+        }
         authGraph(navController)
         mainAppGraph(navController)
     }

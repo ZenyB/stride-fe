@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.Stride" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="CustomDatePickerDialogTheme" parent="Theme.AppCompat.DayNight.Dialog">
+        <item name="colorPrimary">#FF0F87C3</item>
+        <item name="colorAccent">#FF0F87C3</item> <!-- Cho backward compatibility -->
+    </style>
+
 </resources>

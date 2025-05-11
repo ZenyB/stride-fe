@@ -15,6 +15,22 @@ data class GetUserResponse(
     val isBlock: Boolean? = null
 )
 
+data class UpdateUserRequestDto(
+    val name: String = "",
+    val ava: String? = null,
+    val dob: String = "",
+    val height: Int = 160,
+    val weight: Int = 50,
+    val male: Boolean = false,
+    val city: String = "TPHCM",
+    val maxHeartRate: Int? = null,
+    val equipmentsWeight: EquipmentsWeight = EquipmentsWeight(
+        SHOES = 0,
+        BAG = 0
+    ),
+    val heartRateZones: HeartRateZones? = null
+)
+
 data class EquipmentsWeight(
     val SHOES: Int = 0,
     val BAG: Int = 0

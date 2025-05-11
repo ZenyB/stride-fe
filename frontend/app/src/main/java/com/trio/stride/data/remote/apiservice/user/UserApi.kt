@@ -7,9 +7,11 @@ import com.trio.stride.data.remote.dto.LoginGoogleRequestDto
 import com.trio.stride.data.remote.dto.LoginRequestDto
 import com.trio.stride.data.remote.dto.LogoutRequestDTO
 import com.trio.stride.data.remote.dto.SuccessResponse
+import com.trio.stride.data.remote.dto.UpdateUserRequestDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface UserApi {
     @POST(ApiConstants.LOGIN_END_POINTS)
@@ -23,4 +25,7 @@ interface UserApi {
 
     @GET(ApiConstants.PROFILE)
     suspend fun getUser(): GetUserResponse
+
+    @PUT(ApiConstants.PROFILE)
+    suspend fun updateUser(@Body request: UpdateUserRequestDto): SuccessResponse
 }

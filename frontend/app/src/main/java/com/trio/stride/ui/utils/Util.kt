@@ -7,6 +7,7 @@ import okhttp3.ResponseBody
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -107,3 +108,8 @@ fun Color.contrastingTextColor(): Color {
     val blackContrast = calculateContrast(this, Color.Black)
     return if (whiteContrast >= blackContrast) Color.White else Color.Black
 }
+
+fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+fun Boolean.toGender(): String = if (this) "Male" else "Female"
+fun String.toBoolGender(): Boolean = this != "Female"
