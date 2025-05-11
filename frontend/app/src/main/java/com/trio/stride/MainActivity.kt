@@ -51,6 +51,10 @@ class MainActivity : ComponentActivity() {
                     MainViewModel.AuthState.UNAUTHORIZED -> {
                         startDestination = Screen.Auth.ROUTE
                     }
+
+                    MainViewModel.AuthState.AUTHORIZED_NOT_INITIALIZED -> {
+                        startDestination = Screen.Onboarding.route
+                    }
                 }
                 Scaffold(
                     bottomBar = {
@@ -64,10 +68,7 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = it,
                         )
-
                     }
-
-
                 }
             }
         }

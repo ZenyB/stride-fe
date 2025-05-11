@@ -3,6 +3,8 @@ package com.trio.stride.navigation
 import com.trio.stride.R
 
 sealed class Screen(val route: String) {
+    object Onboarding : Screen("onboarding")
+
     sealed class Auth(route: String) : Screen(route) {
         object Login : Auth("${ROUTE}/login")
         object SignUp : Auth("${ROUTE}/signup")

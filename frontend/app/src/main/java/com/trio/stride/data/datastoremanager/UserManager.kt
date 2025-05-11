@@ -10,9 +10,9 @@ import com.trio.stride.base.UnknownException
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,29 +38,15 @@ class UserManager @Inject constructor(
         }
     }
 
-    fun refreshUser(): Flow<Resource<Unit>> = flow {
-        emit(Resource.Loading())
-        try {
-            getUserUseCase.invoke().collectLatest { response ->
-                when (response) {
-                    is Resource.Success -> {
-                        saveUser(response.data)
-                        emit(Resource.Success(Unit))
-                    }
-
-                    is Resource.Error -> {
-                        emit(Resource.Error(response.error))
-                    }
-
-                    is Resource.Loading -> {
-
-                    }
-                }
+    fun refreshUser(): Flow<Resource<UserInfo>> =
+        getUserUseCase().onEach { response ->
+            if (response is Resource.Success) {
+                saveUser(response.data)
             }
-        } catch (e: Exception) {
+        }.catch { e ->
             emit(Resource.Error(UnknownException("Unexpected error: ${e.message}")))
         }
-    }
+
 
     suspend fun clearUser() {
         dataStore.edit { prefs ->
