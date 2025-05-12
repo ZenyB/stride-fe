@@ -2,11 +2,16 @@ package com.trio.stride.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.mapbox.maps.Map
 import com.trio.stride.data.datastoremanager.MapStyleManager
+import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.datastoremanager.UserManager
+import com.trio.stride.data.local.dao.CategoryDao
+import com.trio.stride.data.local.dao.CurrentSportDao
+import com.trio.stride.data.local.dao.RouteFilterSportDao
+import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,5 +45,23 @@ object ManagerModule {
         dataStore: DataStore<Preferences>,
     ): MapStyleManager {
         return MapStyleManager(dataStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSportManager(
+        getCategoriesUseCase: GetCategoriesUseCase,
+        getSportsUseCase: GetSportsUseCase,
+        currentSportDao: CurrentSportDao,
+        routeFilterSportDao: RouteFilterSportDao,
+        categoryDao: CategoryDao
+    ): SportManager {
+        return SportManager(
+            getCategoriesUseCase,
+            getSportsUseCase,
+            currentSportDao,
+            routeFilterSportDao,
+            categoryDao
+        )
     }
 }

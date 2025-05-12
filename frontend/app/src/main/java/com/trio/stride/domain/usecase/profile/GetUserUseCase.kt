@@ -2,6 +2,7 @@ package com.trio.stride.domain.usecase.profile
 
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
+import com.trio.stride.data.mapper.roomdatabase.toCurrentUserEntity
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
@@ -10,16 +11,32 @@ import java.io.IOException
 
 class GetUserUseCase(val repository: UserRepository) {
 
-    operator fun invoke(): Flow<Resource<UserInfo>> = flow {
-        emit(Resource.Loading())
+    operator fun invoke(forceRefresh: Boolean = false): Flow<Resource<UserInfo>> = flow {
+        val localData = repository.getCurrentUser()
+        if (localData != null && !forceRefresh) {
+            emit(Resource.Success(localData))
+        } else {
+            emit(Resource.Loading())
+        }
 
         try {
-            val result = repository.getUser()
-            emit(Resource.Success(result))
+            val remoteData = repository.getUser()
+            repository.saveCurrentUser(remoteData.toCurrentUserEntity())
+            emit(Resource.Success(remoteData))
         } catch (e: IOException) {
-            emit(Resource.Error(NetworkException(e.message.toString())))
+            if (localData == null) {
+                emit(Resource.Error(NetworkException(e.message ?: "IO Error")))
+            }
         } catch (e: Exception) {
-            emit(Resource.Error(com.trio.stride.base.UnknownException(e.message.toString())))
+            if (localData == null) {
+                emit(
+                    Resource.Error(
+                        com.trio.stride.base.UnknownException(
+                            e.message ?: "Unknown Error"
+                        )
+                    )
+                )
+            }
         }
     }
 }

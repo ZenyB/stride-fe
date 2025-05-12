@@ -10,7 +10,8 @@ import java.io.IOException
 import javax.inject.Inject
 
 class UpdateUserUseCase @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val syncUserUseCase: SyncUserUseCase
 ) {
 
     operator fun invoke(request: UpdateUserRequestDto): Flow<Resource<Boolean>> = flow {
@@ -18,6 +19,9 @@ class UpdateUserUseCase @Inject constructor(
 
         try {
             val result = userRepository.updateUser(request)
+
+            syncUserUseCase.invoke()
+
             emit(Resource.Success(result))
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))

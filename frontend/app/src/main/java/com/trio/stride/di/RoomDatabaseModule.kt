@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.trio.stride.data.local.StrideDatabase
 import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
+import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.local.dao.SportDao
 import dagger.Module
@@ -42,4 +43,8 @@ object RoomDatabaseModule {
     @Provides
     fun provideRouteFilterSportDao(db: StrideDatabase): RouteFilterSportDao =
         db.routeFilterSportDao()
+
+    @Provides
+    fun provideCurrentUserDao(db: StrideDatabase): CurrentUserDao =
+        db.currentUserDao()
 }

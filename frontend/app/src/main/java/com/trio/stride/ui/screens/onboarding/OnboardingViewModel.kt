@@ -1,17 +1,16 @@
 package com.trio.stride.ui.screens.onboarding
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
-import com.trio.stride.data.datastoremanager.UserManager
 import com.trio.stride.data.remote.dto.UpdateUserRequestDto
+import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.domain.usecase.profile.SyncUserUseCase
 import com.trio.stride.domain.usecase.profile.UpdateUserUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.toDateString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -19,23 +18,25 @@ import javax.inject.Inject
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val updateUserUseCase: UpdateUserUseCase,
-    private val userManager: UserManager,
+    private val getUserUseCase: GetUserUseCase,
+    private val syncUserUseCase: SyncUserUseCase
 ) : BaseViewModel<OnboardingViewModel.ScreenState>() {
     override fun createInitialState(): ScreenState = ScreenState()
 
     init {
         viewModelScope.launch {
-            userManager.getUser().first()?.let {
-                setState {
-                    currentState.copy(
-                        userInitInfo = currentState.userInitInfo.copy(
-                            name = it.name
+            getUserUseCase.invoke().collectLatest { response ->
+                if (response is Resource.Success) {
+                    setState {
+                        currentState.copy(
+                            userInitInfo = currentState.userInitInfo.copy(
+                                name = response.data.name
+                            )
                         )
-                    )
-                }
+                    }
 
-                Log.i("USER_INFO", currentState.userInitInfo.toString())
-                moveToInfo()
+                    moveToInfo()
+                }
             }
         }
     }
@@ -136,7 +137,10 @@ class OnboardingViewModel @Inject constructor(
                             )
                         }
 
-                        is Resource.Success -> setState { currentState.copy(viewState = OnboardingViewState.Success) }
+                        is Resource.Success -> {
+                            setState { currentState.copy(viewState = OnboardingViewState.Success) }
+                            syncUserUseCase.invoke()
+                        }
 
                         is Resource.Error -> setState {
                             currentState.copy(

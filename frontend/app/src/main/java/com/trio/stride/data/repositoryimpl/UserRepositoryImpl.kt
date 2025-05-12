@@ -1,5 +1,8 @@
 package com.trio.stride.data.repositoryimpl
 
+import com.trio.stride.data.local.dao.CurrentUserDao
+import com.trio.stride.data.local.entity.CurrentUserEntity
+import com.trio.stride.data.mapper.roomdatabase.toUserInfo
 import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.data.remote.dto.UpdateUserRequestDto
 import com.trio.stride.di.Authorized
@@ -10,7 +13,8 @@ import com.trio.stride.domain.repository.UserRepository
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    @Authorized val api: UserApi
+    @Authorized val api: UserApi,
+    private val userDao: CurrentUserDao,
 ) : UserRepository {
 
     override suspend fun getUser(): UserInfo {
@@ -43,5 +47,13 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun updateUser(requestDto: UpdateUserRequestDto): Boolean {
         val result = api.updateUser(requestDto)
         return result.data
+    }
+
+    override suspend fun getCurrentUser(): UserInfo? {
+        return userDao.getCurrentUser()?.toUserInfo()
+    }
+
+    override suspend fun saveCurrentUser(user: CurrentUserEntity) {
+        userDao.saveCurrentUser(user)
     }
 }

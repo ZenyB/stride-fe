@@ -24,11 +24,11 @@ import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
-import com.trio.stride.data.datastoremanager.UserManager
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
+import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
 import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
@@ -36,7 +36,6 @@ import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportIconButt
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -120,7 +119,7 @@ fun HomeScreen(
 class HomeScreenViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val logoutUseCase: LogoutUseCase,
-    private val userManager: UserManager,
+    private val getUserUseCase: GetUserUseCase,
     private val sportManager: SportManager
 ) : ViewModel() {
 
@@ -164,9 +163,10 @@ class HomeScreenViewModel @Inject constructor(
 
     fun getUser() {
         viewModelScope.launch {
-            async { userManager.refreshUser() }.await()
-            userManager.getUser().collectLatest { user ->
-                user?.let { _userInfo.value = user }
+            getUserUseCase.invoke().collectLatest { response ->
+                if (response is Resource.Success) {
+                    _userInfo.value = response.data
+                }
             }
         }
     }
