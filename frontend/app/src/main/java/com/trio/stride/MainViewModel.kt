@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.TokenManager
-import com.trio.stride.data.datastoremanager.UserManager
+import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val tokenManager: TokenManager,
-    private val userManager: UserManager,
+    private val getUserUseCase: GetUserUseCase,
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow(AuthState.UNKNOWN)
@@ -33,16 +33,11 @@ class MainViewModel @Inject constructor(
 
     private fun getUser() {
         viewModelScope.launch {
-            userManager.refreshUser().collectLatest { response ->
-                when (response) {
-                    is Resource.Success -> {
-                        _authState.value =
-                            if (response.data.dob.isBlank()) AuthState.AUTHORIZED_NOT_INITIALIZED else AuthState.AUTHORIZED
-                    }
-
-                    else -> Unit
+            getUserUseCase.invoke().collectLatest { response ->
+                if (response is Resource.Success) {
+                    _authState.value =
+                        if (response.data.dob.isBlank()) AuthState.AUTHORIZED_NOT_INITIALIZED else AuthState.AUTHORIZED
                 }
-
             }
         }
     }

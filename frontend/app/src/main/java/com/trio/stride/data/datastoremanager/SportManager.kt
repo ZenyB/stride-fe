@@ -1,6 +1,5 @@
 package com.trio.stride.data.datastoremanager
 
-import android.util.Log
 import com.trio.stride.base.Resource
 import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
@@ -70,7 +69,6 @@ class SportManager @Inject constructor(
                         _isError.value = false
                         _errorMessage.value = null
                         _categories.value = response.data
-                        Log.i("CATEGORYYY", response.data.toString())
                     }
 
                     is Resource.Error -> handleError(response.error.message)
@@ -98,12 +96,10 @@ class SportManager @Inject constructor(
 
                     is Resource.Error -> {
                         handleError(response.error.message)
-                        Log.i("SPORTTT_ERROR", response.error.message.toString())
                     }
 
                     else -> {
                         Unit
-                        Log.i("SPORTTT_LOADING", "Loading")
                     }
                 }
             }
@@ -162,6 +158,13 @@ class SportManager @Inject constructor(
         _routeFilterSport.value = sport
         coroutineScope.launch {
             routeFilterSportDao.saveSport(sport.toEntity().toRouteFilterSportEntity())
+        }
+    }
+
+    fun clearSportUserData() {
+        coroutineScope.launch {
+            currentSportDao.deleteCurrentSport()
+            routeFilterSportDao.deleteRouteFilterSport()
         }
     }
 }

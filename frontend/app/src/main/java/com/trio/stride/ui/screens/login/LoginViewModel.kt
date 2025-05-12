@@ -1,6 +1,5 @@
 package com.trio.stride.ui.screens.login
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.IncorrectInfoException
@@ -9,12 +8,12 @@ import com.trio.stride.domain.model.AuthInfo
 import com.trio.stride.domain.model.UserData
 import com.trio.stride.domain.usecase.auth.LoginUseCase
 import com.trio.stride.domain.usecase.auth.LoginWithGoogleUseCase
-import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.domain.usecase.profile.SyncUserUseCase
 import com.trio.stride.domain.viewstate.IViewState
-import com.trio.stride.ui.screens.login.LoginViewModel.LoginState
 import com.trio.stride.ui.utils.isValidEmail
 import com.trio.stride.ui.utils.isValidPassword
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val getUseCase: GetUserUseCase,
+    private val syncUserUseCase: SyncUserUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
 ) : BaseViewModel<LoginViewModel.LoginViewState>() {
     override fun createInitialState(): LoginViewState {
@@ -131,12 +130,7 @@ class LoginViewModel @Inject constructor(
 
     fun getUser() {
         viewModelScope.launch {
-            getUseCase.invoke().collectLatest { response ->
-                when (response) {
-                    is Resource.Success -> Log.i("USER INFO", response.data.toString())
-                    else -> {}
-                }
-            }
+            async { syncUserUseCase.invoke() }.await()
         }
     }
 

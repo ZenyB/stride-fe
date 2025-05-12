@@ -2,9 +2,11 @@ package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.domain.repository.UserRepository
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.domain.usecase.profile.SyncUserUseCase
 import com.trio.stride.domain.usecase.profile.UpdateUserUseCase
 import dagger.Module
 import dagger.Provides
@@ -70,6 +72,11 @@ object ProfileModule {
 
     @Provides
     @Singleton
-    fun provideUpdateUserCase(repository: UserRepository) =
-        UpdateUserUseCase(repository)
+    fun provideUpdateUserCase(repository: UserRepository, userDao: CurrentUserDao) =
+        UpdateUserUseCase(repository, userDao)
+
+    @Provides
+    @Singleton
+    fun provideSyncUserCase(repository: UserRepository) =
+        SyncUserUseCase(repository)
 }

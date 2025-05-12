@@ -13,4 +13,7 @@ interface CurrentSportDao {
 
     @Query("SELECT * FROM current_sport LIMIT 1")
     suspend fun getCurrentSport(): CurrentSportEntity?
+
+    @Query("DELETE FROM current_sport")
+    suspend fun deleteCurrentSport()
 }
