@@ -311,9 +311,10 @@ fun RecordScreen(
                                         mapView?.location?.addOnIndicatorPositionChangedListener { point ->
                                             userLocation = point
                                         }
-                                        if (userLocation != null)
+                                        if (userLocation != null) {
+                                            focusToUser(mapView)
                                             viewModel.startRecord(userLocation!!, context)
-                                        else
+                                        } else
                                             checkLocationOn(
                                                 context,
                                                 mapView,
@@ -656,7 +657,7 @@ fun RecordScreen(
 
         ActivityFormView(
             "Save",
-            "Save",
+            "SAVE",
             mode = ActivityFormMode.Create(
                 sportFromRecord = currentSport,
                 onCreate = { viewModel.saveActivity(it, context) },

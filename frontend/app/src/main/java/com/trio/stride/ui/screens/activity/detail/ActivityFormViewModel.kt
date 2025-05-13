@@ -133,7 +133,8 @@ class ActivityFormViewModel @Inject constructor(
         setState {
             currentState.copy(
                 updateActivityDto = updateActivityDto.copy(rpe = value),
-                createActivityDto = createActivityDto.copy(rpe = value)
+                createActivityDto = createActivityDto.copy(rpe = value),
+                isRpeChanged = true,
             )
         }
     }
@@ -176,8 +177,13 @@ class ActivityFormViewModel @Inject constructor(
         }
     }
 
+    fun setIsRpeChanged(value: Boolean) {
+        setState { currentState.copy(isRpeChanged = value) }
+    }
+
     data class ViewState(
         val isLoading: Boolean = false,
+        val isRpeChanged: Boolean = false,
         val isUploadImage: Boolean = false,
         val activity: Activity = Activity(),
         val sport: Sport = Sport(),
