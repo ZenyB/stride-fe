@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -27,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.trio.stride.R
@@ -37,7 +34,7 @@ import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
 
 @Composable
-fun RouteItemDetail(item: RouteItem) {
+fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,7 +97,7 @@ fun RouteItemDetail(item: RouteItem) {
             horizontalArrangement = Arrangement.Center
         ) {
             IconButton(
-                onClick = {},
+                onClick = onSaveRoute,
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = StrideTheme.colors.gray200
                 ),
@@ -148,23 +145,5 @@ fun RouteItemDetail(item: RouteItem) {
             }
         }
 
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewDetail() {
-    IconButton(
-        onClick = {
-        },
-        modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            contentDescription = "Back",
-            modifier = Modifier.size(24.dp)
-        )
     }
 }

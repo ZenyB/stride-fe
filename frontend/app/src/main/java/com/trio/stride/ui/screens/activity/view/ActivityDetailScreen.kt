@@ -72,6 +72,8 @@ import com.trio.stride.ui.components.activity.detail.ActivityDetailView
 import com.trio.stride.ui.components.activity.detail.BottomSheetIndicator
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
+import com.trio.stride.ui.screens.maps.saveroute.SaveRouteState
+import com.trio.stride.ui.screens.maps.saveroute.SaveRouteViewModel
 import com.trio.stride.ui.screens.maps.view.INITIAL_ZOOM
 import com.trio.stride.ui.screens.maps.view.ZOOM_MORE
 import com.trio.stride.ui.theme.StrideTheme
@@ -81,10 +83,13 @@ import com.trio.stride.ui.theme.StrideTheme
 fun ActivityDetailScreen(
     id: String = "",
     navController: NavController,
-    viewModel: ActivityDetailViewModel = hiltViewModel()
+    viewModel: ActivityDetailViewModel = hiltViewModel(),
+    saveRouteViewModel: SaveRouteViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val item by viewModel.item.collectAsStateWithLifecycle()
+
+    val saveRouteState by saveRouteViewModel.uiState.collectAsStateWithLifecycle()
 
     val sheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.PartiallyExpanded,
@@ -157,36 +162,35 @@ fun ActivityDetailScreen(
         }
     }
 
-    if (uiState is ActivityDetailState.Idle) {
-        val savingState = (uiState as ActivityDetailState.Idle).savingState
-        val errorMessage =
-            if (savingState is ActivitySavingState.ErrorSaving) savingState.message
-            else ""
-
-        StrideDialog(
-            visible = savingState is ActivitySavingState.ErrorSaving,
-            title = "Error saving activity",
-            description = errorMessage,
-            dismiss = { viewModel.resetState() },
-            dismissText = "OK",
-        )
-
-        //TODO: anhthu add view saved button
-        StrideDialog(
-            visible = savingState is ActivitySavingState.Success,
-            title = "Route Saved",
-            description = "You can access your Saved Routes from Maps and your profile",
-            dismiss = { viewModel.resetState() },
-            dismissText = "OK",
-        )
-
-        if (savingState is ActivitySavingState.IsSaving) {
-            Loading()
-            Log.d("saving route", "is saving")
+    when (saveRouteState) {
+        is SaveRouteState.ErrorSaving -> {
+            StrideDialog(
+                visible = true,
+                title = "Error saving activity",
+                description = (saveRouteState as SaveRouteState.ErrorSaving).message,
+                dismiss = { saveRouteViewModel.resetState() },
+                dismissText = "OK",
+            )
         }
 
-    }
+        is SaveRouteState.Success -> {
+            StrideDialog(
+                visible = true,
+                title = "Route Saved",
+                description = "You can access your Saved Routes from Maps and your profile",
+                dismiss = { saveRouteViewModel.resetState() },
+                dismissText = "OK",
+            )
+        }
 
+        is SaveRouteState.IsSaving -> {
+            Loading()
+        }
+
+        else -> {
+
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -229,7 +233,7 @@ fun ActivityDetailScreen(
                             } else {
                                 IconButton(
                                     onClick = {
-                                        viewModel.saveRoute()
+                                        item?.let { saveRouteViewModel.saveRoute(it.routeId) }
                                     },
                                     modifier = Modifier
                                         .background(

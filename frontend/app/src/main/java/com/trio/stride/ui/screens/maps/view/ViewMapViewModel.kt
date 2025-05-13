@@ -14,6 +14,7 @@ import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.SportMapType
+import com.trio.stride.domain.usecase.activity.SaveRouteFromActivityUseCase
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewMapViewModel @Inject constructor(
     private val getRecommendedRouteUseCase: GetRecommendedRouteUseCase,
+    private val saveRouteFromActivityUseCase: SaveRouteFromActivityUseCase
 ) : BaseViewModel<ViewMapState>() {
     var currentDetailIndex by mutableIntStateOf(-1)
 
@@ -91,6 +93,7 @@ class ViewMapViewModel @Inject constructor(
                 }
         }
     }
+
 
     override fun createInitialState(): ViewMapState {
         return ViewMapState.Idle

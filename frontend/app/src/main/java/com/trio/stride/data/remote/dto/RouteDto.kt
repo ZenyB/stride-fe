@@ -14,3 +14,18 @@ data class RecommendRouteRequest(
 data class RecommendRouteResponse(
     val data: List<RouteItem>
 )
+
+data class UserRouteResponse(
+    val data: List<RouteItem>,
+    val page: PageDto
+)
+
+data class UserRouteRequest(
+    val page: Int? = null,
+    val limit: Int? = null,
+    val sportId: String? = null
+)
+
+data class SaveRouteRequest(
+    val routeName: String? = null
+)

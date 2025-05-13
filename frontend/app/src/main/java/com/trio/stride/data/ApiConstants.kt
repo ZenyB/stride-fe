@@ -15,6 +15,7 @@ object ApiConstants {
     const val RESET_PASSWORD = "users/reset-password"
     const val USERS = "users"
     const val RECOMMEND = "stride-routes/recommend"
+    const val USER_ROUTES = "stride-routes/profile"
     const val SPORT = "sports"
     const val CATEGORY = "categories"
     const val ACTIVITY = "activities"

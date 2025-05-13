@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.domain.usecase.activity.GetActivityDetailUseCase
-import com.trio.stride.domain.usecase.activity.SaveRouteFromActivityUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +15,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ActivityDetailViewModel @Inject constructor(
     private val getActivityDetailUseCase: GetActivityDetailUseCase,
-    private val saveRouteFromActivityUseCase: SaveRouteFromActivityUseCase
 ) : BaseViewModel<ActivityDetailState>() {
     private val _item = MutableStateFlow<ActivityDetailInfo?>(null)
     val item: StateFlow<ActivityDetailInfo?> = _item
@@ -30,7 +28,7 @@ class ActivityDetailViewModel @Inject constructor(
                 getActivityDetailUseCase(id)
             result
                 .onSuccess { data ->
-                    setState { ActivityDetailState.Idle() }
+                    setState { ActivityDetailState.Idle }
                     if (data != null) {
                         _item.value = data
                     }
@@ -41,47 +39,17 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
-    fun saveRoute() {
-        if (item.value != null) {
-            setState { ActivityDetailState.Idle(ActivitySavingState.IsSaving) }
-            viewModelScope.launch {
-                val result =
-                    saveRouteFromActivityUseCase(item.value!!.routeId)
-                result
-                    .onSuccess { data ->
-                        setState { ActivityDetailState.Idle(ActivitySavingState.Success) }
-                    }
-                    .onFailure {
-                        setState {
-                            ActivityDetailState.Idle(
-                                ActivitySavingState.ErrorSaving(it.message ?: "An error occurred")
-                            )
-                        }
-                    }
-            }
-        }
-
-    }
-
     override fun createInitialState(): ActivityDetailState {
-        return ActivityDetailState.Idle()
+        return ActivityDetailState.Idle
     }
 
     fun resetState() {
-        setState { ActivityDetailState.Idle() }
+        setState { ActivityDetailState.Idle }
     }
 }
 
 sealed class ActivityDetailState : IViewState {
-    data class Idle(val savingState: ActivitySavingState? = null) :
-        ActivityDetailState()
-
+    data object Idle : ActivityDetailState()
     data object Loading : ActivityDetailState()
     data class Error(val message: String) : ActivityDetailState()
-}
-
-sealed class ActivitySavingState : IViewState {
-    data object IsSaving : ActivitySavingState()
-    data class ErrorSaving(val message: String) : ActivitySavingState()
-    data object Success : ActivitySavingState()
 }
