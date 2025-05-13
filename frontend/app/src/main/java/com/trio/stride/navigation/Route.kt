@@ -45,7 +45,5 @@ sealed class Screen(val route: String) {
         fun createRoute(id: String): String = "activity/nomap/$id"
     }
 
-    object SaveRouteScreen: Screen("user/save-route")
-
-    object EditProfile : Screen("edit_profile")
+    object SaveRouteScreen : Screen("user/save-route")
 }

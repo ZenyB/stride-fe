@@ -1,4 +1,4 @@
-package com.trio.stride.ui.screens.profile.editprofile
+package com.trio.stride.ui.screens.profile
 
 import android.content.Context
 import android.net.Uri
@@ -22,11 +22,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class EditProfileViewModel @Inject constructor(
+class ProfileViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
-) : BaseViewModel<EditProfileViewModel.ViewState>() {
+) : BaseViewModel<ProfileViewModel.ViewState>() {
 
     override fun createInitialState(): ViewState = ViewState()
 
@@ -76,6 +76,7 @@ class EditProfileViewModel @Inject constructor(
             updateUserUseCase.invoke(
                 request = UpdateUserRequestDto(
                     name = currentState.userInfo.name,
+                    city = currentState.userInfo.city,
                     ava = currentState.userInfo.ava,
                     dob = currentState.userInfo.dob,
                     height = currentState.userInfo.height,
@@ -118,6 +119,8 @@ class EditProfileViewModel @Inject constructor(
         val isMaxHeartRateValid = currentState.userInfo.maxHeartRate in 20..260
         val isHeightValid = currentState.userInfo.height > 10
         val isWeightValid = currentState.userInfo.weight > 10
+        val isShoesWeightValid = currentState.userInfo.equipmentsWeight.shoes >= 0
+        val isBagWeightValid = currentState.userInfo.equipmentsWeight.bag >= 0
 
         if (!isNameValid)
             setError(ErrorField.NAME)
@@ -134,10 +137,17 @@ class EditProfileViewModel @Inject constructor(
         if (!isWeightValid)
             setError(ErrorField.WEIGHT)
 
-        return isNameValid && isDobValid && isMaxHeartRateValid && isHeightValid && isWeightValid
+        if (!isShoesWeightValid)
+            setError(ErrorField.SHOES)
+
+        if (!isBagWeightValid)
+            setError(ErrorField.BAG)
+
+        return isNameValid && isDobValid && isMaxHeartRateValid && isHeightValid
+                && isWeightValid && isShoesWeightValid && isBagWeightValid
     }
 
-    fun uploadImage(image: Uri, context: Context) {
+    private fun uploadImage(image: Uri, context: Context) {
         setState { currentState.copy(isUploadImage = true) }
         viewModelScope.launch {
             val file = uriToFile(image, context)
@@ -193,6 +203,29 @@ class EditProfileViewModel @Inject constructor(
         setState { currentState.copy(userInfo = currentState.userInfo.copy(weight = value)) }
     }
 
+    fun updateShoesWeight(value: Int) {
+        setState {
+            currentState.copy(
+                userInfo = currentState.userInfo.copy(
+                    equipmentsWeight = currentState.userInfo.equipmentsWeight.copy(
+                        shoes = value
+                    )
+                )
+            )
+        }
+    }
+
+    fun updateBagWeight(value: Int) {
+        setState {
+            currentState.copy(
+                userInfo = currentState.userInfo.copy(
+                    equipmentsWeight = currentState.userInfo.equipmentsWeight.copy(
+                        bag = value
+                    )
+                )
+            )
+        }
+    }
 
     fun clearError() {
         setState {
@@ -228,10 +261,12 @@ class EditProfileViewModel @Inject constructor(
             ErrorField.HEART_RATE to false,
             ErrorField.HEIGHT to false,
             ErrorField.WEIGHT to false,
+            ErrorField.SHOES to false,
+            ErrorField.BAG to false
         ),
         val isUpdateSuccess: Boolean = false,
         val userInfo: UserInfo = UserInfo(),
     ) : IViewState
 
-    enum class ErrorField { NAME, DOB, HEART_RATE, HEIGHT, WEIGHT }
+    enum class ErrorField { NAME, DOB, HEART_RATE, HEIGHT, WEIGHT, SHOES, BAG }
 }

@@ -81,7 +81,10 @@ fun CustomOutlinedTextField(
         )
         if (isError) {
             Spacer(Modifier.height(4.dp))
-            Text(errorMessage ?: "Error", style = StrideTheme.typography.labelMedium)
+            Text(
+                errorMessage ?: "Error",
+                style = StrideTheme.typography.labelMedium.copy(color = StrideTheme.colorScheme.error)
+            )
         }
         if (content != null) {
             content()

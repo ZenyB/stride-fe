@@ -17,7 +17,7 @@ import com.trio.stride.ui.screens.maps.saveroute.SaveRouteScreen
 import com.trio.stride.ui.screens.maps.search.SearchMapScreen
 import com.trio.stride.ui.screens.maps.view.ViewMapScreen
 import com.trio.stride.ui.screens.onboarding.OnboardingScreen
-import com.trio.stride.ui.screens.profile.editprofile.EditProfileScreen
+import com.trio.stride.ui.screens.profile.ProfileScreen
 import com.trio.stride.ui.screens.record.RecordScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
@@ -126,7 +126,7 @@ fun NavGraphBuilder.mainAppGraph(
         }
 
         composable(Screen.BottomNavScreen.Profile.route) {
-            EditProfileScreen(
+            ProfileScreen(
                 onBack = { navController.popBackStack() },
                 handleBottomBarVisibility = { handleBottomBarVisibility(it) })
         }
