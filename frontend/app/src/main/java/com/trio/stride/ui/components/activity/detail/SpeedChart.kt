@@ -62,7 +62,8 @@ val speedMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, targ
 
 @Composable
 fun SpeedChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
-    val xStep: Double = calculateNiceStep(0f, item.speeds.size.toFloat()).toDouble()
+    val xStep: Double =
+        calculateNiceStep(0f, item.distances[item.distances.lastIndex].toFloat()).toDouble()
     val yStep: Double = calculateNiceStep(0f, item.maxSpeed.toFloat(), 6).toDouble()
 
     Column(modifier) {
@@ -72,6 +73,7 @@ fun SpeedChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
         )
         CartesianChartWithMarker(
             modifier = Modifier.height(280.dp),
+            xItems = item.distances,
             items = item.speeds,
             speedMarkerFormatter,
             color = StrideTheme.colorScheme.primary,

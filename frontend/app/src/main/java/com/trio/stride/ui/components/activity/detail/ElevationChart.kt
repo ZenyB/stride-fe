@@ -61,7 +61,8 @@ val elevationMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, 
 
 @Composable
 fun ElevationChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
-    val xStep: Double = calculateNiceStep(0f, item.elevations.size.toFloat()).toDouble()
+    val xStep: Double =
+        calculateNiceStep(0f, item.distances[item.distances.lastIndex].toFloat()).toDouble()
     val yStep: Double = calculateNiceStep(0f, item.maxElevation.toFloat(), 6).toDouble()
 
     Column(modifier) {
@@ -72,7 +73,8 @@ fun ElevationChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
         CartesianChartWithMarker(
             modifier = Modifier.height(280.dp),
             items = item.elevations,
-            elevationMarkerFormatter,
+            xItems = item.distances,
+            markerFormatter = elevationMarkerFormatter,
             color = StrideTheme.colors.gray500,
             startAxisTitle = "m",
             startAxisFormatter = startAxisValueFormatter,

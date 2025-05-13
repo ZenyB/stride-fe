@@ -50,6 +50,7 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.trio.stride.ui.theme.StrideTheme
+import java.text.DecimalFormat
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
@@ -58,6 +59,7 @@ import kotlin.math.pow
 @Composable
 fun CartesianChartWithMarker(
     modifier: Modifier = Modifier,
+    xItems: Collection<Number>,
     items: Collection<Number>,
     markerFormatter: DefaultCartesianMarker.ValueFormatter,
     startAxisFormatter: CartesianValueFormatter,
@@ -118,7 +120,7 @@ fun CartesianChartWithMarker(
 
     LaunchedEffect(Unit) {
         modelProducer.runTransaction {
-            lineSeries { series(items) }
+            lineSeries { series(xItems, items) }
             extras { extraStore ->
                 xStep?.let { extraStore[xStepExtraKey] = it }
                 yStep?.let { extraStore[yStepExtraKey] = it }
@@ -159,7 +161,11 @@ fun CartesianChartWithMarker(
                 ),
             bottomAxis = HorizontalAxis.rememberBottom(
                 guideline = solidGuideline,
-                label = xLabel
+                label = xLabel,
+                valueFormatter = CartesianValueFormatter { _, value, _ ->
+                    val formatted = DecimalFormat("#.##").format(value)
+                    "$formatted km"
+                }
             ),
             endAxis = VerticalAxis.rememberEnd(
                 tick = null,
