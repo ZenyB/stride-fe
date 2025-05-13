@@ -4,7 +4,6 @@ import com.trio.stride.base.Resource
 import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
-import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
 import retrofit2.Response
@@ -38,9 +37,4 @@ interface ActivityApi {
     suspend fun getActivityDetail(
         @Path("id") id: String
     ): Response<ActivityDetailInfo>
-
-    @POST("${ApiConstants.ACTIVITY}/{id}/routes")
-    suspend fun saveRouteFromActivity(
-        @Path("id") id: String
-    ): Response<SuccessResponse>
 }

@@ -60,7 +60,8 @@ val heartRateMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, 
 
 @Composable
 fun HeartRateChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
-    val xStep: Double = calculateNiceStep(0f, item.heartRates.size.toFloat()).toDouble()
+    val xStep: Double =
+        calculateNiceStep(0f, item.distances[item.distances.lastIndex].toFloat()).toDouble()
     val yStep: Double = calculateNiceStep(0f, item.maxHearRate.toFloat(), 6).toDouble()
 
     Column(modifier) {
@@ -71,7 +72,8 @@ fun HeartRateChart(item: ActivityDetailInfo, modifier: Modifier = Modifier) {
         CartesianChartWithMarker(
             modifier = Modifier.height(280.dp),
             items = item.heartRates,
-            heartRateMarkerFormatter,
+            xItems = item.distances,
+            markerFormatter = heartRateMarkerFormatter,
             color = StrideTheme.colors.red500,
             avgValue = item.avgHearRate,
             startAxisTitle = "bpm",

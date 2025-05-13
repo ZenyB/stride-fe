@@ -21,17 +21,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trio.stride.R
-import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
 fun SearchFieldWithButton(
-    onSearchClick: () -> Unit, chooseSportButton: @Composable () -> Unit = {},
-) {
+    onSearchClick: () -> Unit,
+    onSaveButtonClick: () -> Unit,
+    chooseSportButton: @Composable () -> Unit = {},
+
+    ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,6 +74,7 @@ fun SearchFieldWithButton(
 
             IconButton(
                 onClick = {
+                    onSaveButtonClick()
                 },
                 modifier = Modifier
                     .background(
@@ -82,23 +84,10 @@ fun SearchFieldWithButton(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_save),
-                    contentDescription = "Close Sheet"
+                    contentDescription = "Save route"
                 )
             }
         }
 
-    }
-}
-
-@Preview()
-@Composable
-fun Preview() {
-    SearchFieldWithButton(onSearchClick = {}) {
-        ChooseSportInSearch(
-            "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
-            onClick = {
-                
-            }
-        )
     }
 }

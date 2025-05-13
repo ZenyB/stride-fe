@@ -41,13 +41,14 @@ data class ActivityDetailInfo(
     val maxHearRate: Long,
     val distances: List<Double>,
     val createdAt: Long,
+    val routeId: String,
 )
 
 data class HeartRateInfo(
     val zoneId: String,
     val name: String,
     val min: Long,
-    val max: Long,
+    val max: Long?,
     val value: Long,
     val color: Color
 )

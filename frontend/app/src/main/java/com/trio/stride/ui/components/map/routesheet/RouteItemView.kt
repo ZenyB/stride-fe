@@ -28,7 +28,7 @@ import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
 
 @Composable
-fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier) {
+fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()

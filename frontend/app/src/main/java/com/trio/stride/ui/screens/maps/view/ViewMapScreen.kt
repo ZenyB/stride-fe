@@ -86,7 +86,9 @@ import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import com.trio.stride.R
 import com.trio.stride.navigation.Screen
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.button.userlocation.FocusUserLocationButton
+import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.MapFallbackScreen
 import com.trio.stride.ui.components.map.SearchFieldWithButton
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
@@ -97,6 +99,8 @@ import com.trio.stride.ui.components.map.routesheet.RoutePager
 import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearchViewModel
+import com.trio.stride.ui.screens.maps.saveroute.SaveRouteState
+import com.trio.stride.ui.screens.maps.saveroute.SaveRouteViewModel
 import com.trio.stride.ui.theme.StrideColor
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.map.LocationUtils
@@ -116,6 +120,7 @@ fun ViewMapScreen(
     navController: NavController,
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     searchSportViewModel: ChooseSportInSearchViewModel = hiltViewModel(),
+    saveRouteViewModel: SaveRouteViewModel = hiltViewModel(),
     viewModel: ViewMapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -137,6 +142,7 @@ fun ViewMapScreen(
 
     val routeItems by viewModel.routeItems.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val saveRouteState by saveRouteViewModel.uiState.collectAsStateWithLifecycle()
 
     val sheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.PartiallyExpanded,
@@ -284,6 +290,36 @@ fun ViewMapScreen(
             }
     }
 
+    when (saveRouteState) {
+        is SaveRouteState.ErrorSaving -> {
+            StrideDialog(
+                visible = true,
+                title = "Error saving activity",
+                description = (saveRouteState as SaveRouteState.ErrorSaving).message,
+                dismiss = { saveRouteViewModel.resetState() },
+                dismissText = "OK",
+            )
+        }
+
+        is SaveRouteState.Success -> {
+            StrideDialog(
+                visible = true,
+                title = "Route Saved",
+                description = "You can access your Saved Routes from Maps and your profile",
+                dismiss = { saveRouteViewModel.resetState() },
+                dismissText = "OK",
+            )
+        }
+
+        is SaveRouteState.IsSaving -> {
+            Loading()
+        }
+
+        else -> {
+
+        }
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = animatedPeekHeight,
@@ -325,7 +361,11 @@ fun ViewMapScreen(
                             BackHandler(enabled = true) {
                                 viewModel.backToNormalView()
                             }
-                            RouteItemDetail(routeItems[viewModel.currentDetailIndex])
+                            RouteItemDetail(
+                                routeItems[viewModel.currentDetailIndex],
+                                onSaveRoute = {
+                                    saveRouteViewModel.saveRoute(routeItems[viewModel.currentDetailIndex].id)
+                                })
                         }
 
                         else -> {
@@ -337,7 +377,7 @@ fun ViewMapScreen(
                                 )
                             } else {
                                 Text(
-                                    "${size} route${if (size > 1) "s" else ""}",
+                                    "$size route${if (size > 1) "s" else ""}",
                                     style = StrideTheme.typography.titleMedium
                                 )
                                 Spacer(Modifier.height(24.dp))
@@ -517,6 +557,8 @@ fun ViewMapScreen(
 
         SearchFieldWithButton(onSearchClick = {
             navController.navigate(Screen.BottomNavScreen.Search.route)
+        }, onSaveButtonClick = {
+            navController.navigate(Screen.SaveRouteScreen.route)
         }) {
             selectedSport?.let {
                 ChooseSportInSearch(

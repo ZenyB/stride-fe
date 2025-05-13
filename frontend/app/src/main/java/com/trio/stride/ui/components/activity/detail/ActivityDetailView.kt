@@ -89,7 +89,7 @@ fun ActivityDetailView(
                 )
                 StatText(
                     "Time",
-                    "${formatDuration(item.movingTimeSeconds)} km",
+                    formatDuration(item.movingTimeSeconds),
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(0.5f),
@@ -168,7 +168,7 @@ fun ActivityDetailView(
             )
         }
 
-        if (item.sport.sportMapType != null && item.heartRateZones != null) {
+        if (item.sport.sportMapType != null && !item.heartRateZones.isNullOrEmpty() && item.heartRates.isNotEmpty()) {
             Spacer(
                 Modifier
                     .height(8.dp)

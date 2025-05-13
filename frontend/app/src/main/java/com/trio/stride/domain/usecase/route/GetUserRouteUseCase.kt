@@ -1,18 +1,19 @@
-package com.trio.stride.domain.usecase.activity
+package com.trio.stride.domain.usecase.route
 
-import com.trio.stride.data.remote.dto.SuccessResponse
+import com.trio.stride.data.remote.dto.UserRouteRequest
+import com.trio.stride.data.remote.dto.UserRouteResponse
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.ui.utils.parseErrorResponse
 import javax.inject.Inject
 
-class SaveRouteFromActivityUseCase @Inject constructor(
+class GetUserRouteUseCase @Inject constructor(
     private val repository: RouteRepository
 ) {
     suspend operator fun invoke(
-        activityId: String,
-    ): Result<SuccessResponse?> {
+        request: UserRouteRequest
+    ): Result<UserRouteResponse?> {
         return try {
-            val response = repository.saveRouteFromActivity(activityId)
+            val response = repository.getUserRoute(request)
             if (response.isSuccessful) {
                 Result.success(response.body())
             } else {
