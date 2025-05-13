@@ -1,10 +1,9 @@
 package com.trio.stride.data.repositoryimpl
 
 import com.trio.stride.data.remote.apiservice.activity.ActivityApi
+import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
-import com.trio.stride.data.remote.dto.ActivityListDto
-import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.domain.repository.ActivityRepository
 import retrofit2.Response
@@ -32,9 +31,5 @@ class ActivityRepositoryImpl @Inject constructor(
 
     override suspend fun getActivityDetail(id: String): Response<ActivityDetailInfo> {
         return activityApi.getActivityDetail(id)
-    }
-
-    override suspend fun saveRouteFromActivity(activityId: String): Response<SuccessResponse> {
-        return activityApi.saveRouteFromActivity(activityId)
     }
 }

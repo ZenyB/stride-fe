@@ -41,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -68,8 +67,10 @@ import com.trio.stride.R
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.LoadingSmall
+import com.trio.stride.ui.components.activity.detail.ActivityActionDropdown
 import com.trio.stride.ui.components.activity.detail.ActivityDetailView
 import com.trio.stride.ui.components.activity.detail.BottomSheetIndicator
+import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.screens.maps.view.INITIAL_ZOOM
 import com.trio.stride.ui.screens.maps.view.ZOOM_MORE
@@ -158,16 +159,34 @@ fun ActivityDetailScreen(
 
     if (uiState is ActivityDetailState.Idle) {
         val savingState = (uiState as ActivityDetailState.Idle).savingState
+        val errorMessage =
+            if (savingState is ActivitySavingState.ErrorSaving) savingState.message
+            else ""
+
+        StrideDialog(
+            visible = savingState is ActivitySavingState.ErrorSaving,
+            title = "Error saving activity",
+            description = errorMessage,
+            dismiss = { viewModel.resetState() },
+            dismissText = "OK",
+        )
+
+        //TODO: anhthu add view saved button
+        StrideDialog(
+            visible = savingState is ActivitySavingState.Success,
+            title = "Route Saved",
+            description = "You can access your Saved Routes from Maps and your profile",
+            dismiss = { viewModel.resetState() },
+            dismissText = "OK",
+        )
+
         if (savingState is ActivitySavingState.IsSaving) {
             Loading()
             Log.d("saving route", "is saving")
-        } else if (savingState is ActivitySavingState.ErrorSaving) {
-            Log.d(
-                "saving route",
-                "error: ${savingState.message}"
-            )
         }
+
     }
+
 
     Box(Modifier.fillMaxSize()) {
         Box(
@@ -205,33 +224,27 @@ fun ActivityDetailScreen(
                             modifier = Modifier,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            IconButton(
-                                onClick = {
-                                    viewModel.saveRoute()
-                                },
-                                modifier = Modifier
-                                    .background(
-                                        color = StrideTheme.colors.white,
-                                        shape = CircleShape
+                            if (uiState is ActivityDetailState.Loading || uiState is ActivityDetailState.Error) {
+                                LoadingSmall()
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        viewModel.saveRoute()
+                                    },
+                                    modifier = Modifier
+                                        .background(
+                                            color = StrideTheme.colors.white,
+                                            shape = CircleShape
+                                        )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_save),
+                                        contentDescription = "Close Sheet"
                                     )
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_save),
-                                    contentDescription = "Close Sheet"
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                },
-                                modifier = Modifier
-                                    .background(
-                                        color = StrideTheme.colors.white,
-                                        shape = CircleShape
-                                    )
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ellipsis_more),
-                                    contentDescription = "Close Sheet"
+                                }
+                                ActivityActionDropdown(
+                                    handleDelete = {},
+                                    handleEdit = {}
                                 )
                             }
                         }
@@ -250,7 +263,7 @@ fun ActivityDetailScreen(
                     IconButton(
                         onClick = { showStyleSheet = true },
                         colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = StrideTheme.colors.white
+                            containerColor = StrideTheme.colors.white.copy(alpha = 1 - animatedAlpha)
                         ),
                         modifier = Modifier
                             .size(44.dp)
@@ -261,13 +274,13 @@ fun ActivityDetailScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.layers_icon),
                             contentDescription = "Map option",
-                            tint = Color.Black,
+                            tint = StrideTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .alpha(1 - animatedAlpha)
                         )
                     }
                 }
             }
-
-
         }
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
@@ -327,9 +340,7 @@ fun ActivityDetailScreen(
                             }
                         }
                     }
-
                 }
-
             },
             sheetDragHandle = null,
         ) { padding ->
@@ -363,7 +374,5 @@ fun ActivityDetailScreen(
             }
         }
     }
-
-
 }
 

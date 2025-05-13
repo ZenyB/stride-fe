@@ -46,10 +46,10 @@ class ActivityDetailViewModel @Inject constructor(
             setState { ActivityDetailState.Idle(ActivitySavingState.IsSaving) }
             viewModelScope.launch {
                 val result =
-                    saveRouteFromActivityUseCase(item.value!!.id)
+                    saveRouteFromActivityUseCase(item.value!!.routeId)
                 result
                     .onSuccess { data ->
-                        setState { ActivityDetailState.Idle() }
+                        setState { ActivityDetailState.Idle(ActivitySavingState.Success) }
                     }
                     .onFailure {
                         setState {
@@ -66,10 +66,14 @@ class ActivityDetailViewModel @Inject constructor(
     override fun createInitialState(): ActivityDetailState {
         return ActivityDetailState.Idle()
     }
+
+    fun resetState() {
+        setState { ActivityDetailState.Idle() }
+    }
 }
 
 sealed class ActivityDetailState : IViewState {
-    data class Idle(val savingState: ActivitySavingState = ActivitySavingState.Idle) :
+    data class Idle(val savingState: ActivitySavingState? = null) :
         ActivityDetailState()
 
     data object Loading : ActivityDetailState()
@@ -79,5 +83,5 @@ sealed class ActivityDetailState : IViewState {
 sealed class ActivitySavingState : IViewState {
     data object IsSaving : ActivitySavingState()
     data class ErrorSaving(val message: String) : ActivitySavingState()
-    data object Idle : ActivitySavingState()
+    data object Success : ActivitySavingState()
 }

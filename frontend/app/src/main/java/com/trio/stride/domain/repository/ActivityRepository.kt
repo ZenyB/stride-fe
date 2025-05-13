@@ -2,7 +2,6 @@ package com.trio.stride.domain.repository
 
 import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
-import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
 import retrofit2.Response
@@ -18,6 +17,4 @@ interface ActivityRepository {
     suspend fun getActivityDetail(
         id: String,
     ): Response<ActivityDetailInfo>
-
-    suspend fun saveRouteFromActivity(activityId: String): Response<SuccessResponse>
 }

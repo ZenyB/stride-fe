@@ -1,7 +1,7 @@
 package com.trio.stride.data
 
 object ApiConstants {
-    const val BASE_URL = "http://103.211.201.40:8080/api/v1/"
+    const val BASE_URL = "http://103.90.226.106:8080/api/v1/"
     const val IDENTITY_URL = "${BASE_URL}identity/"
     const val PROFILE_URL = "${BASE_URL}profile/"
     const val ROUTE_URL = "${BASE_URL}route/"
@@ -20,4 +20,5 @@ object ApiConstants {
     const val ACTIVITY = "activities"
     const val FILE = "files"
     const val ACTIVITY_LIST = "activities/users/profile"
+    const val STRIDE_ROUTES = "stride-routes/"
 }

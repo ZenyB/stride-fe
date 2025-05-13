@@ -15,7 +15,7 @@ class GetRecommendedRouteUseCase @Inject constructor(
         return try {
             val response = repository.getRecommendRoute(request)
             if (response.isSuccessful) {
-                Result.success(response.body() ?: emptyList())
+                Result.success(response.body()?.data ?: emptyList())
             } else {
                 val errorResponse = parseErrorResponse(response.errorBody())
                 Result.failure(Exception(errorResponse.message))
