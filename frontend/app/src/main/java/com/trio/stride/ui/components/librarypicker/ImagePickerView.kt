@@ -1,11 +1,7 @@
 package com.trio.stride.ui.components.librarypicker
 
-import android.content.Intent
 import android.graphics.Paint
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +22,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.trio.stride.R
@@ -38,19 +33,10 @@ fun ImagePickerView(
     onImageSelected: (Uri) -> Unit
 ) {
     val primaryColor = StrideTheme.colorScheme.primary
-    val context = LocalContext.current
 
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            uri?.let {
-                context.contentResolver.takePersistableUriPermission(
-                    it, Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                onImageSelected(it)
-            }
-        }
-    )
+    val openImagePicker = rememberImagePickerLauncher { selectedUri ->
+        onImageSelected(selectedUri)
+    }
 
     Box(
         modifier = modifier
@@ -82,7 +68,7 @@ fun ImagePickerView(
                     paint
                 )
             }
-            .clickable { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+            .clickable { openImagePicker() }
             .padding(24.dp),
         Alignment.Center
     ) {

@@ -46,4 +46,6 @@ sealed class Screen(val route: String) {
     }
 
     object SaveRouteScreen: Screen("user/save-route")
+
+    object EditProfile : Screen("edit_profile")
 }

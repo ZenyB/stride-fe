@@ -1,5 +1,7 @@
 package com.trio.stride.ui.screens.home
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -24,6 +27,8 @@ import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.repositoryimpl.RecordRepository
+import com.trio.stride.data.service.RecordService
 import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
@@ -48,6 +53,8 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
     onLogOutSuccess: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val logoutSuccess by viewModel.logoutSuccess.collectAsState()
     val loggingOut by viewModel.isLoggingOut.collectAsState()
     val userInfo by viewModel.userInfo.collectAsState()
@@ -75,7 +82,7 @@ fun HomeScreen(
         ) {
             Text(userInfo.name, style = StrideTheme.typography.headlineLarge)
             Button(
-                onClick = { viewModel.logout() }
+                onClick = { viewModel.logout(context) }
             ) {
                 Text("Logout", style = StrideTheme.typography.titleMedium)
             }
@@ -120,7 +127,8 @@ class HomeScreenViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val logoutUseCase: LogoutUseCase,
     private val getUserUseCase: GetUserUseCase,
-    private val sportManager: SportManager
+    private val sportManager: SportManager,
+    private val recordRepository: RecordRepository,
 ) : ViewModel() {
 
     private val _logoutSuccess = MutableStateFlow(false)
@@ -172,7 +180,14 @@ class HomeScreenViewModel @Inject constructor(
     }
 
 
-    fun logout() {
+    fun logout(context: Context) {
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.STOP_RECORDING
+        }
+        context.startService(startIntent)
+
+        recordRepository.end()
+
         viewModelScope.launch {
             _isLoggingOut.value = true
 

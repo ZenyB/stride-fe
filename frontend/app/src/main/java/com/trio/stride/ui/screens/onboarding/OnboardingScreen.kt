@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.trio.stride.R
 import com.trio.stride.ui.components.Loading
+import com.trio.stride.ui.components.textfield.CustomOutlinedTextField
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.toBoolGender
 import com.trio.stride.ui.utils.toGender
@@ -100,7 +100,7 @@ fun OnboardingScreen(
                 Scaffold(
                     containerColor = StrideTheme.colorScheme.surface
                 ) { padding ->
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Box(modifier = modifier.fillMaxSize()) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -131,11 +131,6 @@ fun OnboardingScreen(
                                             style = StrideTheme.typography.labelLarge
                                         )
                                     },
-                                    colors = TextFieldDefaults.colors().copy(
-                                        unfocusedIndicatorColor = StrideTheme.colors.gray,
-                                        unfocusedContainerColor = StrideTheme.colors.transparent,
-                                        focusedContainerColor = StrideTheme.colors.transparent
-                                    ),
                                     shape = RoundedCornerShape(8.dp),
                                     isError = viewState.isError,
                                     modifier = Modifier.fillMaxWidth()
@@ -147,9 +142,8 @@ fun OnboardingScreen(
                                     )
                                 }
 
-                                OutlinedTextField(
+                                CustomOutlinedTextField(
                                     value = viewState.dob,
-                                    textStyle = StrideTheme.typography.labelLarge,
                                     onValueChange = { },
                                     readOnly = true,
                                     label = { Text("Dob") },
@@ -168,12 +162,6 @@ fun OnboardingScreen(
                                             tint = StrideTheme.colorScheme.onBackground
                                         )
                                     },
-                                    colors = TextFieldDefaults.colors().copy(
-                                        unfocusedIndicatorColor = StrideTheme.colors.gray,
-                                        unfocusedContainerColor = StrideTheme.colors.transparent,
-                                        focusedContainerColor = StrideTheme.colors.transparent
-                                    ),
-                                    shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable(
@@ -185,9 +173,8 @@ fun OnboardingScreen(
                                 )
 
                                 Box {
-                                    OutlinedTextField(
+                                    CustomOutlinedTextField(
                                         value = viewState.male.toGender(),
-                                        textStyle = StrideTheme.typography.labelLarge,
                                         onValueChange = { },
                                         readOnly = true,
                                         label = { Text("Gender") },
@@ -213,12 +200,6 @@ fun OnboardingScreen(
                                                 tint = StrideTheme.colorScheme.onBackground
                                             )
                                         },
-                                        colors = TextFieldDefaults.colors().copy(
-                                            unfocusedIndicatorColor = StrideTheme.colors.gray,
-                                            unfocusedContainerColor = StrideTheme.colors.transparent,
-                                            focusedContainerColor = StrideTheme.colors.transparent
-                                        ),
-                                        shape = RoundedCornerShape(8.dp),
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable(
@@ -259,12 +240,11 @@ fun OnboardingScreen(
                                     }
                                 }
 
-                                OutlinedTextField(
+                                CustomOutlinedTextField(
                                     value = viewState.height.toString(),
                                     suffix = {
                                         Text(text = "cm", style = StrideTheme.typography.labelLarge)
                                     },
-                                    textStyle = StrideTheme.typography.labelLarge,
                                     onValueChange = { newValue ->
                                         if (newValue.all { it.isDigit() }) {
                                             if (newValue.isBlank())
@@ -282,21 +262,14 @@ fun OnboardingScreen(
                                             focusRequesterWeight.requestFocus()
                                         }
                                     ),
-                                    colors = TextFieldDefaults.colors().copy(
-                                        unfocusedIndicatorColor = StrideTheme.colors.gray,
-                                        unfocusedContainerColor = StrideTheme.colors.transparent,
-                                        focusedContainerColor = StrideTheme.colors.transparent
-                                    ),
-                                    shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 )
 
-                                OutlinedTextField(
+                                CustomOutlinedTextField(
                                     value = viewState.weight.toString(),
                                     suffix = {
                                         Text(text = "kg", style = StrideTheme.typography.labelLarge)
                                     },
-                                    textStyle = StrideTheme.typography.labelLarge,
                                     onValueChange = { newValue ->
                                         if (newValue.all { it.isDigit() }) {
                                             if (newValue.isBlank())
@@ -314,12 +287,6 @@ fun OnboardingScreen(
                                             viewModel.success()
                                         }
                                     ),
-                                    colors = TextFieldDefaults.colors().copy(
-                                        unfocusedIndicatorColor = StrideTheme.colors.gray,
-                                        unfocusedContainerColor = StrideTheme.colors.transparent,
-                                        focusedContainerColor = StrideTheme.colors.transparent
-                                    ),
-                                    shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .focusRequester(focusRequesterWeight)
