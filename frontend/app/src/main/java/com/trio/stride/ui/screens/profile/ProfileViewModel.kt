@@ -14,7 +14,6 @@ import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.isValidBirthDay
 import com.trio.stride.ui.utils.toBoolGender
 import com.trio.stride.ui.utils.toDate
-import com.trio.stride.ui.utils.uriToFile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -51,6 +50,43 @@ class ProfileViewModel @Inject constructor(
                     is Resource.Loading -> setState { currentState.copy(isLoading = true) }
                     is Resource.Success -> {
                         setState { currentState.copy(userInfo = response.data, isLoading = false) }
+                        updateUserUseCase.invoke(
+                            request = UpdateUserRequestDto(
+                                name = currentState.userInfo.name,
+                                city = currentState.userInfo.city,
+                                ava = currentState.userInfo.ava,
+                                dob = currentState.userInfo.dob,
+                                height = currentState.userInfo.height,
+                                weight = currentState.userInfo.weight,
+                                male = currentState.userInfo.male,
+                                maxHeartRate = currentState.userInfo.maxHeartRate,
+                            )
+                        ).collectLatest { response2 ->
+                            when (response2) {
+                                is Resource.Loading -> setState {
+                                    currentState.copy(
+                                        isLoading = true,
+                                        isError = false,
+                                        errorMessage = null
+                                    )
+                                }
+
+                                is Resource.Success -> setState {
+                                    currentState.copy(
+                                        isUpdateSuccess = true,
+                                        isLoading = false,
+                                    )
+                                }
+
+                                is Resource.Error -> setState {
+                                    currentState.copy(
+                                        isLoading = false,
+                                        isError = true,
+                                        errorMessage = response2.error.message.toString()
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     is Resource.Error -> {
@@ -73,43 +109,7 @@ class ProfileViewModel @Inject constructor(
             return
         uri?.let { uploadImage(uri, context) }
         viewModelScope.launch {
-            updateUserUseCase.invoke(
-                request = UpdateUserRequestDto(
-                    name = currentState.userInfo.name,
-                    city = currentState.userInfo.city,
-                    ava = currentState.userInfo.ava,
-                    dob = currentState.userInfo.dob,
-                    height = currentState.userInfo.height,
-                    weight = currentState.userInfo.weight,
-                    male = currentState.userInfo.male,
-                    maxHeartRate = currentState.userInfo.maxHeartRate,
-                )
-            ).collectLatest { response ->
-                when (response) {
-                    is Resource.Loading -> setState {
-                        currentState.copy(
-                            isLoading = true,
-                            isError = false,
-                            errorMessage = null
-                        )
-                    }
 
-                    is Resource.Success -> setState {
-                        currentState.copy(
-                            isUpdateSuccess = true,
-                            isLoading = false,
-                        )
-                    }
-
-                    is Resource.Error -> setState {
-                        currentState.copy(
-                            isLoading = false,
-                            isError = true,
-                            errorMessage = response.error.message.toString()
-                        )
-                    }
-                }
-            }
         }
     }
 
@@ -150,8 +150,7 @@ class ProfileViewModel @Inject constructor(
     private fun uploadImage(image: Uri, context: Context) {
         setState { currentState.copy(isUploadImage = true) }
         viewModelScope.launch {
-            val file = uriToFile(image, context)
-            uploadFileUseCase.invoke(file).first { response ->
+            uploadFileUseCase.invoke(image, context).first { response ->
                 when (response) {
                     is Resource.Success -> {
                         setState {
@@ -164,7 +163,7 @@ class ProfileViewModel @Inject constructor(
                     }
 
                     is Resource.Error -> {
-                        // handle error if needed
+                        setState { currentState.copy(isUploadImage = false) }
                         true
                     }
 

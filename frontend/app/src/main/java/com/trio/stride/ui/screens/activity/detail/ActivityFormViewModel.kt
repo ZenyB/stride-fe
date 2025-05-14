@@ -67,9 +67,8 @@ class ActivityFormViewModel @Inject constructor(
             val uploadedUrls = coroutineScope {
                 images.map { uri ->
                     async {
-                        val file = uriToFile(uri, context)
                         var result = ""
-                        uploadFileUseCase.invoke(file).first { response ->
+                        uploadFileUseCase.invoke(uri, context).first { response ->
                             when (response) {
                                 is Resource.Success -> {
                                     result = response.data
@@ -94,7 +93,8 @@ class ActivityFormViewModel @Inject constructor(
             uploadedUrls.forEach { newActivityImages.add(it) }
             setState {
                 currentState.copy(
-                    activity = currentState.activity.copy(images = newActivityImages)
+                    createActivityDto = currentState.createActivityDto.copy(images = newActivityImages),
+                    updateActivityDto = currentState.updateActivityDto.copy(images = newActivityImages),
                 )
             }
             onFinish()

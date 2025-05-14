@@ -1,7 +1,8 @@
 package com.trio.stride.domain.repository
 
-import java.io.File
+import android.content.Context
+import android.net.Uri
 
 interface FileRepository {
-    suspend fun uploadFile(file: File): String
+    suspend fun uploadFile(file: Uri, context: Context): String
 }

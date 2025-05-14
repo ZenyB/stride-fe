@@ -46,12 +46,14 @@ fun ActivityActionDropdown(handleDelete: () -> Unit, handleEdit: () -> Unit) {
             DropdownMenuItem(
                 text = { Text("Edit Activity") },
                 onClick = {
+                    handleEdit()
                     menuExpanded = false
                 },
             )
             DropdownMenuItem(
                 text = { Text("Delete Activity") },
                 onClick = {
+                    handleDelete()
                     menuExpanded = false
                 },
             )

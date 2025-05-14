@@ -27,7 +27,7 @@ import com.trio.stride.ui.theme.StrideTheme
 fun ActivityMainTabScreen(
     navController: NavController
 ) {
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    var selectedTabIndex by rememberSaveable { mutableStateOf(1) }
     val tabs = listOf("Progress", "Activities")
 
     Scaffold { padding ->
