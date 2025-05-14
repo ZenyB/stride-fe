@@ -38,8 +38,7 @@ import com.trio.stride.domain.model.toTitle
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
-fun GoalItemView(item: GoalItem) {
-    var menuExpanded by remember { mutableStateOf(false) }
+fun GoalItemView(item: GoalItem, onActionClick: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(
@@ -68,7 +67,7 @@ fun GoalItemView(item: GoalItem) {
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { menuExpanded = true }) {
+                IconButton(onClick = onActionClick) {
                     Icon(
                         painter = painterResource(id = R.drawable.ellipsis_more),
                         contentDescription = "More Options",
@@ -79,7 +78,9 @@ fun GoalItemView(item: GoalItem) {
                 ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
                 ColumnText(
                     label = "To Go",
-                    value = item.formatAmount((item.amountGoal - item.amountGain))
+                    value = item.formatAmount(
+                        (item.amountGoal - item.amountGain).coerceAtLeast(0)
+                    )
                 )
             }
 
@@ -179,5 +180,7 @@ val goalItem = GoalItem(
 @Preview(showBackground = true)
 @Composable
 fun GoalItemPreview() {
-    GoalItemView(goalItem)
+    GoalItemView(goalItem) {
+
+    }
 }
