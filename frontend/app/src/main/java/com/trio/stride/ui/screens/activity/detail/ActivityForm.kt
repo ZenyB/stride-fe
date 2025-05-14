@@ -273,7 +273,7 @@ fun ActivityFormView(
                     val screenWidth = localConfig.screenWidthDp.dp
                     val halfWidth = (screenWidth - 24.dp) / 2
 
-                    if (state.sport.sportMapType != null) {
+                    if (sport.sportMapType != null) {
                         item {
                             Box(
                                 modifier = Modifier
@@ -379,11 +379,7 @@ fun ActivityFormView(
                                 .height(160.dp)
                                 .width(halfWidth - 24.dp)
                         ) { uri ->
-                            when (mode) {
-                                is ActivityFormMode.Create -> previewImage.add(uri)
-
-                                is ActivityFormMode.Update -> viewModel.updateActivityImage(mode.activity.images)
-                            }
+                            previewImage.add(uri)
                         }
                     }
                 }
@@ -411,7 +407,7 @@ fun ActivityFormView(
                         modifier = Modifier.padding(start = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (state.isRpeChanged) {
+                        if (state.isRpeChanged || mode is ActivityFormMode.Update) {
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = rememberAsyncImagePainter(R.drawable.speedometer_outline_icon),

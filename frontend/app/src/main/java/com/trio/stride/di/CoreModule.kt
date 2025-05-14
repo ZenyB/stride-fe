@@ -9,6 +9,7 @@ import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.SportRepository
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
+import com.trio.stride.domain.usecase.activity.DeleteActivityUseCase
 import com.trio.stride.domain.usecase.activity.GetAllActivityUseCase
 import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
@@ -104,5 +105,11 @@ object CoreModule {
     @Singleton
     fun provideGetAllActivity(activityRepository: ActivityRepository): GetAllActivityUseCase {
         return GetAllActivityUseCase(activityRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteActivity(activityRepository: ActivityRepository): DeleteActivityUseCase {
+        return DeleteActivityUseCase(activityRepository)
     }
 }

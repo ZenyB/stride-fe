@@ -17,4 +17,6 @@ interface ActivityRepository {
     suspend fun getActivityDetail(
         id: String,
     ): Response<ActivityDetailInfo>
+
+    suspend fun deleteActivity(id: String): Boolean
 }

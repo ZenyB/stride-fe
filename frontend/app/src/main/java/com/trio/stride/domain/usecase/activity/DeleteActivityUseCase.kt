@@ -3,22 +3,21 @@ package com.trio.stride.domain.usecase.activity
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
-import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.repository.ActivityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
 import javax.inject.Inject
 
-class UpdateActivityUseCase @Inject constructor(
+class DeleteActivityUseCase @Inject constructor(
     private val activityRepository: ActivityRepository
 ) {
-    operator fun invoke(id: String, requestDto: UpdateActivityRequestDto): Flow<Resource<Boolean>> =
+    operator fun invoke(id: String): Flow<Resource<Boolean>> =
         flow {
             emit(Resource.Loading())
 
             try {
-                val result = activityRepository.updateActivity(requestDto, id)
+                val result = activityRepository.deleteActivity(id)
                 emit(Resource.Success(result))
             } catch (e: IOException) {
                 emit(Resource.Error(NetworkException(e.message.toString())))

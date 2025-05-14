@@ -49,7 +49,7 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                "${item.avgDistance} km • ${formatDuration(item.avgTime)}",
+                "${item.avgDistance} km • ${formatDuration(item.avgTime.toLong())}",
                 style = StrideTheme.typography.bodyLarge
                     .copy(fontWeight = FontWeight.Thin),
             )

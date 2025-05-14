@@ -2,7 +2,6 @@ package com.trio.stride.data.remote.dto
 
 data class CreateActivityRequestDTO(
     val sportId: String = "",
-    val routeId: String? = null,
     val name: String = "",
     val description: String = "",
     val movingTimeSeconds: Int = 0,

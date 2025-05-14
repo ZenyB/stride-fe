@@ -1,13 +1,14 @@
 package com.trio.stride.data.remote.apiservice.activity
 
-import com.trio.stride.base.Resource
 import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
+import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -21,13 +22,13 @@ interface ActivityApi {
     suspend fun createActivity(
         @Body requestDTO: CreateActivityRequestDTO,
         @Header("X-User-Timezone") timezone: String = "Asia/Ho_Chi_Minh",
-    ): Resource<Boolean>
+    ): SuccessResponse
 
     @PUT("${ApiConstants.ACTIVITY}/{id}")
     suspend fun updateActivity(
         @Path("id") id: String,
         @Body requestDTO: UpdateActivityRequestDto
-    ): Resource<Boolean>
+    ): SuccessResponse
 
     @GET(ApiConstants.ACTIVITY_LIST)
     suspend fun getAllActivity(
@@ -39,4 +40,9 @@ interface ActivityApi {
     suspend fun getActivityDetail(
         @Path("id") id: String
     ): Response<ActivityDetailInfo>
+
+    @DELETE("${ApiConstants.ACTIVITY}/{id}")
+    suspend fun deleteActivity(
+        @Path("id") id: String
+    ): SuccessResponse
 }

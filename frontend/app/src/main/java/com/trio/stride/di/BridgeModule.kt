@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -25,6 +26,9 @@ object BridgeModule {
     @Provides
     @BridgeBaseUrl
     fun provideRetrofitBridgeUrl(tokenManager: TokenManager): Retrofit {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
         val authInterceptor = Interceptor { chain ->
             val original = chain.request()
             val token = runBlocking { tokenManager.getAccessToken().firstOrNull() }
@@ -39,6 +43,7 @@ object BridgeModule {
         }
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

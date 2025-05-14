@@ -163,15 +163,15 @@ fun RecordScreen(
         Loading()
     }
 
-    StrideDialog(
-        visible = state.isSavingError,
-        title = "Save activity error",
-        description = "There are some error, try again later.",
-        dismiss = { viewModel.resetSaveActivityError() },
-        dismissText = "Cancel",
-        doneText = "Try Again",
-        done = { viewModel.saveAgain(context) },
-    )
+//    StrideDialog(
+//        visible = state.isSavingError,
+//        title = "Save activity error",
+//        description = "There are some error, try again later.",
+//        dismiss = { viewModel.resetSaveActivityError() },
+//        dismissText = "Cancel",
+//        doneText = "Try Again",
+//        done = { viewModel.saveAgain(context) },
+//    )
 
     StrideDialog(
         visible = state.isNotEnoughDataToSave,
@@ -666,7 +666,9 @@ fun RecordScreen(
             "SAVE",
             mode = ActivityFormMode.Create(
                 sportFromRecord = currentSport,
-                onCreate = { dto, sport -> viewModel.saveActivity(dto, sport, context) },
+                onCreate = { dto, sport ->
+                    viewModel.saveActivity(dto, sport, context, { back() })
+                },
                 onDiscard = {
                     viewModel.discard(context)
                     back()

@@ -1,10 +1,13 @@
 package com.trio.stride.ui.screens.activity.view
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -64,6 +67,7 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.trio.stride.R
+import com.trio.stride.domain.model.Activity
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.LoadingSmall
@@ -72,6 +76,8 @@ import com.trio.stride.ui.components.activity.detail.ActivityDetailView
 import com.trio.stride.ui.components.activity.detail.BottomSheetIndicator
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
+import com.trio.stride.ui.screens.activity.detail.ActivityFormMode
+import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteState
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteViewModel
 import com.trio.stride.ui.screens.maps.view.INITIAL_ZOOM
@@ -134,6 +140,11 @@ fun ActivityDetailScreen(
                     addProperty("id", id)
                 })
         )
+    }
+
+    LaunchedEffect(uiState) {
+        if (uiState is ActivityDetailState.Deleted)
+            navController.popBackStack()
     }
 
     LaunchedEffect(true) {
@@ -247,8 +258,8 @@ fun ActivityDetailScreen(
                                     )
                                 }
                                 ActivityActionDropdown(
-                                    handleDelete = {},
-                                    handleEdit = {}
+                                    handleDelete = { viewModel.deleteActivity() },
+                                    handleEdit = { viewModel.openEditView() }
                                 )
                             }
                         }
@@ -342,6 +353,8 @@ fun ActivityDetailScreen(
                                     )
                                 }
                             }
+
+                            else -> {}
                         }
                     }
                 }
@@ -377,6 +390,40 @@ fun ActivityDetailScreen(
                 )
             }
         }
+    }
+
+    AnimatedVisibility(
+        uiState == ActivityDetailState.Edit,
+        enter = slideInVertically(
+            initialOffsetY = { it }
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it }
+        )
+    ) {
+        ActivityFormView(
+            "Edit Activity",
+            "DONE",
+            mode = ActivityFormMode.Update(
+                activity = if (item != null) {
+                    Activity(
+                        id = item!!.id,
+                        mapImage = item!!.mapImage,
+                        images = item!!.images.map { it.toString() },
+                        name = item!!.name,
+                        description = item!!.description,
+                        sport = item!!.sport,
+                        rpe = item!!.rpe.toInt(),
+                    )
+                } else Activity(),
+                onUpdate = { dto, sport -> viewModel.updateActivity(dto, sport) },
+                onDiscard = {
+                    viewModel.discardEdit()
+                }
+            ),
+            dismissAction = { viewModel.discardEdit() },
+            isSaving = uiState == ActivityDetailState.Loading,
+        )
     }
 }
 

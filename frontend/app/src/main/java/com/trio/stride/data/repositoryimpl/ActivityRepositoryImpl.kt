@@ -14,7 +14,7 @@ class ActivityRepositoryImpl @Inject constructor(
 ) : ActivityRepository {
     override suspend fun createActivity(request: CreateActivityRequestDTO): Boolean {
         val result = activityApi.createActivity(request)
-        return true
+        return result.data
     }
 
     override suspend fun updateActivity(request: UpdateActivityRequestDto, id: String): Boolean {
@@ -31,5 +31,9 @@ class ActivityRepositoryImpl @Inject constructor(
 
     override suspend fun getActivityDetail(id: String): Response<ActivityDetailInfo> {
         return activityApi.getActivityDetail(id)
+    }
+
+    override suspend fun deleteActivity(id: String): Boolean {
+        return activityApi.deleteActivity(id).data
     }
 }

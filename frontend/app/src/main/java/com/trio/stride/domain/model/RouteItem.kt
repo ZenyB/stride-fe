@@ -4,7 +4,7 @@ data class RouteItem(
     val id: String,
     val sportId: String,
     val name: String,
-    val avgTime: Long,
+    val avgTime: Double,
     val avgDistance: Double,
     val totalTime: Long,
     val location: RouteLocation,

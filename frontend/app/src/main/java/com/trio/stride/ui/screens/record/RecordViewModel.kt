@@ -97,7 +97,8 @@ class RecordViewModel @Inject constructor(
     fun saveActivity(
         createActivityRequestDto: CreateActivityRequestDTO,
         sport: Sport,
-        context: Context
+        context: Context,
+        back: () -> Unit
     ) {
         val realHeartRates =
             if (heartRates.value.all { it == 0 }) emptyList<Int>() else heartRates.value
@@ -113,7 +114,9 @@ class RecordViewModel @Inject constructor(
             requestDto = requestDto.copy(name = generateActivityName(sport))
         }
 
-        setState { currentState.copy(createActivityDto = requestDto) }
+        setState { currentState.copy(createActivityDto = requestDto, isSavingError = false) }
+
+        Log.i("dto", requestDto.toString())
 
         viewModelScope.launch {
             createActivityUseCase.invoke(requestDto).collectLatest { response ->
@@ -133,10 +136,20 @@ class RecordViewModel @Inject constructor(
 
                         Log.i("ACTIVITY_INFO_SAVED", requestDto.toString())
                         recordRepository.end()
+                        back()
                     }
 
                     is Resource.Error -> {
-                        setState { currentState.copy(isLoading = false, isSavingError = true) }
+                        if (response.error.message.toString() == "Failed to invoke private com.trio.stride.base.Resource() with no args") {
+                            setState { currentState.copy(isLoading = false, isSavingError = true) }
+                            val startIntent = Intent(context, RecordService::class.java).apply {
+                                action = RecordService.STOP_RECORDING
+                            }
+                            context.startService(startIntent)
+
+                            recordRepository.end()
+                            back()
+                        }
                     }
                 }
             }

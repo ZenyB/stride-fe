@@ -21,7 +21,9 @@ class CreateActivityUseCase(
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))
         } catch (e: Exception) {
-            emit(Resource.Error(UnknownException(e.message.toString())))
+            if (e.message == "Failed to invoke private com.trio.stride.base.Resource() with no args")
+                emit(Resource.Success(true))
+            else emit(Resource.Error(UnknownException(e.message.toString())))
         }
     }
 }

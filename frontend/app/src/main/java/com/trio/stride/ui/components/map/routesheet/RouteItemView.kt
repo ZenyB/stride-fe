@@ -26,6 +26,7 @@ import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.model.toFormattedString
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
+import com.trio.stride.ui.utils.formatKmDistance
 
 @Composable
 fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -65,7 +66,7 @@ fun RouteItemView(item: RouteItem, onClick: () -> Unit, modifier: Modifier = Mod
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                "${item.avgDistance} km • ${formatDuration(item.avgTime)}",
+                "${formatKmDistance(item.avgDistance)} km • ${formatDuration(item.avgTime.toLong())}",
                 style = StrideTheme.typography.bodySmall
                     .copy(fontWeight = FontWeight.Light),
                 color = StrideTheme.colors.gray600,

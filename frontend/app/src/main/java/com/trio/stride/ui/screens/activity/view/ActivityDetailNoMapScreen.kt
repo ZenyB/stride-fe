@@ -1,5 +1,8 @@
 package com.trio.stride.ui.screens.activity.view
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,15 +23,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.trio.stride.R
+import com.trio.stride.domain.model.Activity
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.LoadingSmall
+import com.trio.stride.ui.components.activity.detail.ActivityActionDropdown
 import com.trio.stride.ui.components.activity.detail.ActivityDetailView
+import com.trio.stride.ui.screens.activity.detail.ActivityFormMode
+import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.theme.StrideTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,24 +77,19 @@ fun ActivityDetailNoMapScreen(
                         modifier = Modifier,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        IconButton(
-                            onClick = {
-                            },
-                            modifier = Modifier
-                                .background(
-                                    color = StrideTheme.colors.white,
-                                    shape = CircleShape
-                                )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ellipsis_more),
-                                contentDescription = "Close Sheet"
+                        if (uiState is ActivityDetailState.Loading || uiState is ActivityDetailState.Error) {
+                            LoadingSmall()
+                        } else {
+                            ActivityActionDropdown(
+                                handleDelete = { viewModel.deleteActivity() },
+                                handleEdit = { viewModel.openEditView() }
                             )
                         }
                     }
                 }
             )
-        }) { padding ->
+        },
+    ) { padding ->
         Column(modifier = Modifier.padding(top = padding.calculateTopPadding())) {
             when (uiState) {
                 is ActivityDetailState.Loading -> {
@@ -121,9 +121,44 @@ fun ActivityDetailNoMapScreen(
                         )
                     }
                 }
+
+                else -> {}
             }
         }
     }
 
+    AnimatedVisibility(
+        uiState == ActivityDetailState.Edit,
+        enter = slideInVertically(
+            initialOffsetY = { it }
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it }
+        )
+    ) {
+        ActivityFormView(
+            "Edit Activity",
+            "DONE",
+            mode = ActivityFormMode.Update(
+                activity = if (item != null) {
+                    Activity(
+                        id = item!!.id,
+                        mapImage = item!!.mapImage,
+                        images = item!!.images.map { it.toString() },
+                        name = item!!.name,
+                        description = item!!.description,
+                        sport = item!!.sport,
+                        rpe = item!!.rpe.toInt(),
+                    )
+                } else Activity(),
+                onUpdate = { dto, sport -> viewModel.updateActivity(dto, sport) },
+                onDiscard = {
+                    viewModel.discardEdit()
+                }
+            ),
+            dismissAction = { viewModel.discardEdit() },
+            isSaving = uiState == ActivityDetailState.Loading,
+        )
+    }
 }
 
