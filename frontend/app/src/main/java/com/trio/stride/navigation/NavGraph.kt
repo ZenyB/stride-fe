@@ -3,9 +3,11 @@ package com.trio.stride.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.trio.stride.ui.screens.activity.ActivityMainTabScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailNoMapScreen
@@ -114,7 +116,12 @@ fun NavGraphBuilder.mainAppGraph(
             })
         }
         composable(Screen.BottomNavScreen.Maps.route) {
-            ViewMapScreen(navController)
+            ViewMapScreen(navController, startRecord = { geometry ->
+                navController.navigate("${Screen.BottomNavScreen.Record.route}?geometry=$geometry") {
+                    popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
+                    launchSingleTop = true
+                }
+            })
         }
 
         composable(Screen.BottomNavScreen.Search.route) {
@@ -131,7 +138,14 @@ fun NavGraphBuilder.mainAppGraph(
                 handleBottomBarVisibility = { handleBottomBarVisibility(it) })
         }
 
-        composable(Screen.BottomNavScreen.Record.route) {
+        composable(
+            route = Screen.BottomNavScreen.Record.route + "?geometry={geometry}",
+            arguments = listOf(navArgument("geometry") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) {
             RecordScreen(back = { navController.popBackStack() })
         }
 

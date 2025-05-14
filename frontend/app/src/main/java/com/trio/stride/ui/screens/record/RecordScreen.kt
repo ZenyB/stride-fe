@@ -92,6 +92,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RecordScreen(
     back: () -> Unit,
+    geometry: String? = null,
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     viewModel: RecordViewModel = hiltViewModel(),
 ) {
@@ -126,7 +127,7 @@ fun RecordScreen(
     val gpsStatus by viewModel.gpsStatus.collectAsStateWithLifecycle()
     val startPoint by viewModel.startPoint.collectAsStateWithLifecycle()
     val mapView by viewModel.mapView.collectAsStateWithLifecycle()
-    val mapViewportState = viewModel.mapViewportState
+    val mapViewportState = viewModel.mapViewportState.collectAsStateWithLifecycle()
     val bleConnectionState by viewModel.connectionState.collectAsStateWithLifecycle()
     val devices by viewModel.scannedDevices.collectAsStateWithLifecycle()
     val isBluetoothOn by viewModel.isBluetoothOn.collectAsStateWithLifecycle()
@@ -154,6 +155,7 @@ fun RecordScreen(
     }
 
     LaunchedEffect(Unit) {
+
         focusToUser(mapView)
     }
 
@@ -496,15 +498,19 @@ fun RecordScreen(
                         .fillMaxSize()
                         .padding(top = padding.calculateTopPadding())
                         .padding(bottom = padding.calculateBottomPadding()),
-                    mapViewportState = mapViewportState,
+                    mapViewportState = mapViewportState.value,
                     style = { MapStyle(style = mapStyle) },
                 ) {
                     MapEffect(Unit) { mv ->
                         viewModel.setMapView(mv)
-                        viewModel.drawRoute(mv, emptyList())
                         viewModel.reloadMapStyle()
                         viewModel.enableUserLocation()
                     }
+
+                    MapEffect(mapStyle) {
+                        viewModel.reloadMapStyle()
+                    }
+
                     if (startPoint != null) {
                         CircleAnnotation(point = startPoint!!) {
                             circleRadius = 5.0
@@ -660,7 +666,7 @@ fun RecordScreen(
             "SAVE",
             mode = ActivityFormMode.Create(
                 sportFromRecord = currentSport,
-                onCreate = { viewModel.saveActivity(it, context) },
+                onCreate = { dto, sport -> viewModel.saveActivity(dto, sport, context) },
                 onDiscard = {
                     viewModel.discard(context)
                     back()

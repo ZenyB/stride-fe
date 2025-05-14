@@ -4,15 +4,12 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
-import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.layers.generated.lineLayer
-import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
 import com.trio.stride.data.ble.HeartRateReceiveManager
@@ -40,6 +37,7 @@ class RecordViewModel @Inject constructor(
     private val heartRateReceiveManager: HeartRateReceiveManager,
     private val sportManager: SportManager,
     private val createActivityUseCase: CreateActivityUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel<RecordViewModel.RecordViewState>() {
 
     val distance: StateFlow<Double> = recordRepository.distance
@@ -62,37 +60,57 @@ class RecordViewModel @Inject constructor(
     val mapView: StateFlow<MapView?> = recordRepository.mapView
     val locationPoints: StateFlow<List<Point>> = recordRepository.routePoints
     val coordinates: StateFlow<List<Coordinate>> = recordRepository.coordinates
-    val mapViewportState: MapViewportState = recordRepository.mapViewportState
+    val mapViewportState: StateFlow<MapViewportState> = recordRepository.mapViewportState
 
     val categories: StateFlow<List<Category>> = sportManager.categories
     val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = sportManager.sportsByCategory
     val currentSport: StateFlow<Sport?> = sportManager.currentSport
 
-    override fun createInitialState(): RecordViewState = RecordViewState()
+    val geometry: String? = savedStateHandle["geometry"]
 
-    private fun generateActivityName(): String {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    init {
+        if (!geometry.equals("null")) {
+            geometry?.let {
+                val coords =
+                    LineString.fromPolyline(it, 5).coordinates()
 
-        return when (hour) {
-            in 5..10 -> "Morning ${currentSport.value?.name}"
-            in 11..13 -> "Midday ${currentSport.value?.name}"
-            in 14..17 -> "Afternoon ${currentSport.value?.name}"
-            in 18..20 -> "Evening ${currentSport.value?.name}"
-            in 21..23 -> "Night ${currentSport.value?.name}"
-            else -> "Early morning ${currentSport.value?.name}"
+                recordRepository.updateRecommendRoute(coords)
+            }
         }
     }
 
-    fun saveActivity(createActivityRequestDto: CreateActivityRequestDTO, context: Context) {
+    override fun createInitialState(): RecordViewState = RecordViewState()
+
+    private fun generateActivityName(sport: Sport): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+
+        return when (hour) {
+            in 5..10 -> "Morning ${sport.name}"
+            in 11..13 -> "Midday ${sport.name}"
+            in 14..17 -> "Afternoon ${sport.name}"
+            in 18..20 -> "Evening ${sport.name}"
+            in 21..23 -> "Night ${sport.name}"
+            else -> "Early morning ${sport.name}"
+        }
+    }
+
+    fun saveActivity(
+        createActivityRequestDto: CreateActivityRequestDTO,
+        sport: Sport,
+        context: Context
+    ) {
+        val realHeartRates =
+            if (heartRates.value.all { it == 0 }) emptyList<Int>() else heartRates.value
         var requestDto = createActivityRequestDto.copy(
             movingTimeSeconds = (time.value / 1000).toInt(),
             elapsedTimeSeconds = (elapsedTime.value / 1000).toInt(),
             coordinates = coordinates.value,
-            heartRates = heartRates.value,
+            heartRates = realHeartRates,
+            sportId = sport.id
         )
 
         if (requestDto.name.isBlank()) {
-            requestDto = requestDto.copy(name = generateActivityName())
+            requestDto = requestDto.copy(name = generateActivityName(sport))
         }
 
         setState { currentState.copy(createActivityDto = requestDto) }
@@ -152,26 +170,6 @@ class RecordViewModel @Inject constructor(
                     }
                 }
             }
-        }
-    }
-
-    fun drawRoute(mapView: MapView, routeCoordinates: List<Point>) {
-        val mapboxMap = mapView.mapboxMap
-        val lineString = LineString.fromLngLats(routeCoordinates)
-
-        mapboxMap.getStyle { style ->
-            val sourceId = "default-route-source"
-            val layerId = "default-route-layer"
-            val source = geoJsonSource(sourceId) {
-                geometry(lineString)
-            }
-            style.addSource(source)
-
-            val layer = lineLayer(layerId, sourceId) {
-                lineColor("#e01659")
-                lineWidth(4.0)
-            }
-            style.addLayer(layer)
         }
     }
 

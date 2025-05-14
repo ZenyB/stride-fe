@@ -10,6 +10,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.trio.stride.base.BaseViewModel
+import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.model.Sport
@@ -26,7 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewMapViewModel @Inject constructor(
     private val getRecommendedRouteUseCase: GetRecommendedRouteUseCase,
-    private val saveRouteFromActivityUseCase: SaveRouteFromActivityUseCase
+    private val saveRouteFromActivityUseCase: SaveRouteFromActivityUseCase,
+    private val sportManager: SportManager,
 ) : BaseViewModel<ViewMapState>() {
     var currentDetailIndex by mutableIntStateOf(-1)
 
@@ -75,13 +77,13 @@ class ViewMapViewModel @Inject constructor(
             val result =
                 getRecommendedRouteUseCase(
                     request =
-                    RecommendRouteRequest(
-                        sportId = selectedSport.id,
-                        latitude = selectedPoint?.latitude() ?: 10.873953237840828,
-                        longitude = selectedPoint?.longitude() ?: 106.74647540531987,
-                        limit = 5,
-                        sportMapType = SportMapType.CYCLING
-                    )
+                        RecommendRouteRequest(
+                            sportId = selectedSport.id,
+                            latitude = selectedPoint?.latitude() ?: 10.873953237840828,
+                            longitude = selectedPoint?.longitude() ?: 106.74647540531987,
+                            limit = 5,
+                            sportMapType = SportMapType.CYCLING
+                        )
                 )
             result
                 .onSuccess { data ->
@@ -92,6 +94,10 @@ class ViewMapViewModel @Inject constructor(
                     setState { ViewMapState.GetRouteError(it.message ?: "An error occurred") }
                 }
         }
+    }
+
+    fun setCurrentSport(sport: Sport?) {
+        sport?.let { sportManager.updateCurrentSport(sport) }
     }
 
 

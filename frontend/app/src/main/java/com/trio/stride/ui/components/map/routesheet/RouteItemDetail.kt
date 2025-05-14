@@ -34,7 +34,7 @@ import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
 
 @Composable
-fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit) {
+fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -129,7 +129,7 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(32.dp))
             IconButton(
-                onClick = {},
+                onClick = { startRecord(item.geometry) },
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = StrideTheme.colors.gray200
                 ),

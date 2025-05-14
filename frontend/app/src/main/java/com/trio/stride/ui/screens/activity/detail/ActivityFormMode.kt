@@ -8,13 +8,13 @@ import com.trio.stride.domain.model.Sport
 sealed class ActivityFormMode {
     data class Create(
         val sportFromRecord: Sport?,
-        val onCreate: (CreateActivityRequestDTO) -> Unit,
+        val onCreate: (CreateActivityRequestDTO, Sport) -> Unit,
         val onDiscard: () -> Unit
     ) : ActivityFormMode()
 
     data class Update(
         val activity: Activity,
-        val onUpdate: (UpdateActivityRequestDto) -> Unit,
+        val onUpdate: (UpdateActivityRequestDto, Sport) -> Unit,
         val onDiscard: () -> Unit,
     ) : ActivityFormMode()
 }

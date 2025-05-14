@@ -158,11 +158,11 @@ fun ActivityFormView(
                             viewModel.uploadImages(previewImage, context, onFinish = {
                                 when (mode) {
                                     is ActivityFormMode.Create -> {
-                                        mode.onCreate(state.createActivityDto)
+                                        mode.onCreate(state.createActivityDto, selectedSport)
                                     }
 
                                     is ActivityFormMode.Update -> {
-                                        mode.onUpdate(state.updateActivityDto)
+                                        mode.onUpdate(state.updateActivityDto, selectedSport)
                                     }
                                 }
                             })

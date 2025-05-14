@@ -3,8 +3,10 @@ package com.trio.stride.data.repositoryimpl
 import android.content.Context
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.addLayerAbove
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.sources.addSource
@@ -14,8 +16,10 @@ import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.plugin.PuckBearing
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.util.isEmpty
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.remote.dto.Coordinate
+import com.trio.stride.ui.screens.maps.view.ZOOM
 import com.trio.stride.ui.screens.record.RecordViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,20 +71,23 @@ class RecordRepository @Inject constructor(
     private val _routePoints = MutableStateFlow(emptyList<Point>())
     val routePoints: StateFlow<List<Point>> = _routePoints
 
+    private val _recommendRoutePoints = MutableStateFlow(emptyList<Point>())
+    val recommendRoutePoints: StateFlow<List<Point>> = _recommendRoutePoints
+
     private val _coordinates = MutableStateFlow(emptyList<Coordinate>())
     val coordinates: StateFlow<List<Coordinate>> = _coordinates
 
     private val _mapView = MutableStateFlow<MapView?>(null)
     val mapView: StateFlow<MapView?> = _mapView
 
-    private val _mapViewportState = MapViewportState().apply {
+    private val _mapViewportState = MutableStateFlow(MapViewportState().apply {
         setCameraOptions {
             center(Point.fromLngLat(106.80259579, 10.87007182)) //UIT
-            zoom(14.0)
+            zoom(ZOOM)
             pitch(0.0)
         }
-    }
-    val mapViewportState: MapViewportState = _mapViewportState
+    })
+    val mapViewportState: StateFlow<MapViewportState> = _mapViewportState
 
     fun updateConnectionState(newState: ConnectionState) {
         _connectionState.value = newState
@@ -130,6 +137,11 @@ class RecordRepository @Inject constructor(
         _coordinates.value = newValue
     }
 
+    fun updateRecommendRoute(newValue: List<Point>) {
+        _recommendRoutePoints.value = newValue
+        drawRecommendRoute()
+    }
+
     fun startRecord(startPoint: Point) {
         _startPoint.value = startPoint
         _recordStatus.value = RecordViewModel.RecordStatus.RECORDING
@@ -159,11 +171,54 @@ class RecordRepository @Inject constructor(
         _elapsedTime.value = 0
         _startPoint.value = null
         _routePoints.value = emptyList()
+        _recommendRoutePoints.value = emptyList()
         _heartRates.value = emptyList()
-        mapView.value?.let { updatePolyline(it, emptyList()) }
+        mapView.value?.let { updatePolyline() }
     }
 
-    fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    private fun drawRecommendRoute() {
+        val mapboxMap = mapView.value?.mapboxMap
+        val lineString = LineString.fromLngLats(recommendRoutePoints.value)
+
+        mapboxMap?.getStyle { style ->
+            val sourceId = "recommend-route-source"
+            val layerId = "recommend-route-layer"
+
+            val source = style.getSourceAs<GeoJsonSource>(sourceId)
+            if (source != null) {
+                source.geometry(lineString)
+            } else {
+                val newSource = geoJsonSource(sourceId) {
+                    geometry(lineString)
+                }
+                style.addSource(newSource)
+
+                val layer = lineLayer(layerId, sourceId) {
+                    lineColor("#2571db")
+                    lineWidth(4.0)
+                }
+                style.addLayer(layer)
+            }
+        }
+
+        if (recommendRoutePoints.value.isNotEmpty()) {
+            val options = CameraOptions.Builder().center(recommendRoutePoints.value[0]).build()
+            mapView.value?.let { safeMapView ->
+                safeMapView.mapboxMap.cameraForCoordinates(
+                    recommendRoutePoints.value,
+                    options, null, ZOOM, null
+                ) { result ->
+                    if (result.isEmpty) {
+                        //TODO: error
+                    } else {
+                        mapViewportState.value.flyTo(result)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val R = 6371000.0 // Earth radius in meters
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
@@ -177,13 +232,13 @@ class RecordRepository @Inject constructor(
         return R * c
     }
 
-    private fun updatePolyline(mapView: MapView, points: List<Point>) {
-        if (points.size < 2) return
-        val lineString = LineString.fromLngLats(points)
+    private fun updatePolyline() {
+        if (routePoints.value.size < 2) return
+        val lineString = LineString.fromLngLats(routePoints.value)
 
-        val map = mapView.mapboxMap
+        val map = mapView.value?.mapboxMap
 
-        map.getStyle { style ->
+        map?.getStyle { style ->
             val sourceId = "live-route-source"
             val layerId = "live-route-layer"
 
@@ -201,14 +256,14 @@ class RecordRepository @Inject constructor(
                         lineColor("#D10A46")
                         lineWidth(4.0)
                     },
-                    "default-route-layer"
+                    "recommend-route-layer"
                 )
             }
         }
     }
 
     private fun shouldAddPoint(newPoint: Point): Boolean {
-        var points = routePoints.value
+        val points = routePoints.value
         if (points.isEmpty()) return true
 
         val lastPoint = points.last()
@@ -224,10 +279,10 @@ class RecordRepository @Inject constructor(
 
     fun addPoints(point: Point) {
         if (shouldAddPoint(point) && mapView.value != null && recordStatus.value == RecordViewModel.RecordStatus.RECORDING) {
-            var newRoutePoints = routePoints.value.toMutableList()
+            val newRoutePoints = routePoints.value.toMutableList()
             newRoutePoints.add(point)
 
-            var newCoordinates = coordinates.value.toMutableList()
+            val newCoordinates = coordinates.value.toMutableList()
             newCoordinates.add(
                 Coordinate(
                     coordinate = listOf(point.longitude(), point.latitude()),
@@ -235,7 +290,7 @@ class RecordRepository @Inject constructor(
                 )
             )
 
-            var newHeartRates = heartRates.value.toMutableList()
+            val newHeartRates = heartRates.value.toMutableList()
             newHeartRates.add(heartRate.value)
 
             var newDistance = distance.value
@@ -254,7 +309,7 @@ class RecordRepository @Inject constructor(
             _coordinates.value = newCoordinates
             _heartRates.value = newHeartRates
 
-            updatePolyline(mapView.value!!, routePoints.value)
+            updatePolyline()
         }
     }
 
@@ -268,8 +323,7 @@ class RecordRepository @Inject constructor(
     }
 
     fun reloadMapStyle() {
-        mapView.value?.let { mapView ->
-            updatePolyline(mapView, routePoints.value)
-        }
+        drawRecommendRoute()
+        updatePolyline()
     }
 }
