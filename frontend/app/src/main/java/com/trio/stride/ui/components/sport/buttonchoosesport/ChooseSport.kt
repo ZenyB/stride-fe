@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -121,6 +122,7 @@ fun ChooseSportInActivity(
     sport: Sport,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    textStyle: TextStyle? = null
 ) {
     Row(
         modifier = modifier
@@ -158,7 +160,7 @@ fun ChooseSportInActivity(
                 tint = StrideTheme.colorScheme.onBackground
             )
             Spacer(Modifier.width(8.dp))
-            Text(sport.name, style = StrideTheme.typography.labelMedium)
+            Text(sport.name, style = textStyle ?: StrideTheme.typography.labelMedium)
         }
         IconButton(
             modifier = Modifier.padding(end = 8.dp),
