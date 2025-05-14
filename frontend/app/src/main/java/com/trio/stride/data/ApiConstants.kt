@@ -22,4 +22,6 @@ object ApiConstants {
     const val FILE = "files"
     const val ACTIVITY_LIST = "activities/users/profile"
     const val STRIDE_ROUTES = "stride-routes/"
+    const val GOALS = "goals"
+    const val GOALS_LIST = "$GOALS/profile"
 }

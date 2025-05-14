@@ -4,6 +4,7 @@ import com.trio.stride.data.repositoryimpl.ActivityRepositoryImpl
 import com.trio.stride.data.repositoryimpl.AuthRepositoryImpl
 import com.trio.stride.data.repositoryimpl.CategoryRepositoryImpl
 import com.trio.stride.data.repositoryimpl.FileRepositoryImpl
+import com.trio.stride.data.repositoryimpl.GoalRepositoryImpl
 import com.trio.stride.data.repositoryimpl.IdentityRepositoryImpl
 import com.trio.stride.data.repositoryimpl.RouteRepositoryImpl
 import com.trio.stride.data.repositoryimpl.SportRepositoryImpl
@@ -12,6 +13,7 @@ import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.FileRepository
+import com.trio.stride.domain.repository.GoalRepository
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.domain.repository.SportRepository
@@ -72,4 +74,10 @@ abstract class RepositoryModule {
     abstract fun bindFileRepository(
         fileRepositoryImpl: FileRepositoryImpl
     ): FileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGoalRepository(
+        goalRepositoryImpl: GoalRepositoryImpl
+    ): GoalRepository
 }
