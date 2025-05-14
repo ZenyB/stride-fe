@@ -69,6 +69,7 @@ import coil.request.ImageRequest
 import com.trio.stride.R
 import com.trio.stride.data.mapper.toRpeString
 import com.trio.stride.ui.components.CustomLeftTopAppBar
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
 import com.trio.stride.ui.components.dialog.StrideDialog
@@ -481,6 +482,10 @@ fun ActivityFormView(
         },
         onValueChange = { viewModel.updateFeelingRate(it) }
     )
+
+    if (state.isUploadImage || state.isLoading) {
+        Loading()
+    }
 }
 
 @Composable

@@ -148,7 +148,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             GoogleSignInButton { token ->
-                token.let { loginViewModel.loginWithGoogle(token.toString()) }
+                token?.let { loginViewModel.loginWithGoogle(token.toString()) }
             }
 
             Spacer(Modifier.height(12.dp))

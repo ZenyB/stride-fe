@@ -149,6 +149,8 @@ class RecordViewModel @Inject constructor(
 
                             recordRepository.end()
                             back()
+                        } else {
+                            setState { currentState.copy(isLoading = false, isSavingError = true) }
                         }
                     }
                 }

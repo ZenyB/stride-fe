@@ -266,6 +266,7 @@ fun ProfileScreen(
                     BirthDayTextField(
                         value = state.userInfo.dob,
                         initialDate = state.userInfo.dob.toDate(),
+                        label = null,
                         onDateChange = { viewModel.updateDob(it) },
                         colors = textFieldColor,
                         readOnly = !state.isEditProfile,
@@ -279,6 +280,7 @@ fun ProfileScreen(
                 ProfileColumnContainer("Gender") {
                     GenderTextField(
                         value = state.userInfo.male.toGender(),
+                        label = null,
                         colors = textFieldColor,
                         readOnly = !state.isEditProfile,
                         enable = state.isEditProfile,

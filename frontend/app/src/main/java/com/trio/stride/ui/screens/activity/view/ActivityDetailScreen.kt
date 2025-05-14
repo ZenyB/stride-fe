@@ -113,6 +113,8 @@ fun ActivityDetailScreen(
     var polylineManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
     var mapStyle by remember { mutableStateOf(Style.MAPBOX_STREETS) }
     var showStyleSheet by remember { mutableStateOf(false) }
+    var showDiscardEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val headerHeight =
         if (sheetState.currentValue != SheetValue.Expanded || sheetState.targetValue == SheetValue.PartiallyExpanded) {
@@ -172,6 +174,26 @@ fun ActivityDetailScreen(
             }
         }
     }
+
+    StrideDialog(
+        visible = showDiscardEditDialog,
+        title = "Discard Unsaved Change",
+        subtitle = "Your changes will not be saved.",
+        dismiss = { showDiscardEditDialog = false },
+        destructiveText = "Discard",
+        destructive = { viewModel.discardEdit() },
+        dismissText = "Cancel"
+    )
+
+    StrideDialog(
+        visible = showDeleteDialog,
+        title = "Delete Activity",
+        subtitle = "Your activity will be permanently deleted.",
+        dismiss = { showDeleteDialog = false },
+        destructiveText = "Discard",
+        destructive = { viewModel.deleteActivity() },
+        dismissText = "Cancel"
+    )
 
     when (saveRouteState) {
         is SaveRouteState.ErrorSaving -> {
@@ -258,7 +280,7 @@ fun ActivityDetailScreen(
                                     )
                                 }
                                 ActivityActionDropdown(
-                                    handleDelete = { viewModel.deleteActivity() },
+                                    handleDelete = { showDeleteDialog = true },
                                     handleEdit = { viewModel.openEditView() }
                                 )
                             }
@@ -418,10 +440,10 @@ fun ActivityDetailScreen(
                 } else Activity(),
                 onUpdate = { dto, sport -> viewModel.updateActivity(dto, sport) },
                 onDiscard = {
-                    viewModel.discardEdit()
+                    showDiscardEditDialog = true
                 }
             ),
-            dismissAction = { viewModel.discardEdit() },
+            dismissAction = { showDiscardEditDialog = true },
             isSaving = uiState == ActivityDetailState.Loading,
         )
     }

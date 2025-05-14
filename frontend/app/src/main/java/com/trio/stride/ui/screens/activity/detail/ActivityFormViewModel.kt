@@ -123,7 +123,7 @@ class ActivityFormViewModel @Inject constructor(
         setState {
             currentState.copy(
                 sport = value,
-                updateActivityDto = updateActivityDto.copy(sportId = value.id),
+//                updateActivityDto = updateActivityDto.copy(sportId = value.id),
                 createActivityDto = createActivityDto.copy(sportId = value.id)
             )
         }
@@ -166,7 +166,7 @@ class ActivityFormViewModel @Inject constructor(
                     currentState.copy(
                         activity = mode.activity,
                         updateActivityDto = UpdateActivityRequestDto(
-                            sportId = mode.activity.sport.id,
+//                            sportId = mode.activity.sport.id,
                             rpe = mode.activity.rpe,
                             name = mode.activity.name,
                             description = mode.activity.description,

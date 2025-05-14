@@ -62,15 +62,15 @@ class ActivityDetailViewModel @Inject constructor(
             return
         }
 
-        val newDto = dto.copy(
-            sportId = sport.id
-        )
+//        val newDto = dto.copy(
+//            sportId = sport.id
+//        )
 
         item.value?.let {
             viewModelScope.launch {
                 updateActivityUseCase.invoke(
                     it.id,
-                    newDto
+                    dto
                 ).collectLatest { response ->
                     when (response) {
                         is Resource.Loading -> setState { ActivityDetailState.Loading }

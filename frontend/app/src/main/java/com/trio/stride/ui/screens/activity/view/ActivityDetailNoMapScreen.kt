@@ -21,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.LoadingSmall
 import com.trio.stride.ui.components.activity.detail.ActivityActionDropdown
 import com.trio.stride.ui.components.activity.detail.ActivityDetailView
+import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.screens.activity.detail.ActivityFormMode
 import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.theme.StrideTheme
@@ -45,10 +49,32 @@ fun ActivityDetailNoMapScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val item by viewModel.item.collectAsStateWithLifecycle()
+    var showDiscardEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
         viewModel.getActivityDetail(id)
     }
+
+    StrideDialog(
+        visible = showDiscardEditDialog,
+        title = "Discard Unsaved Change",
+        subtitle = "Your changes will not be saved.",
+        dismiss = { showDiscardEditDialog = false },
+        destructiveText = "Discard",
+        destructive = { viewModel.discardEdit() },
+        dismissText = "Cancel"
+    )
+
+    StrideDialog(
+        visible = showDeleteDialog,
+        title = "Delete Activity",
+        subtitle = "Your activity will be permanently deleted.",
+        dismiss = { showDeleteDialog = false },
+        destructiveText = "Discard",
+        destructive = { viewModel.deleteActivity() },
+        dismissText = "Cancel"
+    )
 
     Scaffold(
         topBar = {
@@ -81,7 +107,7 @@ fun ActivityDetailNoMapScreen(
                             LoadingSmall()
                         } else {
                             ActivityActionDropdown(
-                                handleDelete = { viewModel.deleteActivity() },
+                                handleDelete = { showDeleteDialog = true },
                                 handleEdit = { viewModel.openEditView() }
                             )
                         }
@@ -153,10 +179,10 @@ fun ActivityDetailNoMapScreen(
                 } else Activity(),
                 onUpdate = { dto, sport -> viewModel.updateActivity(dto, sport) },
                 onDiscard = {
-                    viewModel.discardEdit()
+                    showDiscardEditDialog = true
                 }
             ),
-            dismissAction = { viewModel.discardEdit() },
+            dismissAction = { showDiscardEditDialog = true },
             isSaving = uiState == ActivityDetailState.Loading,
         )
     }

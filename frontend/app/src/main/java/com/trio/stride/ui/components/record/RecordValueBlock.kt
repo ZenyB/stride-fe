@@ -14,7 +14,9 @@ import com.trio.stride.ui.theme.StrideTheme
 
 enum class RecordValueBlockType {
     Large,
-    Small
+    Small,
+    OnMapSmall,
+    OnMapLarge
 }
 
 @Composable
@@ -25,32 +27,54 @@ fun RecordValueBlock(
     type: RecordValueBlockType = RecordValueBlockType.Small,
     unit: String? = null,
 ) {
+    val textSpacing = when (type) {
+        RecordValueBlockType.Small, RecordValueBlockType.Large -> 16.dp
+        else -> 8.dp
+    }
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(textSpacing),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(16.dp))
+        val newTitle =
+            if ((type == RecordValueBlockType.OnMapSmall || type == RecordValueBlockType.OnMapLarge) && unit != null)
+                "${title.uppercase()} (${unit.lowercase()})"
+            else title.uppercase()
+        when (type) {
+            RecordValueBlockType.Small, RecordValueBlockType.Large -> Spacer(Modifier.height(16.dp))
+            else -> {}
+        }
         Text(
-            title.uppercase(),
+            newTitle,
             style = StrideTheme.typography.labelLarge,
             color = StrideTheme.colors.gray
         )
         Text(
             value ?: "--",
-            style = if (type == RecordValueBlockType.Large)
-                StrideTheme.typography.displayLarge.copy(fontSize = 120.sp)
-            else
-                StrideTheme.typography.displaySmall.copy(fontSize = 60.sp),
+            style = when (type) {
+                RecordValueBlockType.Large -> StrideTheme.typography.displayLarge.copy(fontSize = 120.sp)
+                RecordValueBlockType.Small -> StrideTheme.typography.displaySmall.copy(fontSize = 60.sp)
+                RecordValueBlockType.OnMapLarge -> StrideTheme.typography.headlineLarge
+                RecordValueBlockType.OnMapSmall -> StrideTheme.typography.headlineSmall
+            },
             color = StrideTheme.colorScheme.onBackground
         )
-        unit?.let { it ->
-            Text(
-                it,
-                style = StrideTheme.typography.labelLarge,
-                color = StrideTheme.colorScheme.onBackground
-            )
+
+        when (type) {
+            RecordValueBlockType.Small, RecordValueBlockType.Large ->
+                unit?.let { unit ->
+                    Text(
+                        unit,
+                        style = StrideTheme.typography.labelLarge,
+                        color = StrideTheme.colorScheme.onBackground
+                    )
+                }
+
+            else -> {}
         }
-        Spacer(Modifier.height(16.dp))
+        when (type) {
+            RecordValueBlockType.Small, RecordValueBlockType.Large -> Spacer(Modifier.height(16.dp))
+            else -> {}
+        }
     }
 }

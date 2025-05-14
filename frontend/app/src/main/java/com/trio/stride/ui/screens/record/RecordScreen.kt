@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -92,7 +95,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun RecordScreen(
     back: () -> Unit,
-    geometry: String? = null,
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     viewModel: RecordViewModel = hiltViewModel(),
 ) {
@@ -142,15 +144,19 @@ fun RecordScreen(
     })
 
     BackHandler {
-        val isNotDefault = screenStatus != RecordViewModel.ScreenStatus.DEFAULT
-        val isSaving = screenStatus == RecordViewModel.ScreenStatus.SAVING
-        if (isNotDefault) {
-            if (isSaving)
-                viewModel.handleDismissSaveActivity(context)
-            else
-                viewModel.handleBackToDefault()
+        if (!state.isLoading) {
+            val isNotDefault = screenStatus != RecordViewModel.ScreenStatus.DEFAULT
+            val isSaving = screenStatus == RecordViewModel.ScreenStatus.SAVING
+            if (isNotDefault) {
+                if (isSaving)
+                    viewModel.handleDismissSaveActivity(context)
+                else
+                    viewModel.handleBackToDefault()
+            } else {
+                back()
+            }
         } else {
-            back()
+
         }
     }
 
@@ -163,15 +169,15 @@ fun RecordScreen(
         Loading()
     }
 
-//    StrideDialog(
-//        visible = state.isSavingError,
-//        title = "Save activity error",
-//        description = "There are some error, try again later.",
-//        dismiss = { viewModel.resetSaveActivityError() },
-//        dismissText = "Cancel",
-//        doneText = "Try Again",
-//        done = { viewModel.saveAgain(context) },
-//    )
+    StrideDialog(
+        visible = state.isSavingError,
+        title = "Save activity error",
+        description = "There are some error, try again later.",
+        dismiss = { viewModel.resetSaveActivityError() },
+        dismissText = "Cancel",
+        doneText = "Try Again",
+        done = { viewModel.saveAgain(context) },
+    )
 
     StrideDialog(
         visible = state.isNotEnoughDataToSave,
@@ -190,9 +196,12 @@ fun RecordScreen(
     )
 
     Scaffold(
+        containerColor = StrideTheme.colors.transparent,
         topBar = {
             AnimatedVisibility(
-                screenStatus == RecordViewModel.ScreenStatus.DEFAULT,
+                screenStatus == RecordViewModel.ScreenStatus.DEFAULT
+                        || (screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                        && recordStatus == RecordViewModel.RecordStatus.STOP),
                 enter = slideInVertically(
                     initialOffsetY = { -it }
                 ),
@@ -256,12 +265,22 @@ fun RecordScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(StrideTheme.colorScheme.surface)
-                    .padding(bottom = 4.dp),
+                    .padding(bottom = 4.dp)
+                    .background(
+                        StrideTheme.colorScheme.surface,
+                        RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    )
+                    .animateContentSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if ((recordStatus == RecordViewModel.RecordStatus.NONE || recordStatus == RecordViewModel.RecordStatus.STOP) && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
+                if (
+                    (recordStatus == RecordViewModel.RecordStatus.STOP
+                            && (screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                            || screenStatus == RecordViewModel.ScreenStatus.DEFAULT))
+                    || (recordStatus == RecordViewModel.RecordStatus.NONE
+                            && screenStatus == RecordViewModel.ScreenStatus.DEFAULT)
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(0.8f),
@@ -271,9 +290,11 @@ fun RecordScreen(
                         if (recordStatus != RecordViewModel.RecordStatus.STOP && currentSport != null) {
                             ChooseSportIconButton(
                                 modifier = Modifier
+                                    .size(40.dp)
                                     .padding(vertical = 4.dp)
-                                    .background(StrideTheme.colors.transparent),
-                                iconModifier = Modifier.size(40.dp),
+                                    .background(StrideTheme.colors.transparent, CircleShape),
+                                iconModifier = Modifier
+                                    .size(24.dp),
                                 iconImage = currentSport!!.image,
                                 onClick = { showSportBottomSheet = true }
                             )
@@ -370,7 +391,7 @@ fun RecordScreen(
                                         screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                     val showMetricButtonContainerColor =
                                         if (isVisibleMetric)
-                                            StrideTheme.colorScheme.background
+                                            StrideTheme.colorScheme.surface
                                         else
                                             StrideTheme.colorScheme.secondary
                                     val showMetricButtonContentColor =
@@ -425,7 +446,7 @@ fun RecordScreen(
                                     screenStatus == RecordViewModel.ScreenStatus.DETAIL
                                 val showMetricButtonContainerColor =
                                     if (isVisibleMetric)
-                                        StrideTheme.colorScheme.background
+                                        StrideTheme.colorScheme.surface
                                     else
                                         StrideTheme.colorScheme.secondary
                                 val showMetricButtonContentColor =
@@ -468,79 +489,113 @@ fun RecordScreen(
             }
         }
     ) { padding ->
-        RequestLocationPermission(
-            requestCount = permissionRequestCount,
-            onPermissionDenied = {
-                scope.launch {
-                    snackbarHostState.showSnackbar("You need to accept location permissions.")
+        Box(modifier = Modifier.fillMaxSize()) {
+            RequestLocationPermission(
+                requestCount = permissionRequestCount,
+                onPermissionDenied = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("You need to accept location permissions.")
+                    }
+                    showRequestPermissionButton = true
+                },
+                onPermissionReady = {
+                    showRequestPermissionButton = false
+                    showMap = true
                 }
-                showRequestPermissionButton = true
-            },
-            onPermissionReady = {
-                showRequestPermissionButton = false
-                showMap = true
-            }
-        )
+            )
 
-        RequestNotificationPermission(
-            onPermissionGranted = {
-                Log.d("bluetoothScan", "notification permission granted")
-            },
-            onPermissionDenied = {
-                Log.d("bluetoothScan", "notification permission denied")
-            }
-        )
+            RequestNotificationPermission(
+                onPermissionGranted = {
+                    Log.d("bluetoothScan", "notification permission granted")
+                },
+                onPermissionDenied = {
+                    Log.d("bluetoothScan", "notification permission denied")
+                }
+            )
 
-        Box {
-            if (currentSport?.sportMapType != null) {
-                MapboxMap(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(top = padding.calculateTopPadding())
-                        .padding(bottom = padding.calculateBottomPadding()),
-                    mapViewportState = mapViewportState.value,
-                    style = { MapStyle(style = mapStyle) },
+            Box {
+                if (currentSport?.sportMapType != null) {
+                    MapboxMap(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(top = padding.calculateTopPadding())
+                            .padding(bottom = padding.calculateBottomPadding() - 24.dp),
+                        mapViewportState = mapViewportState.value,
+                        style = { MapStyle(style = mapStyle) },
+                    ) {
+                        MapEffect(Unit) { mv ->
+                            viewModel.setMapView(mv)
+                            viewModel.reloadMapStyle()
+                            viewModel.enableUserLocation()
+                        }
+
+                        MapEffect(mapStyle) {
+                            viewModel.reloadMapStyle()
+                        }
+
+                        if (startPoint != null) {
+                            CircleAnnotation(point = startPoint!!) {
+                                circleRadius = 5.0
+                                circleColor = StrideColor.green600
+                                circleStrokeWidth = 1.5
+                                circleStrokeColor = Color(0xffffffff)
+                            }
+                        }
+                    }
+                }
+
+                if ((screenStatus == RecordViewModel.ScreenStatus.DEFAULT
+                            || (screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                            && recordStatus == RecordViewModel.RecordStatus.STOP))
+                    && currentSport?.sportMapType != null
                 ) {
-                    MapEffect(Unit) { mv ->
-                        viewModel.setMapView(mv)
-                        viewModel.reloadMapStyle()
-                        viewModel.enableUserLocation()
-                    }
+                    if (recordStatus == RecordViewModel.RecordStatus.NONE)
+                        GPSStatusMessage(
+                            Modifier.padding(top = padding.calculateTopPadding()),
+                            gpsStatus
+                        )
+                    if (recordStatus == RecordViewModel.RecordStatus.STOP)
+                        StatusMessage(
+                            text = "STOP",
+                            type = StatusMessageType.ERROR,
+                            Modifier.padding(top = padding.calculateTopPadding())
+                        )
+                }
 
-                    MapEffect(mapStyle) {
-                        viewModel.reloadMapStyle()
-                    }
+                if (showRequestPermissionButton) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Column(modifier = Modifier.align(Alignment.Center)) {
+                            Button(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                onClick = {
+                                    permissionRequestCount += 1
+                                }
+                            ) {
+                                Text("Request permission again ($permissionRequestCount)")
+                            }
+                            Button(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                onClick = {
+                                    context.startActivity(
+                                        Intent(
+                                            android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                            Uri.fromParts("package", context.packageName, null)
 
-                    if (startPoint != null) {
-                        CircleAnnotation(point = startPoint!!) {
-                            circleRadius = 5.0
-                            circleColor = StrideColor.green600
-                            circleStrokeWidth = 1.5
-                            circleStrokeColor = Color(0xffffffff)
+                                        )
+                                    )
+                                }
+                            ) {
+                                Text("Show App Settings page")
+                            }
                         }
                     }
                 }
             }
 
-            if (screenStatus == RecordViewModel.ScreenStatus.DEFAULT && currentSport?.sportMapType != null) {
-                if (recordStatus == RecordViewModel.RecordStatus.NONE)
-                    GPSStatusMessage(
-                        Modifier.padding(top = padding.calculateTopPadding()),
-                        gpsStatus
-                    )
-                if (recordStatus == RecordViewModel.RecordStatus.STOP)
-                    StatusMessage(
-                        text = "STOP",
-                        type = StatusMessageType.ERROR,
-                        Modifier.padding(top = padding.calculateTopPadding())
-                    )
-            }
-
-
             AnimatedVisibility(
-                visible = screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                visible = (screenStatus == RecordViewModel.ScreenStatus.DETAIL
                         || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
-                        && currentSport?.sportMapType == null),
+                        && currentSport?.sportMapType == null)) && recordStatus == RecordViewModel.RecordStatus.RECORDING,
                 enter = slideInHorizontally(
                     initialOffsetX = { -it }
                 ),
@@ -552,10 +607,8 @@ fun RecordScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(StrideTheme.colorScheme.surface)
-                        .padding(
-                            top = padding.calculateTopPadding(),
-                            bottom = padding.calculateBottomPadding()
-                        ),
+                        .padding(bottom = padding.calculateBottomPadding())
+                        .windowInsetsPadding(WindowInsets.statusBars),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -591,36 +644,62 @@ fun RecordScreen(
                 }
             }
 
-            if (showRequestPermissionButton) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(modifier = Modifier.align(Alignment.Center)) {
-                        Button(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            onClick = {
-                                permissionRequestCount += 1
-                            }
+            AnimatedVisibility(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = padding.calculateBottomPadding() - 24.dp),
+                visible = (screenStatus == RecordViewModel.ScreenStatus.DETAIL
+                        || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
+                        && currentSport?.sportMapType == null)) && recordStatus == RecordViewModel.RecordStatus.STOP,
+                enter = slideInHorizontally(
+                    initialOffsetX = { -it }
+                ),
+                exit = slideOutHorizontally(
+                    targetOffsetX = { -it }
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(StrideTheme.colorScheme.surface)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        RecordValueBlock(
+                            title = "Time",
+                            value = formatTimeByMillis(time),
+                            type = RecordValueBlockType.OnMapLarge
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Request permission again ($permissionRequestCount)")
+                            RecordValueBlock(
+                                title = "Avg speed",
+                                unit = "km/h",
+                                value = formatTimeByMillis(time),
+                                type = RecordValueBlockType.OnMapSmall
+                            )
+                            RecordValueBlock(
+                                title = "Distance",
+                                unit = "km",
+                                value = formatDistance(distance),
+                                type = RecordValueBlockType.OnMapSmall
+                            )
                         }
-                        Button(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            onClick = {
-                                context.startActivity(
-                                    Intent(
-                                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                        Uri.fromParts("package", context.packageName, null)
-
-                                    )
-                                )
-                            }
-                        ) {
-                            Text("Show App Settings page")
-                        }
+                        Spacer(Modifier.height(24.dp))
                     }
                 }
             }
         }
     }
+
     AnimatedVisibility(
         screenStatus == RecordViewModel.ScreenStatus.SENSOR,
         enter = slideInVertically(
