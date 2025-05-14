@@ -118,6 +118,7 @@ const val ROAD_LABEL = "road-label"
 @Composable
 fun ViewMapScreen(
     navController: NavController,
+    startRecord: (String) -> Unit,
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     searchSportViewModel: ChooseSportInSearchViewModel = hiltViewModel(),
     saveRouteViewModel: SaveRouteViewModel = hiltViewModel(),
@@ -365,6 +366,10 @@ fun ViewMapScreen(
                                 routeItems[viewModel.currentDetailIndex],
                                 onSaveRoute = {
                                     saveRouteViewModel.saveRoute(routeItems[viewModel.currentDetailIndex].id)
+                                },
+                                startRecord = { geometry ->
+                                    viewModel.setCurrentSport(selectedSport)
+                                    startRecord(geometry)
                                 })
                         }
 
@@ -527,6 +532,7 @@ fun ViewMapScreen(
                 MapEffect(routeItems) {
                     var currentIndex = 0
                     routeItems.forEachIndexed { _, item ->
+                        Log.i("GEOMETRY_MAP_SCREEN", item.geometry)
                         val coords =
                             LineString.fromPolyline(item.geometry ?: "", 5).coordinates()
                         drawRoute(currentIndex.toString(), coords)

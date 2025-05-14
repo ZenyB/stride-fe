@@ -9,6 +9,7 @@ import com.trio.stride.domain.model.ActivityDetailInfo
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -18,7 +19,8 @@ interface ActivityApi {
 
     @POST(ApiConstants.ACTIVITY)
     suspend fun createActivity(
-        @Body requestDTO: CreateActivityRequestDTO
+        @Body requestDTO: CreateActivityRequestDTO,
+        @Header("X-User-Timezone") timezone: String = "Asia/Ho_Chi_Minh",
     ): Resource<Boolean>
 
     @PUT("${ApiConstants.ACTIVITY}/{id}")

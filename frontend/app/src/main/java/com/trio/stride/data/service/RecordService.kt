@@ -230,7 +230,7 @@ class RecordService : LifecycleService() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun startTracking() {
+    private fun startTracking() {
         if (!hasLocationPermission()) return
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
@@ -269,7 +269,7 @@ class RecordService : LifecycleService() {
         }
     }
 
-    fun stopTracking() {
+    private fun stopTracking() {
         if (::locationCallback.isInitialized) {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         }
