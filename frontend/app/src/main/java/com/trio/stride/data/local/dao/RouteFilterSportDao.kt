@@ -13,4 +13,7 @@ interface RouteFilterSportDao {
 
     @Query("SELECT * FROM route_filter_sport LIMIT 1")
     suspend fun getSport(): RouteFilterSportEntity?
+
+    @Query("DELETE FROM route_filter_sport")
+    suspend fun deleteRouteFilterSport()
 }

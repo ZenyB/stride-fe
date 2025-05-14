@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,7 +56,7 @@ fun CustomCenterTopAppBar(
             ) {
                 Text(
                     text = title,
-                    style = StrideTheme.typography.bodyLarge,
+                    style = StrideTheme.typography.headlineSmall,
                     color = contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -78,6 +79,7 @@ fun CustomCenterTopAppBar(
                 )
             }
         }
+        Divider()
     }
 }
 
@@ -126,7 +128,7 @@ fun CustomLeftTopAppBar(
                 ) {
                     Text(
                         text = title,
-                        style = StrideTheme.typography.bodyLarge,
+                        style = StrideTheme.typography.headlineSmall,
                         color = contentColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -141,6 +143,7 @@ fun CustomLeftTopAppBar(
                 )
             }
         }
+        Divider()
     }
 }
 

@@ -37,11 +37,9 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,6 +75,7 @@ import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.librarypicker.ImagePickerView
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInActivity
+import com.trio.stride.ui.components.textfield.CustomOutlinedTextField
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
@@ -101,7 +100,6 @@ fun ActivityFormView(
 
     val previewImage = remember { mutableStateListOf<Uri>() }
     val expandImageOptionMenu = remember { mutableStateOf(false) }
-    val isRpePressed = remember { mutableStateOf(false) }
     val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
     var showSportBottomSheet by remember { mutableStateOf(false) }
 
@@ -219,9 +217,9 @@ fun ActivityFormView(
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = when (mode) {
                         is ActivityFormMode.Create -> state.createActivityDto.name
                         is ActivityFormMode.Update -> state.updateActivityDto.name
@@ -243,12 +241,6 @@ fun ActivityFormView(
                             keyboardController?.hide()
                             focusManager.clearFocus()
                         }
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = TextFieldDefaults.colors().copy(
-                        unfocusedIndicatorColor = StrideTheme.colors.grayBorder,
-                        unfocusedContainerColor = StrideTheme.colors.transparent,
-                        focusedContainerColor = StrideTheme.colors.transparent
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -396,14 +388,6 @@ fun ActivityFormView(
                     }
                 }
 
-                RateFeelingBottomSheet(
-                    value = when (mode) {
-                        is ActivityFormMode.Create -> state.createActivityDto.rpe
-                        is ActivityFormMode.Update -> state.updateActivityDto.rpe
-                    },
-                    onValueChange = { viewModel.updateFeelingRate(it) }
-                )
-
                 //Activity Feeling
                 //Feeling value view
                 Row(
@@ -419,8 +403,6 @@ fun ActivityFormView(
                             indication = ripple(bounded = true)
                         ) {
                             feelingBottomSheetState.show()
-                            if (!isRpePressed.value)
-                                isRpePressed.value = true
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -429,7 +411,7 @@ fun ActivityFormView(
                         modifier = Modifier.padding(start = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (isRpePressed.value) {
+                        if (state.isRpeChanged) {
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = rememberAsyncImagePainter(R.drawable.speedometer_outline_icon),
@@ -464,7 +446,7 @@ fun ActivityFormView(
                 }
 
                 //Description
-                OutlinedTextField(
+                CustomOutlinedTextField(
                     value = when (mode) {
                         is ActivityFormMode.Create -> state.createActivityDto.description
                         is ActivityFormMode.Update -> state.updateActivityDto.description
@@ -476,12 +458,6 @@ fun ActivityFormView(
                             style = StrideTheme.typography.labelLarge.copy(color = StrideTheme.colors.placeHolderText)
                         )
                     },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = TextFieldDefaults.colors().copy(
-                        unfocusedIndicatorColor = StrideTheme.colors.grayBorder,
-                        unfocusedContainerColor = StrideTheme.colors.transparent,
-                        focusedContainerColor = StrideTheme.colors.transparent
-                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 120.dp)
@@ -500,6 +476,14 @@ fun ActivityFormView(
             selectedPreviewImageIndex.value = null
             expandImageOptionMenu.value = false
         }
+    )
+
+    RateFeelingBottomSheet(
+        value = when (mode) {
+            is ActivityFormMode.Create -> state.createActivityDto.rpe
+            is ActivityFormMode.Update -> state.updateActivityDto.rpe
+        },
+        onValueChange = { viewModel.updateFeelingRate(it) }
     )
 }
 

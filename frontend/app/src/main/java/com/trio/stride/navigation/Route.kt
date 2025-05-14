@@ -3,6 +3,8 @@ package com.trio.stride.navigation
 import com.trio.stride.R
 
 sealed class Screen(val route: String) {
+    object Onboarding : Screen("onboarding")
+
     sealed class Auth(route: String) : Screen(route) {
         object Login : Auth("${ROUTE}/login")
         object SignUp : Auth("${ROUTE}/signup")
@@ -43,5 +45,5 @@ sealed class Screen(val route: String) {
         fun createRoute(id: String): String = "activity/nomap/$id"
     }
 
-    object SaveRouteScreen: Screen("user/save-route")
+    object SaveRouteScreen : Screen("user/save-route")
 }

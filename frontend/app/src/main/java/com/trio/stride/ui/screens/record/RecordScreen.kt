@@ -254,15 +254,15 @@ fun RecordScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(StrideTheme.colorScheme.surface),
+                    .background(StrideTheme.colorScheme.surface)
+                    .padding(bottom = 4.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if ((recordStatus == RecordViewModel.RecordStatus.NONE || recordStatus == RecordViewModel.RecordStatus.STOP) && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .padding(top = 8.dp),
+                            .fillMaxWidth(0.8f),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -275,17 +275,6 @@ fun RecordScreen(
                                 iconImage = currentSport!!.image,
                                 onClick = { showSportBottomSheet = true }
                             )
-                            SportBottomSheetWithCategory(
-                                categories = categories,
-                                sportsByCategory = sportsByCategory,
-                                selectedSport = currentSport!!,
-                                onItemClick = {
-                                    viewModel.updateCurrentSport(it)
-                                    showSportBottomSheet = false
-                                },
-                                dismissAction = { showSportBottomSheet = false },
-                                visible = showSportBottomSheet
-                            )
                         }
 
                         IconButton(
@@ -297,7 +286,7 @@ fun RecordScreen(
                             Icon(
                                 painter = painterResource(R.drawable.heart_pulse),
                                 contentDescription = "Show sensor",
-                                modifier = Modifier.size(32.dp),
+                                modifier = Modifier.size(24.dp),
                                 tint = StrideTheme.colorScheme.onSurface
                             )
                         }
@@ -322,9 +311,10 @@ fun RecordScreen(
                                         mapView?.location?.addOnIndicatorPositionChangedListener { point ->
                                             userLocation = point
                                         }
-                                        if (userLocation != null)
+                                        if (userLocation != null) {
+                                            focusToUser(mapView)
                                             viewModel.startRecord(userLocation!!, context)
-                                        else
+                                        } else
                                             checkLocationOn(
                                                 context,
                                                 mapView,
@@ -667,7 +657,7 @@ fun RecordScreen(
 
         ActivityFormView(
             "Save",
-            "Save",
+            "SAVE",
             mode = ActivityFormMode.Create(
                 sportFromRecord = currentSport,
                 onCreate = { viewModel.saveActivity(it, context) },
@@ -688,5 +678,17 @@ fun RecordScreen(
             onDismiss = { showSheet = false }
         )
     }
+
+    SportBottomSheetWithCategory(
+        categories = categories,
+        sportsByCategory = sportsByCategory,
+        selectedSport = currentSport!!,
+        onItemClick = {
+            viewModel.updateCurrentSport(it)
+            showSportBottomSheet = false
+        },
+        dismissAction = { showSportBottomSheet = false },
+        visible = showSportBottomSheet
+    )
 }
 

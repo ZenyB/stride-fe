@@ -25,6 +25,7 @@ class GetSportsUseCase(
         val localData = sportRepository.getLocalSports(categoryId)
         if (localData.isNotEmpty() && !forceRefresh) {
             emit(Resource.Success(localData))
+            return@flow
         }
 
         try {

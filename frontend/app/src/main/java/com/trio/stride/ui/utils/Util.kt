@@ -1,12 +1,19 @@
 package com.trio.stride.ui.utils
 
+import android.content.ContentResolver
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import com.google.gson.Gson
 import okhttp3.ResponseBody
+import java.io.File
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -106,4 +113,46 @@ fun Color.contrastingTextColor(): Color {
     val whiteContrast = calculateContrast(this, Color.White)
     val blackContrast = calculateContrast(this, Color.Black)
     return if (whiteContrast >= blackContrast) Color.White else Color.Black
+}
+
+fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+fun String.toDate(): LocalDate {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    return try {
+        LocalDate.parse(this, formatter)
+    } catch (e: Exception) {
+        LocalDate.now()
+    }
+}
+
+fun Boolean.toGender(): String = if (this) "Male" else "Female"
+fun String.toBoolGender(): Boolean = this != "Female"
+
+fun LocalDate.isValidBirthDay(): Boolean {
+    val today = LocalDate.now()
+    val age = Period.between(this, today).years
+    return age >= 10
+}
+
+fun uriToFile(uri: Uri, context: Context): File {
+    val contentResolver = context.contentResolver
+    val fileName = queryName(contentResolver, uri)
+    val inputStream = contentResolver.openInputStream(uri)
+    val tempFile = File.createTempFile("upload_", fileName, context.cacheDir)
+    tempFile.outputStream().use { fileOut ->
+        inputStream?.copyTo(fileOut)
+    }
+    return tempFile
+}
+
+fun queryName(resolver: ContentResolver, uri: Uri): String {
+    var name = "temp_file"
+    val returnCursor = resolver.query(uri, null, null, null, null)
+    returnCursor?.use {
+        val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (it.moveToFirst()) {
+            name = it.getString(nameIndex)
+        }
+    }
+    return name
 }

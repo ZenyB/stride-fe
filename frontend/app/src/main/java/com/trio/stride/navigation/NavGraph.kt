@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.trio.stride.ui.screens.activity.ActivityMainTabScreen
-import com.trio.stride.ui.screens.activity.ProfileScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailNoMapScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
@@ -17,6 +16,8 @@ import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteScreen
 import com.trio.stride.ui.screens.maps.search.SearchMapScreen
 import com.trio.stride.ui.screens.maps.view.ViewMapScreen
+import com.trio.stride.ui.screens.onboarding.OnboardingScreen
+import com.trio.stride.ui.screens.profile.ProfileScreen
 import com.trio.stride.ui.screens.record.RecordScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
@@ -25,10 +26,23 @@ import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
 fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Auth.ROUTE,
+    handleBottomBarVisibility: (Boolean) -> Unit,
 ) {
     NavHost(navController, startDestination = startDestination) {
+        composable(route = Screen.Onboarding.route) {
+            OnboardingScreen(navigateToHome = {
+                navController.navigate(
+                    Screen.MainApp.route
+                ) {
+                    popUpTo(Screen.MainApp.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            })
+        }
         authGraph(navController)
-        mainAppGraph(navController)
+        mainAppGraph(navController, handleBottomBarVisibility = { handleBottomBarVisibility(it) })
     }
 }
 
@@ -84,7 +98,8 @@ fun NavGraphBuilder.authGraph(
 
 
 fun NavGraphBuilder.mainAppGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    handleBottomBarVisibility: (Boolean) -> Unit
 ) {
     navigation(
         startDestination = Screen.BottomNavScreen.Home.route,
@@ -111,7 +126,9 @@ fun NavGraphBuilder.mainAppGraph(
         }
 
         composable(Screen.BottomNavScreen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                handleBottomBarVisibility = { handleBottomBarVisibility(it) })
         }
 
         composable(Screen.BottomNavScreen.Record.route) {

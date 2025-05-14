@@ -13,20 +13,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.trio.stride.R
 import kotlin.math.absoluteValue
 
 @Composable
-fun Avatar(ava: String?, name: String) {
-    if (!ava.isNullOrEmpty()) {
+fun Avatar(ava: Any?, name: String, width: Dp = 44.dp) {
+    if (ava != null && ava.toString().isNotBlank()) {
         AsyncImage(
-            model = ava,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(ava)
+                .error(R.drawable.user)
+                .fallback(R.drawable.user)
+                .placeholder(R.drawable.user)
+                .crossfade(true)
+                .build(),
             contentDescription = "ava",
             modifier = Modifier
-                .width(44.dp)
+                .width(width)
                 .aspectRatio(1f / 1f)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
@@ -36,14 +46,14 @@ fun Avatar(ava: String?, name: String) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(44.dp)
+                .size(width)
                 .clip(CircleShape)
                 .background(randomColor(name))
         ) {
             Text(
                 text = name.firstOrNull()?.uppercase() ?: "?",
                 color = Color.White,
-                fontSize = (44 / 2.5).sp,
+                fontSize = (width.value / 2.5).sp,
                 textAlign = TextAlign.Center
             )
         }

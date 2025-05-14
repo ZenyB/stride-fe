@@ -24,6 +24,7 @@ class GetCategoriesUseCase(
         val localData = categoryRepository.getLocalCategories()
         if (localData.isNotEmpty() && !forceRefresh) {
             emit(Resource.Success(localData))
+            return@flow
         }
 
         try {
