@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.BottomSheetScaffold
@@ -217,6 +216,7 @@ fun ActivityDetailScreen(
                     title = item?.sport?.name ?: "Activity",
                     titleModifier = Modifier.alpha(alpha = animatedAlpha),
                     backgroundColor = StrideTheme.colorScheme.surface.copy(alpha = animatedAlpha),
+                    dividerColor = StrideTheme.colors.grayBorder.copy(alpha = animatedAlpha),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -264,10 +264,6 @@ fun ActivityDetailScreen(
                             }
                         }
                     }
-                )
-                Divider(
-                    thickness = 1.dp,
-                    color = StrideTheme.colors.grayBorder.copy(alpha = animatedAlpha)
                 )
                 Box(
                     modifier = Modifier

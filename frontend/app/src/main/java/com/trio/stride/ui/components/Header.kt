@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -91,6 +92,7 @@ fun CustomLeftTopAppBar(
     backgroundColor: Color = StrideTheme.colorScheme.surface,
     contentColor: Color = StrideTheme.colorScheme.onSurface,
     height: Dp = 52.dp,
+    dividerColor: Color? = null,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -143,7 +145,9 @@ fun CustomLeftTopAppBar(
                 )
             }
         }
-        Divider()
+        Divider(
+            color = dividerColor ?: MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+        )
     }
 }
 
