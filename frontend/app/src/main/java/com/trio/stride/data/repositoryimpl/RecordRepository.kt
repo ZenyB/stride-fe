@@ -201,15 +201,19 @@ class RecordRepository @Inject constructor(
             }
         }
 
-        val options = CameraOptions.Builder().center(recommendRoutePoints.value[0]).build()
-        mapView.value?.mapboxMap?.cameraForCoordinates(
-            recommendRoutePoints.value,
-            options, null, ZOOM, null
-        ) { result ->
-            if (result.isEmpty) {
-                //TODO: error
-            } else {
-                mapViewportState.value.flyTo(result)
+        if (recommendRoutePoints.value.isNotEmpty()) {
+            val options = CameraOptions.Builder().center(recommendRoutePoints.value[0]).build()
+            mapView.value?.let { safeMapView ->
+                safeMapView.mapboxMap.cameraForCoordinates(
+                    recommendRoutePoints.value,
+                    options, null, ZOOM, null
+                ) { result ->
+                    if (result.isEmpty) {
+                        //TODO: error
+                    } else {
+                        mapViewportState.value.flyTo(result)
+                    }
+                }
             }
         }
     }
