@@ -75,7 +75,7 @@ fun formatSpeed(speed: Double): String {
     return formattedSpeed
 }
 
-fun formatDuration(seconds: Long): String {
+fun formatDuration(seconds: Long, showSeconds: Boolean = true): String {
     val hours = seconds / 3600
     val minutes = (seconds % 3600) / 60
     val secs = seconds % 60
@@ -83,7 +83,7 @@ fun formatDuration(seconds: Long): String {
     return buildString {
         if (hours > 0) append("${hours}h")
         if (minutes > 0) append("${minutes}m")
-        if (hours == 0L && minutes == 0L || secs > 0) append("${secs}s")
+        if (showSeconds && (hours == 0L && minutes == 0L || secs > 0)) append("${secs}s")
     }
 }
 
