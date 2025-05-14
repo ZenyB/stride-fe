@@ -93,7 +93,10 @@ fun GoalListScreen(
         }) { padding ->
         Column(
             modifier = Modifier
-                .padding(top = padding.calculateTopPadding())
+                .padding(
+                    top = padding.calculateTopPadding(),
+                    bottom = padding.calculateBottomPadding()
+                )
         )
         {
             PullToRefreshBox(

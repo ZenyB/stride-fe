@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -42,64 +43,75 @@ fun GoalItemView(item: GoalItem) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .background(StrideTheme.colorScheme.surface)
-            .padding(horizontal = 24.dp)
-            .padding(vertical = 16.dp)
+            .padding(top = 16.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            CircularProgressWithImageUrl(
-                percentage = (item.amountGain.toFloat() / item.amountGoal),
-                imageUrl = item.sport.image,
-                modifier = Modifier
-                    .size(50.dp)
-                    .padding(4.dp)
-            )
-
-            Column {
-                Text(item.toTitle(), style = StrideTheme.typography.bodyLarge)
-                Text(item.sport.name, style = StrideTheme.typography.bodyMedium)
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { menuExpanded = true }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ellipsis_more),
-                    contentDescription = "More Options",
-                )
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
-            ColumnText(
-                label = "To Go",
-                value = item.formatAmount((item.amountGoal - item.amountGain))
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .background(StrideTheme.colorScheme.surface)
+                .padding(horizontal = 24.dp)
         ) {
-            Text(
-                text = "History",
-                modifier = Modifier.weight(1f),
-                style = StrideTheme.typography.titleMedium
-            )
-            IconButton(onClick = { expanded = !expanded }) {
-                Icon(
-                    imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand"
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                CircularProgressWithImageUrl(
+                    percentage = (item.amountGain.toFloat() / item.amountGoal),
+                    imageUrl = item.sport.image,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(4.dp)
+                )
+
+                Column {
+                    Text(item.toTitle(), style = StrideTheme.typography.bodyLarge)
+                    Text(item.sport.name, style = StrideTheme.typography.bodyMedium)
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ellipsis_more),
+                        contentDescription = "More Options",
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
+                ColumnText(
+                    label = "To Go",
+                    value = item.formatAmount((item.amountGoal - item.amountGain))
                 )
             }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "History",
+                    modifier = Modifier.weight(1f),
+                    style = StrideTheme.typography.titleMedium
+                )
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = if (expanded) "Collapse" else "Expand"
+                    )
+                }
+            }
         }
+
+        Spacer(Modifier.height(12.dp))
 
         AnimatedVisibility(
             visible = expanded, enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-//                content()
+            Column(
+                modifier = Modifier
+                    .background(StrideTheme.colors.gray300.copy(alpha = 0.2f))
+                    .padding(horizontal = 16.dp)
+            ) {
+                GoalChart(item)
             }
         }
     }
@@ -116,50 +128,56 @@ fun ColumnText(
     }
 }
 
+val histories: List<GoalHistoryItem> = listOf(
+    GoalHistoryItem(
+        date = 1736234846000,
+        amountGain = 0,
+        amountGoal = 10
+    ),
+    GoalHistoryItem(
+        date = 1736839646000,
+        amountGain = 0,
+        amountGoal = 10
+    ),
+    GoalHistoryItem(
+        date = 1739518046000,
+        amountGain = 0,
+        amountGoal = 10
+    ),
+    GoalHistoryItem(
+        date = 1741937246000,
+        amountGain = 1,
+        amountGoal = 10
+    ),
+    GoalHistoryItem(
+        date = 1744615646000,
+        amountGain = 0,
+        amountGoal = 10
+    ),
+    GoalHistoryItem(
+        date = 1747207646000,
+        amountGain = 2,
+        amountGoal = 10
+    ),
+)
+
+val goalItem = GoalItem(
+    id = "074f8efc",
+    sport = Sport(
+        id = "92e5b54a",
+        name = "Cycling",
+        image = "https://pglijwfxeearqkhmpsdq.supabase.co/storage/v1/object/public/users//15f639c2-5679-40ef-baa2-3cba4af77757.jpg"
+    ),
+    type = "ACTIVITY",
+    timeFrame = "WEEKLY",
+    amountGain = 3,
+    amountGoal = 10,
+    isActive = true,
+    histories = histories
+)
+
 @Preview(showBackground = true)
 @Composable
 fun GoalItemPreview() {
-    val histories: List<GoalHistoryItem> = listOf(
-        GoalHistoryItem(
-            key = "17/02/2025",
-            amountGain = 2,
-            amountGoal = 10
-        ),
-        GoalHistoryItem(
-            key = "24/02/2025",
-            amountGain = 0,
-            amountGoal = 10
-        ),
-        GoalHistoryItem(
-            key = "03/03/2025",
-            amountGain = 1,
-            amountGoal = 10
-        ),
-        GoalHistoryItem(
-            key = "10/03/2025",
-            amountGain = 0,
-            amountGoal = 10
-        ),
-        GoalHistoryItem(
-            key = "17/03/2025",
-            amountGain = 0,
-            amountGoal = 10
-        )
-    )
-    val item = GoalItem(
-        id = "074f8efc",
-        sport = Sport(
-            id = "92e5b54a",
-            name = "Cycling",
-            image = "https://pglijwfxeearqkhmpsdq.supabase.co/storage/v1/object/public/users//15f639c2-5679-40ef-baa2-3cba4af77757.jpg"
-        ),
-        type = "ACTIVITY",
-        timeFrame = "WEEKLY",
-        amountGain = 3,
-        amountGoal = 10,
-        isActive = true,
-        histories = histories
-    )
-
-    GoalItemView(item)
+    GoalItemView(goalItem)
 }

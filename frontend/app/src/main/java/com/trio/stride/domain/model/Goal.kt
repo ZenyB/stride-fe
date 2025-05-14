@@ -2,6 +2,9 @@ package com.trio.stride.domain.model
 
 import com.trio.stride.ui.utils.formatDuration
 import com.trio.stride.ui.utils.formatKmDistance
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 enum class GoalType { ACTIVITY, DISTANCE, TIME, ELEVATION }
@@ -20,7 +23,7 @@ data class GoalItem(
 )
 
 data class GoalHistoryItem(
-    val key: String,
+    val date: Long,
     val amountGain: Long,
     val amountGoal: Long,
 )
@@ -45,4 +48,24 @@ fun GoalItem.formatAmount(amount: Number): String {
     } else {
         return amount.toString()
     }
+}
+
+fun GoalItem.toMonthLabels(): List<String> {
+    val monthFormatter = SimpleDateFormat("MMM", Locale("en", "VN"))
+    val calendar = Calendar.getInstance()
+
+    val seenMonths = mutableSetOf<Int>() // Use Calendar.MONTH values (0 = Jan, 1 = Feb, ...)
+
+    val labels: List<String> = histories?.map { item ->
+        calendar.timeInMillis = item.date
+        val month = calendar.get(Calendar.MONTH)
+
+        if (month !in seenMonths) {
+            seenMonths.add(month)
+            monthFormatter.format(Date(item.date))
+        } else {
+            " "
+        }
+    } ?: emptyList()
+    return labels
 }
