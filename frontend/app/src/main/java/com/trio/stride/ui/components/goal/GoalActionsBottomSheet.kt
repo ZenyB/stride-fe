@@ -35,12 +35,12 @@ fun GoalActionsBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
+                        onEdit()
                         onDismiss()
                     }
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
+                    .padding(vertical = 12.dp, horizontal = 24.dp),
 
-            ) {
+                ) {
                 Text("Edit")
             }
 
@@ -51,11 +51,9 @@ fun GoalActionsBottomSheet(
                         onDelete()
                         onDismiss()
                     }
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-
+                    .padding(vertical = 12.dp, horizontal = 24.dp),
             ) {
-                Text("Delete")
+                Text("Delete", color = StrideTheme.colors.red700)
             }
             Box(
                 modifier = Modifier
@@ -63,8 +61,7 @@ fun GoalActionsBottomSheet(
                     .clickable {
                         onDismiss()
                     }
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
+                    .padding(vertical = 12.dp, horizontal = 24.dp),
             ) {
                 Text("Cancel")
             }

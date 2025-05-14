@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,9 @@ import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.goal.GoalActionsBottomSheet
 import com.trio.stride.ui.components.goal.GoalItemView
 import com.trio.stride.ui.theme.StrideTheme
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +109,9 @@ fun GoalListScreen(
             viewModel.deleteGoal()
         }
     )
-
+    LaunchedEffect(Unit) {
+        viewModel.getUserGoals()
+    }
     Scaffold(
         topBar = {
             CustomLeftTopAppBar(
@@ -223,7 +229,15 @@ fun GoalListScreen(
     }
     if (showSheet) {
         GoalActionsBottomSheet(onDismiss = { dismiss() },
-            onEdit = {},
+            onEdit = {
+                val item = items.firstOrNull { it ->
+                    it.id == viewModel.selectedItemId
+                }
+                val raw = "${item?.id}|${item?.timeFrame}|${item?.type}|${item?.amountGoal}"
+                val encoded = URLEncoder.encode(raw, StandardCharsets.UTF_8.toString())
+                navController.navigate("goal/edit/$encoded")
+
+            },
             onDelete = {
                 needDelete = true
             })

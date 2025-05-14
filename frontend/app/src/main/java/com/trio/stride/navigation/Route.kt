@@ -48,6 +48,7 @@ sealed class Screen(val route: String) {
     object SaveRouteScreen : Screen("user/save-route")
     object CreateGoalScreen : Screen("goal/create")
     object GoalListScreen : Screen("goal/list")
+    object EditGoalScreen : Screen("goal/edit/{data}")
 
 
 }

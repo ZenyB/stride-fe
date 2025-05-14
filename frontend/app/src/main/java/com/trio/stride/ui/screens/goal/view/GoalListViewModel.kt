@@ -26,9 +26,9 @@ class GoalListViewModel @Inject constructor(
 
     var selectedItemId by mutableStateOf<String?>(null)
 
-    init {
-        getUserGoals()
-    }
+//    init {
+//        getUserGoals()
+//    }
 
     fun refresh() {
         isRefreshing = true
@@ -36,7 +36,7 @@ class GoalListViewModel @Inject constructor(
         getUserGoals()
     }
 
-    private fun getUserGoals() {
+    fun getUserGoals() {
         if (currentState == UserGoalState.Loading
         ) return
 

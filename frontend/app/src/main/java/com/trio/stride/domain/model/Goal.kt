@@ -28,6 +28,13 @@ data class GoalHistoryItem(
     val amountGoal: Long,
 )
 
+data class GoalEdit(
+    val id: String,
+    val type: String,
+    val timeFrame: String,
+    val amount: Int
+)
+
 fun GoalItem.toTitle(): String {
     val title = "$type $timeFrame"
         .split(" ")

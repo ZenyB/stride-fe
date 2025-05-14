@@ -20,6 +20,6 @@ data class GoalListResponse(
 )
 
 data class UpdateGoalRequestDto(
-    val rpe: Int = 0,
+    val amount: Int = 0,
     val active: Boolean = true,
 )

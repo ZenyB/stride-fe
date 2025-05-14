@@ -17,6 +17,7 @@ import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
 import com.trio.stride.domain.usecase.goal.DeleteUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
+import com.trio.stride.domain.usecase.goal.UpdateGoalUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
 import dagger.Provides
@@ -140,5 +141,11 @@ object CoreModule {
     @Singleton
     fun provideDeleteUserGoalUseCase(goalRepository: GoalRepository): DeleteUserGoalUseCase {
         return DeleteUserGoalUseCase(goalRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateGoalUseCase(goalRepository: GoalRepository): UpdateGoalUseCase {
+        return UpdateGoalUseCase(goalRepository)
     }
 }

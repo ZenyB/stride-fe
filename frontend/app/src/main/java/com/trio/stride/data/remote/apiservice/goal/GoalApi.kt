@@ -11,6 +11,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface GoalApi {
@@ -28,7 +29,7 @@ interface GoalApi {
         @Path("id") id: String
     ): Response<SuccessResponse>
 
-    @DELETE("${ApiConstants.GOALS}/{id}")
+    @PUT("${ApiConstants.GOALS}/{id}")
     suspend fun updateGoal(
         @Path("id") id: String,
         @Body requestDTO: UpdateGoalRequestDto

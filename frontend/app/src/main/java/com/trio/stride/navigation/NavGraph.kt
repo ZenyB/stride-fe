@@ -14,6 +14,7 @@ import com.trio.stride.ui.screens.activity.view.ActivityDetailNoMapScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
 import com.trio.stride.ui.screens.goal.create.CreateGoalScreen
+import com.trio.stride.ui.screens.goal.edit.EditGoalScreen
 import com.trio.stride.ui.screens.goal.view.GoalListScreen
 import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
@@ -169,6 +170,13 @@ fun NavGraphBuilder.mainAppGraph(
         }
         composable(Screen.GoalListScreen.route) {
             GoalListScreen(navController)
+        }
+        composable(
+            Screen.EditGoalScreen.route,
+            arguments = listOf(navArgument("data") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val data = backStackEntry.arguments?.getString("data") ?: ""
+            EditGoalScreen(navController, data)
         }
     }
 
