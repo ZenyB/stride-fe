@@ -34,6 +34,7 @@ import com.trio.stride.ui.theme.StrideTheme
 @Composable
 fun GenderTextField(
     value: String,
+    label: @Composable (() -> Unit)? = { Text("Gender") },
     readOnly: Boolean = false,
     enable: Boolean = true,
     colors: TextFieldColors? = null,
@@ -46,9 +47,9 @@ fun GenderTextField(
         CustomOutlinedTextField(
             value = value,
             onValueChange = { },
-            readOnly = readOnly,
+            readOnly = true,
             enabled = enable,
-            label = { Text("Gender") },
+            label = label,
             trailingIcon = {
                 if (!readOnly) {
                     val iconRotationAngle by animateFloatAsState(

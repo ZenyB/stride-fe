@@ -125,8 +125,8 @@ class OnboardingViewModel @Inject constructor(
         if (viewState is OnboardingViewState.Info) {
 
             viewModelScope.launch {
-                updateUserUseCase.invoke(currentState.userInitInfo).collectLatest { reponse ->
-                    when (reponse) {
+                updateUserUseCase.invoke(currentState.userInitInfo).collectLatest { response ->
+                    when (response) {
                         is Resource.Loading -> setState {
                             currentState.copy(
                                 viewState = viewState.copy(
@@ -146,7 +146,7 @@ class OnboardingViewModel @Inject constructor(
                             currentState.copy(
                                 viewState = viewState.copy(
                                     isError = true,
-                                    errorMessage = reponse.error.message.toString()
+                                    errorMessage = response.error.message.toString()
                                 )
                             )
                         }

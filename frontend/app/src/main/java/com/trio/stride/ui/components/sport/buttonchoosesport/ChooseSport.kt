@@ -61,7 +61,7 @@ fun ChooseSportIconButton(
                     .build()
             ),
             contentDescription = "Sport Icon",
-            modifier = iconModifier.size(24.dp),
+            modifier = iconModifier,
             tint = StrideTheme.colorScheme.onSurface
         )
     }

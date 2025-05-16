@@ -82,11 +82,15 @@ fun StrideDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End)
                     ) {
-                        done?.let {
+                        dismissText?.let {
                             TextButton(
-                                onClick = done
+                                onClick = dismiss,
+                                colors = ButtonDefaults.buttonColors().copy(
+                                    contentColor = StrideTheme.colors.gray500,
+                                    containerColor = StrideTheme.colors.transparent
+                                )
                             ) {
-                                Text(doneText, style = StrideTheme.typography.titleMedium)
+                                Text(dismissText, style = StrideTheme.typography.titleMedium)
                             }
                         }
 
@@ -102,18 +106,6 @@ fun StrideDialog(
                             }
                         }
 
-                        dismissText?.let {
-                            TextButton(
-                                onClick = dismiss,
-                                colors = ButtonDefaults.buttonColors().copy(
-                                    contentColor = StrideTheme.colors.gray500,
-                                    containerColor = StrideTheme.colors.transparent
-                                )
-                            ) {
-                                Text(dismissText, style = StrideTheme.typography.titleMedium)
-                            }
-                        }
-
                         destructive?.let {
                             TextButton(
                                 onClick = destructive,
@@ -123,6 +115,14 @@ fun StrideDialog(
                                 )
                             ) {
                                 Text(destructiveText, style = StrideTheme.typography.titleMedium)
+                            }
+                        }
+
+                        done?.let {
+                            TextButton(
+                                onClick = done
+                            ) {
+                                Text(doneText, style = StrideTheme.typography.titleMedium)
                             }
                         }
                     }

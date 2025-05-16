@@ -25,6 +25,7 @@ import java.time.LocalDate
 fun BirthDayTextField(
     value: String,
     initialDate: LocalDate = LocalDate.now(),
+    label: @Composable (() -> Unit)? = { Text("Dob") },
     readOnly: Boolean = false,
     enable: Boolean = true,
     isError: Boolean = false,
@@ -52,9 +53,9 @@ fun BirthDayTextField(
     CustomOutlinedTextField(
         value = value,
         onValueChange = { },
-        readOnly = readOnly,
+        readOnly = true,
         enabled = enable,
-        label = { Text("Dob") },
+        label = label,
         trailingIcon = {
             if (!readOnly) {
                 Icon(
