@@ -4,14 +4,20 @@ import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.apiservice.activity.ActivityApi
 import com.trio.stride.data.remote.apiservice.category.CategoryApi
+import com.trio.stride.data.remote.apiservice.goal.GoalApi
 import com.trio.stride.data.remote.apiservice.sport.SportApi
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.CategoryRepository
+import com.trio.stride.domain.repository.GoalRepository
 import com.trio.stride.domain.repository.SportRepository
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.usecase.activity.DeleteActivityUseCase
 import com.trio.stride.domain.usecase.activity.GetAllActivityUseCase
 import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
+import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
+import com.trio.stride.domain.usecase.goal.DeleteUserGoalUseCase
+import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
+import com.trio.stride.domain.usecase.goal.UpdateGoalUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
 import dagger.Provides
@@ -85,6 +91,12 @@ object CoreModule {
 
     @Provides
     @Singleton
+    fun provideGoalApi(@CoreBaseUrl retrofit: Retrofit): GoalApi {
+        return retrofit.create(GoalApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideGetSportsUseCase(sportRepository: SportRepository): GetSportsUseCase {
         return GetSportsUseCase(sportRepository)
     }
@@ -111,5 +123,29 @@ object CoreModule {
     @Singleton
     fun provideDeleteActivity(activityRepository: ActivityRepository): DeleteActivityUseCase {
         return DeleteActivityUseCase(activityRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateGoalUseCase(goalRepository: GoalRepository): CreateGoalUseCase {
+        return CreateGoalUseCase(goalRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetUserGoalUseCase(goalRepository: GoalRepository): GetUserGoalUseCase {
+        return GetUserGoalUseCase(goalRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteUserGoalUseCase(goalRepository: GoalRepository): DeleteUserGoalUseCase {
+        return DeleteUserGoalUseCase(goalRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateGoalUseCase(goalRepository: GoalRepository): UpdateGoalUseCase {
+        return UpdateGoalUseCase(goalRepository)
     }
 }

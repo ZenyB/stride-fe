@@ -13,6 +13,9 @@ import com.trio.stride.ui.screens.activity.ActivityMainTabScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailNoMapScreen
 import com.trio.stride.ui.screens.activity.view.ActivityDetailScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
+import com.trio.stride.ui.screens.goal.create.CreateGoalScreen
+import com.trio.stride.ui.screens.goal.edit.EditGoalScreen
+import com.trio.stride.ui.screens.goal.view.GoalListScreen
 import com.trio.stride.ui.screens.home.HomeScreen
 import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteScreen
@@ -108,7 +111,7 @@ fun NavGraphBuilder.mainAppGraph(
         route = Screen.MainApp.route
     ) {
         composable(Screen.BottomNavScreen.Home.route) {
-            HomeScreen(onLogOutSuccess = {
+            HomeScreen(navController, onLogOutSuccess = {
                 navController.navigate(Screen.Auth.Login.route) {
                     popUpTo(0)
                     launchSingleTop = true
@@ -161,6 +164,19 @@ fun NavGraphBuilder.mainAppGraph(
 
         composable(Screen.SaveRouteScreen.route) {
             SaveRouteScreen(navController)
+        }
+        composable(Screen.CreateGoalScreen.route) {
+            CreateGoalScreen(navController)
+        }
+        composable(Screen.GoalListScreen.route) {
+            GoalListScreen(navController)
+        }
+        composable(
+            Screen.EditGoalScreen.route,
+            arguments = listOf(navArgument("data") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val data = backStackEntry.arguments?.getString("data") ?: ""
+            EditGoalScreen(navController, data)
         }
     }
 

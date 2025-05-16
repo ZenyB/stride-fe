@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
@@ -34,6 +35,7 @@ import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
 import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
@@ -50,6 +52,7 @@ import javax.inject.Inject
 
 @Composable
 fun HomeScreen(
+    navController: NavController,
     viewModel: HomeScreenViewModel = hiltViewModel(),
     onLogOutSuccess: () -> Unit
 ) {
@@ -72,7 +75,6 @@ fun HomeScreen(
     }
 
     Scaffold { padding ->
-
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -117,6 +119,18 @@ fun HomeScreen(
                 dismissAction = { showBottomSheet2 = false },
                 visible = showBottomSheet2
             )
+
+            Button(onClick = {
+                navController.navigate(Screen.CreateGoalScreen.route)
+            }) {
+                Text("Create goal")
+            }
+
+            Button(onClick = {
+                navController.navigate(Screen.GoalListScreen.route)
+            }) {
+                Text("Goal list")
+            }
         }
     }
 }
