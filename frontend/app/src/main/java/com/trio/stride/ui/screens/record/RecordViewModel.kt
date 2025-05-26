@@ -140,18 +140,7 @@ class RecordViewModel @Inject constructor(
                     }
 
                     is Resource.Error -> {
-                        if (response.error.message.toString() == "Failed to invoke private com.trio.stride.base.Resource() with no args") {
-                            setState { currentState.copy(isLoading = false, isSavingError = true) }
-                            val startIntent = Intent(context, RecordService::class.java).apply {
-                                action = RecordService.STOP_RECORDING
-                            }
-                            context.startService(startIntent)
-
-                            recordRepository.end()
-                            back()
-                        } else {
-                            setState { currentState.copy(isLoading = false, isSavingError = true) }
-                        }
+                        setState { currentState.copy(isLoading = false, isSavingError = true) }
                     }
                 }
             }

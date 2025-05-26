@@ -5,16 +5,19 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
+import com.trio.stride.base.SyncLocalDataFailed
 import com.trio.stride.data.remote.dto.UpdateUserRequestDto
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.file.UploadFileUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.domain.usecase.profile.SyncUserUseCase
 import com.trio.stride.domain.usecase.profile.UpdateUserUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.isValidBirthDay
 import com.trio.stride.ui.utils.toBoolGender
 import com.trio.stride.ui.utils.toDate
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -25,6 +28,7 @@ class ProfileViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
+    private val syncUserUseCase: SyncUserUseCase,
 ) : BaseViewModel<ProfileViewModel.ViewState>() {
 
     override fun createInitialState(): ViewState = ViewState()
@@ -45,7 +49,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun getUserInfo() {
         viewModelScope.launch {
-            getUserUseCase.invoke(forceRefresh = true).collectLatest { response ->
+            getUserUseCase.invoke().collectLatest { response ->
                 when (response) {
                     is Resource.Loading -> setState { currentState.copy(isLoading = true) }
                     is Resource.Success -> {
@@ -100,12 +104,19 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
 
-                    is Resource.Error -> setState {
-                        currentState.copy(
-                            isLoading = false,
-                            isError = true,
-                            errorMessage = response.error.message.toString()
-                        )
+                    is Resource.Error -> {
+                        if (response.error is SyncLocalDataFailed) {
+                            setState {
+                                currentState.copy(isNotSync = true)
+                            }
+                        } else
+                            setState {
+                                currentState.copy(
+                                    isLoading = false,
+                                    isError = true,
+                                    errorMessage = response.error.message.toString()
+                                )
+                            }
                     }
                 }
             }
@@ -240,11 +251,19 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun changeToEdit() {
-        setState { currentState.copy(isEditProfile = true) }
+        viewModelScope.launch {
+            setState { currentState.copy(isLoading = true) }
+            async { syncUserUseCase.invoke() }.await()
+            setState { currentState.copy(isEditProfile = true, isLoading = false) }
+        }
     }
 
     fun changeToDefault() {
         setState { currentState.copy(isEditProfile = false) }
+    }
+
+    fun ignoreIsNotSync() {
+        setState { currentState.copy(isNotSync = false) }
     }
 
     data class ViewState(
@@ -252,6 +271,7 @@ class ProfileViewModel @Inject constructor(
         val isLoading: Boolean = true,
         val isUploadImage: Boolean = false,
         val isError: Boolean = false,
+        val isNotSync: Boolean = false,
         val errorMessage: String? = null,
         val errorFields: Map<ErrorField, Boolean> = mapOf(
             ErrorField.NAME to false,

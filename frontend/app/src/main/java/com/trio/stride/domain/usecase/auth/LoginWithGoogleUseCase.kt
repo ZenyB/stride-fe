@@ -19,8 +19,7 @@ class LoginWithGoogleUseCase(
         emit(Resource.Loading())
 
         try {
-            val result = repository.loginWithGoogle(idToken)
-            when (result) {
+            when (val result = repository.loginWithGoogle(idToken)) {
                 is AuthInfo.WithToken -> {
                     tokenManager.saveAccessToken(result.token, result.expiryTime)
                     emit(Resource.Success(result))
