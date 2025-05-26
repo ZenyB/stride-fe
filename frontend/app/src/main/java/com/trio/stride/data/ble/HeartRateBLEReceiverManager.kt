@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothProfile
-import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -40,9 +39,9 @@ class HeartRateBLEReceiverManager @Inject constructor(
     private val _selectedDevice = MutableStateFlow<BluetoothDevice?>(null)
     override val selectedDevice: StateFlow<BluetoothDevice?> = _selectedDevice
 
-    private val bleScanner: BluetoothLeScanner?
-        get() = bluetoothAdapter.bluetoothLeScanner
-
+    private val bleScanner by lazy {
+        bluetoothAdapter.bluetoothLeScanner
+    }
     override val scannedDevices = MutableStateFlow<List<BluetoothDevice>>(emptyList())
 
     private val foundAddresses = mutableSetOf<String>()
@@ -79,6 +78,16 @@ class HeartRateBLEReceiverManager @Inject constructor(
                     scannedDevices.value += device
                 }
             }
+        }
+
+        override fun onBatchScanResults(results: MutableList<ScanResult>?) {
+            super.onBatchScanResults(results)
+            Log.d("bluetoothScan", "device name ${results.toString()}")
+
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            Log.e("bluetoothScan", "scan fail code: ${errorCode}")
         }
     }
 
@@ -187,6 +196,7 @@ class HeartRateBLEReceiverManager @Inject constructor(
         override fun onCharacteristicChanged(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
+            value: ByteArray
         ) {
             Log.d("bluetoothScan", "❤️ on characteristic change")
 
@@ -327,13 +337,19 @@ class HeartRateBLEReceiverManager @Inject constructor(
 
     override fun startReceiving() {
         Log.d("bluetoothScan", "Scanning")
-        coroutineScope.launch {
-            data.emit(Resource.Loading(message = "Scanning Ble devices"))
-            isScanning = true
-            Log.d("bluetoothScan", "Bluetooth Scanner: ${bleScanner}")
-            Log.d("bluetoothScan", "Bluetooth Scanner enabled: ${bluetoothAdapter.isEnabled}")
-            bleScanner?.startScan(filters, scanSettings, scanCallback)
+        if (bluetoothAdapter.isEnabled) {
+            coroutineScope.launch {
+                data.emit(Resource.Loading(message = "Scanning Ble devices"))
+                isScanning = true
+                Log.d("bluetoothScan", "Bluetooth Scanner: ${bleScanner}")
+                Log.d(
+                    "bluetoothScan",
+                    "Bluetooth Scanner enabled: ${bluetoothAdapter.isEnabled}"
+                )
+                bleScanner?.startScan(filters, scanSettings, scanCallback)
+            }
         }
+
     }
 
     override fun closeConnection() {
@@ -354,7 +370,10 @@ class HeartRateBLEReceiverManager @Inject constructor(
                 return
             }
 
-            writeDescription(cccdDescriptor, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)
+            writeDescription(
+                cccdDescriptor,
+                BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+            )
         }
     }
 }

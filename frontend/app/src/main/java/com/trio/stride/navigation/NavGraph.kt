@@ -10,7 +10,7 @@ import androidx.navigation.navigation
 import com.trio.stride.ui.screens.activity.ActivityScreen
 import com.trio.stride.ui.screens.activity.ProfileScreen
 import com.trio.stride.ui.screens.forgotpassword.ForgotPasswordScreen
-import com.trio.stride.ui.screens.home.HomeScreen
+import com.trio.stride.ui.screens.heartrate.HeartRateScreen
 import com.trio.stride.ui.screens.login.LoginScreen
 import com.trio.stride.ui.screens.maps.search.SearchMapScreen
 import com.trio.stride.ui.screens.maps.view.ViewMapScreen
@@ -88,12 +88,13 @@ fun NavGraphBuilder.mainAppGraph(
         route = Screen.MainApp.route
     ) {
         composable(Screen.BottomNavScreen.Home.route) {
-            HomeScreen(onLogOutSuccess = {
-                navController.navigate(Screen.Auth.Login.route) {
-                    popUpTo(0)
-                    launchSingleTop = true
-                }
-            })
+//            HomeScreen(onLogOutSuccess = {
+//                navController.navigate(Screen.Auth.Login.route) {
+//                    popUpTo(0)
+//                    launchSingleTop = true
+//                }
+//            })
+            HeartRateScreen()
         }
         composable(Screen.BottomNavScreen.Maps.route) {
             ViewMapScreen(navController)

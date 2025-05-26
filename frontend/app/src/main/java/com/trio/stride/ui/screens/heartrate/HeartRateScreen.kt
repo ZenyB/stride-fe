@@ -1,38 +1,29 @@
 package com.trio.stride.ui.screens.heartrate
 
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothAdapter.ERROR
-import android.bluetooth.BluetoothAdapter.EXTRA_STATE
-import android.bluetooth.BluetoothAdapter.STATE_OFF
-import android.bluetooth.BluetoothAdapter.STATE_ON
-import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -58,20 +49,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.trio.stride.R
-import com.trio.stride.RecordService
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.ui.components.StatusMessage
 import com.trio.stride.ui.components.StatusMessageType
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.RequestNotificationPermission
 import com.trio.stride.ui.utils.ble.PermissionUtils
-import com.trio.stride.ui.utils.ble.SystemBroadcastReceiver
+import kotlinx.coroutines.delay
 
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HeartRateScreen(
-    viewModel: HeartRateViewModel
+    viewModel: HeartRateViewModel = hiltViewModel()
 ) {
 //    SystemBroadcastReceiver(systemAction = BluetoothAdapter.ACTION_STATE_CHANGED) { bluetoothState ->
 //        val action = bluetoothState?.action ?: return@SystemBroadcastReceiver
@@ -126,6 +116,7 @@ fun HeartRateScreen(
         if (permissionState.allPermissionsGranted) {
             Log.d("bluetoothScan", "in launch effect ${bleConnectionState.toString()}")
             if (bleConnectionState == ConnectionState.Uninitialized) {
+                delay(1000)
                 viewModel.initializeConnection(context)
             }
         }
