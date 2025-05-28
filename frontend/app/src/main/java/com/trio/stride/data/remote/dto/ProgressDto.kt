@@ -1,20 +1,22 @@
 package com.trio.stride.data.remote.dto
 
+import com.trio.stride.domain.model.ProgressActivity
 import com.trio.stride.domain.model.ProgressData
-import com.trio.stride.domain.model.ProgressDetail
-import com.trio.stride.domain.model.ProgressTimeRange
-import com.trio.stride.domain.model.ProgressType
+import com.trio.stride.domain.model.ProgressDetails
+import com.trio.stride.domain.model.Sport
 
 data class ProgressListDto(
     val data: List<ProgressData>
 )
 
 data class ProgressDetailDto(
-    val data: List<ProgressDetail>
+    val progresses: ProgressDetails,
+    val availableSports: List<Sport>
 )
 
-data class ProgressDetailRequestDto(
-    val sportId: String,
-    val type: String? = ProgressTimeRange.LAST_3_MONTHS.label,
-    val timeFrame: String? = ProgressType.DISTANCE.name,
+data class ProgressActivityDto(
+    val distance: Double,
+    val elevation: Long,
+    val time: Long,
+    val activities: List<ProgressActivity>,
 )

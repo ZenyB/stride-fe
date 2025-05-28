@@ -2,16 +2,20 @@ package com.trio.stride.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.trio.stride.data.local.dao.AvailableSportDao
 import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.CurrentUserDao
+import com.trio.stride.data.local.dao.ProgressDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.local.dao.SportDao
+import com.trio.stride.data.local.entity.AvailableSportEntity
 import com.trio.stride.data.local.entity.CategoryEntity
 import com.trio.stride.data.local.entity.CurrentSportEntity
 import com.trio.stride.data.local.entity.CurrentUserEntity
 import com.trio.stride.data.local.entity.EquipmentWeightEntity
 import com.trio.stride.data.local.entity.HeartRateZonesEntity
+import com.trio.stride.data.local.entity.ProgressEntity
 import com.trio.stride.data.local.entity.RouteFilterSportEntity
 import com.trio.stride.data.local.entity.SportEntity
 
@@ -23,8 +27,10 @@ import com.trio.stride.data.local.entity.SportEntity
         RouteFilterSportEntity::class,
         CurrentUserEntity::class,
         EquipmentWeightEntity::class,
-        HeartRateZonesEntity::class
-    ], version = 3
+        HeartRateZonesEntity::class,
+        AvailableSportEntity::class,
+        ProgressEntity::class
+    ], version = 6
 )
 abstract class StrideDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
@@ -32,4 +38,7 @@ abstract class StrideDatabase : RoomDatabase() {
     abstract fun currentSportDao(): CurrentSportDao
     abstract fun routeFilterSportDao(): RouteFilterSportDao
     abstract fun currentUserDao(): CurrentUserDao
+    abstract fun progressDao(): ProgressDao
+    abstract fun availableSportDao(): AvailableSportDao
+
 }

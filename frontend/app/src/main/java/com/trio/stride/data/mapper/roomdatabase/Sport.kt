@@ -1,5 +1,6 @@
 package com.trio.stride.data.mapper.roomdatabase
 
+import com.trio.stride.data.local.entity.AvailableSportEntity
 import com.trio.stride.data.local.entity.CurrentSportEntity
 import com.trio.stride.data.local.entity.RouteFilterSportEntity
 import com.trio.stride.data.local.entity.SportEntity
@@ -38,3 +39,15 @@ fun RouteFilterSportEntity.toSportEntity(): SportEntity =
 
 fun SportEntity.toRouteFilterSportEntity(): RouteFilterSportEntity =
     RouteFilterSportEntity(id, categoryId, name, image, sportMapType)
+
+fun AvailableSportEntity.toSport(): Sport {
+    return Sport(
+        id = this.id,
+        name = this.name,
+        image = this.image
+    )
+}
+
+fun List<AvailableSportEntity>.toSportList(): List<Sport> {
+    return this.map { it.toSport() }
+}
