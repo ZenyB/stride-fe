@@ -13,13 +13,14 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.trio.stride.ui.screens.progress.ProgressOverview
 import com.trio.stride.ui.theme.StrideTheme
 
 
@@ -27,7 +28,7 @@ import com.trio.stride.ui.theme.StrideTheme
 fun ActivityMainTabScreen(
     navController: NavController
 ) {
-    var selectedTabIndex by rememberSaveable { mutableStateOf(1) }
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf("Progress", "Activities")
 
     Scaffold { padding ->
@@ -64,7 +65,7 @@ fun ActivityMainTabScreen(
             }
 
             when (selectedTabIndex) {
-                0 -> ProfileScreen()
+                0 -> ProgressOverview(navController)
                 1 -> ActivityScreen(
                     navController
                 )

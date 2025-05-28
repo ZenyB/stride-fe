@@ -35,6 +35,10 @@ annotation class CoreBaseUrl
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class CoreWithTimeBaseUrl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class BridgeBaseUrl
 
 @Qualifier

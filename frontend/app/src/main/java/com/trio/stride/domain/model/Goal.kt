@@ -61,7 +61,7 @@ fun GoalItem.toMonthLabels(): List<String> {
     val monthFormatter = SimpleDateFormat("MMM", Locale("en", "VN"))
     val calendar = Calendar.getInstance()
 
-    val seenMonths = mutableSetOf<Int>() // Use Calendar.MONTH values (0 = Jan, 1 = Feb, ...)
+    val seenMonths = mutableSetOf<Int>()
 
     val labels: List<String> = histories?.map { item ->
         calendar.timeInMillis = item.date

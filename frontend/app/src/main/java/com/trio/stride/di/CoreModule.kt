@@ -5,10 +5,12 @@ import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.apiservice.activity.ActivityApi
 import com.trio.stride.data.remote.apiservice.category.CategoryApi
 import com.trio.stride.data.remote.apiservice.goal.GoalApi
+import com.trio.stride.data.remote.apiservice.progress.ProgressApi
 import com.trio.stride.data.remote.apiservice.sport.SportApi
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.GoalRepository
+import com.trio.stride.domain.repository.ProgressRepository
 import com.trio.stride.domain.repository.SportRepository
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.usecase.activity.DeleteActivityUseCase
@@ -18,6 +20,7 @@ import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
 import com.trio.stride.domain.usecase.goal.DeleteUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.UpdateGoalUseCase
+import com.trio.stride.domain.usecase.progress.GetProgressActivityUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
 import dagger.Provides
@@ -72,6 +75,42 @@ object CoreModule {
     }
 
     @Provides
+    @CoreWithTimeBaseUrl
+    fun provideRetrofitWithTimeCoreUrl(tokenManager: TokenManager): Retrofit {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        val authInterceptor = Interceptor { chain ->
+            val original = chain.request()
+            val token = runBlocking { tokenManager.getAccessToken().firstOrNull() }
+
+            val requestBuilder = original.newBuilder()
+            if (!token.isNullOrBlank()) {
+                requestBuilder.addHeader("Authorization", "Bearer $token")
+            }
+
+            requestBuilder.addHeader("X-User-Timezone", "Asia/Ho_Chi_Minh")
+
+            val request = requestBuilder.build()
+            chain.proceed(request)
+        }
+
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(ApiConstants.CORE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
     @Singleton
     fun provideCategoryApi(@CoreBaseUrl retrofit: Retrofit): CategoryApi {
         return retrofit.create(CategoryApi::class.java)
@@ -91,8 +130,14 @@ object CoreModule {
 
     @Provides
     @Singleton
-    fun provideGoalApi(@CoreBaseUrl retrofit: Retrofit): GoalApi {
+    fun provideGoalApi(@CoreWithTimeBaseUrl retrofit: Retrofit): GoalApi {
         return retrofit.create(GoalApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProgressApi(@CoreWithTimeBaseUrl retrofit: Retrofit): ProgressApi {
+        return retrofit.create(ProgressApi::class.java)
     }
 
     @Provides
@@ -147,5 +192,11 @@ object CoreModule {
     @Singleton
     fun provideUpdateGoalUseCase(goalRepository: GoalRepository): UpdateGoalUseCase {
         return UpdateGoalUseCase(goalRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetProgressActivityUseCase(progressRepository: ProgressRepository): GetProgressActivityUseCase {
+        return GetProgressActivityUseCase(progressRepository)
     }
 }

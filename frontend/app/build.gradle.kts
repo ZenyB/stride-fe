@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.vico.compose.m3)
 
     implementation(libs.accompanist.permissions)
+    implementation(libs.compose.shimmer)
 
 
 

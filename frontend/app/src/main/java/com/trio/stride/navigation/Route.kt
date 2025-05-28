@@ -49,6 +49,5 @@ sealed class Screen(val route: String) {
     object CreateGoalScreen : Screen("goal/create")
     object GoalListScreen : Screen("goal/list")
     object EditGoalScreen : Screen("goal/edit/{data}")
-
-
+    object ProgressDetailScreen : Screen("progress-detail")
 }

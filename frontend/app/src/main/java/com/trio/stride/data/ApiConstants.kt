@@ -24,4 +24,10 @@ object ApiConstants {
     const val STRIDE_ROUTES = "stride-routes/"
     const val GOALS = "goals"
     const val GOALS_LIST = "$GOALS/profile"
+    const val PROGRESS = "progress"
+    const val PROGRESS_LIST = "$PROGRESS/profile"
+    const val PROGRESS_DETAIL = "$PROGRESS_LIST/detail"
+    const val PROGRESS_ACTIVITY = "$PROGRESS_DETAIL/activities"
+
+
 }

@@ -19,6 +19,7 @@ import android.util.Log
 import com.trio.stride.ui.utils.ble.Resource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,7 +54,6 @@ class HeartRateBLEReceiverManager @Inject constructor(
         UUID.fromString("00002A37-0000-1000-8000-00805f9b34fb")
     private val CCCD_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 
-
     val scanFilter = ScanFilter.Builder()
         .setServiceUuid(ParcelUuid(HEART_RATE_SERVICE_UUID))
         .build()
@@ -75,7 +75,12 @@ class HeartRateBLEReceiverManager @Inject constructor(
         override fun onScanResult(callbackType: Int, result: ScanResult?) {
             Log.d("bluetoothScan", "device name ${result?.device?.name}")
             result?.device?.let { device ->
-                if (!device.name.isNullOrEmpty() && foundAddresses.add(device.address)) {
+                if (!device.name.isNullOrEmpty() && foundAddresses.add(
+                        device.address
+                    )
+                ) {
+//                    isScanning = false
+//                    bleScanner?.stopScan(this)
                     scannedDevices.value += device
                 }
             }
@@ -91,7 +96,6 @@ class HeartRateBLEReceiverManager @Inject constructor(
         )
         _selectedDevice.value = device
 
-        isScanning = false
         bleScanner?.stopScan(scanCallback)
     }
 
@@ -120,6 +124,7 @@ class HeartRateBLEReceiverManager @Inject constructor(
                             )
                         )
                     }
+                    _selectedDevice.value = null
                     gatt.close()
                 }
             } else {
@@ -327,12 +332,20 @@ class HeartRateBLEReceiverManager @Inject constructor(
 
     override fun startReceiving() {
         Log.d("bluetoothScan", "Scanning")
-        coroutineScope.launch {
-            data.emit(Resource.Loading(message = "Scanning Ble devices"))
-            isScanning = true
-            Log.d("bluetoothScan", "Bluetooth Scanner: ${bleScanner}")
-            Log.d("bluetoothScan", "Bluetooth Scanner enabled: ${bluetoothAdapter.isEnabled}")
-            bleScanner?.startScan(filters, scanSettings, scanCallback)
+        if (bluetoothAdapter.isEnabled) {
+            coroutineScope.launch {
+                data.emit(Resource.Loading(message = "Scanning Ble devices"))
+                isScanning = true
+                Log.d("bluetoothScan", "Bluetooth Scanner: ${bleScanner}")
+                Log.d("bluetoothScan", "Bluetooth Scanner enabled: ${bluetoothAdapter.isEnabled}")
+
+                bleScanner?.startScan(filters, scanSettings, scanCallback)
+                delay(4000)
+                bleScanner?.stopScan(scanCallback)
+                isScanning = false
+                Log.d("bluetoothScan", "Scan stopped after delay")
+
+            }
         }
     }
 

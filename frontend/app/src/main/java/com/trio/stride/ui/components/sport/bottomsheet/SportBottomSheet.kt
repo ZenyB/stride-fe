@@ -157,12 +157,12 @@ fun SportBottomSheetWithCategory(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SportMapBottomSheet(
+    modifier: Modifier = Modifier,
     sports: List<Sport>,
     selectedSport: Sport?,
     visible: Boolean,
     dismissAction: () -> Unit,
     onItemClick: (Sport) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
         visible = visible,
