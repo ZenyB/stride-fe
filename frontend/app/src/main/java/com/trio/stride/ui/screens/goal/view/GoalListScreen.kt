@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -109,9 +108,7 @@ fun GoalListScreen(
             viewModel.deleteGoal()
         }
     )
-    LaunchedEffect(Unit) {
-        viewModel.getUserGoals()
-    }
+
     Scaffold(
         topBar = {
             CustomLeftTopAppBar(

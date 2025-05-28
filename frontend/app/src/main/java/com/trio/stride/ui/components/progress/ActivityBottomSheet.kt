@@ -60,7 +60,7 @@ fun ActivityBottomSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(title, style = StrideTheme.typography.titleLarge)
+            Text(title, style = StrideTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             when (uiState) {
                 LoadingState.Loading -> {
@@ -138,7 +138,7 @@ fun ProgressActivityView(
                     .build(),
                 contentDescription = "image",
                 modifier = Modifier
-                    .width(40.dp)
+                    .width(50.dp)
                     .aspectRatio(1f / 1f)
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop,
@@ -162,7 +162,7 @@ fun ProgressActivityView(
                         ),
                         contentDescription = "Sport Icon",
                     )
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(Modifier.width(8.dp))
                     Text(
                         item.name,
                         maxLines = 1,

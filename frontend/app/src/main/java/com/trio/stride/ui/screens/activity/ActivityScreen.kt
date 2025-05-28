@@ -2,14 +2,12 @@ package com.trio.stride.ui.screens.activity
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -35,7 +33,9 @@ import com.trio.stride.ui.theme.StrideTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
-    navController: NavController, viewModel: ActivityViewModel = hiltViewModel()
+    navController: NavController,
+    content: @Composable (() -> Unit)? = null,
+    viewModel: ActivityViewModel = hiltViewModel()
 ) {
     val items = viewModel.items
     val listState = rememberLazyListState()
@@ -63,6 +63,11 @@ fun ActivityScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (content != null) {
+                item {
+                    content()
+                }
+            }
             items(items.size) { index ->
                 ActivityItemView(item = items[index], onClick = { id ->
                     if (items[index].sport.sportMapType != null) {
@@ -108,22 +113,6 @@ fun ActivityScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun ProfileScreen() {
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Profile Screen", style = StrideTheme.typography.headlineLarge)
         }
     }
 }

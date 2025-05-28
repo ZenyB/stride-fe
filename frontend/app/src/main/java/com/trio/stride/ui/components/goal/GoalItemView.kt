@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,19 +39,20 @@ import com.trio.stride.domain.model.toTitle
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
-fun GoalItemView(item: GoalItem, onActionClick: () -> Unit) {
+fun GoalItemView(item: GoalItem, preview: Boolean = false, onActionClick: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .background(StrideTheme.colorScheme.surface)
+            .fillMaxWidth()
             .padding(top = 16.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .background(StrideTheme.colorScheme.surface)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = if (preview) 0.dp else 16.dp)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 CircularProgressWithImageUrl(
@@ -63,56 +65,78 @@ fun GoalItemView(item: GoalItem, onActionClick: () -> Unit) {
 
                 Column {
                     Text(item.toTitle(), style = StrideTheme.typography.bodyLarge)
-                    Text(item.sport.name, style = StrideTheme.typography.bodyMedium)
+                    if (preview) {
+                        Text(
+                            "${item.formatAmount(item.amountGain)} / ${
+                                item.formatAmount(
+                                    (item.amountGoal - item.amountGain).coerceAtLeast(0)
+                                )
+                            }",
+                            color = StrideTheme.colors.gray600,
+                            style = StrideTheme.typography.bodySmall
+                        )
+
+                    } else {
+                        Text(item.sport.name, style = StrideTheme.typography.bodyMedium)
+                    }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = onActionClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ellipsis_more),
-                        contentDescription = "More Options",
+                if (!preview) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = onActionClick) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ellipsis_more),
+                            contentDescription = "More Options",
+                        )
+                    }
+                }
+            }
+            if (!preview) {
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
+                    ColumnText(
+                        label = "To Go",
+                        value = item.formatAmount(
+                            (item.amountGoal - item.amountGain).coerceAtLeast(0)
+                        )
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
-                ColumnText(
-                    label = "To Go",
-                    value = item.formatAmount(
-                        (item.amountGoal - item.amountGain).coerceAtLeast(0)
-                    )
-                )
-            }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "History",
-                    modifier = Modifier.weight(1f),
-                    style = StrideTheme.typography.titleMedium
-                )
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Collapse" else "Expand"
+
+            if (!preview) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "History",
+                        modifier = Modifier.weight(1f),
+                        style = StrideTheme.typography.titleMedium
                     )
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                            contentDescription = if (expanded) "Collapse" else "Expand"
+                        )
+                    }
                 }
             }
         }
 
         Spacer(Modifier.height(12.dp))
 
-        AnimatedVisibility(
-            visible = expanded, enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Column(
-                modifier = Modifier
-                    .background(StrideTheme.colors.gray300.copy(alpha = 0.2f))
-                    .padding(horizontal = 16.dp)
+        if (!preview) {
+            AnimatedVisibility(
+                visible = expanded, enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
-                GoalChart(item)
+                Column(
+                    modifier = Modifier
+                        .background(StrideTheme.colors.gray300.copy(alpha = 0.2f))
+                        .padding(horizontal = 16.dp)
+                ) {
+                    GoalChart(item)
+                }
             }
         }
     }
@@ -180,7 +204,7 @@ val goalItem = GoalItem(
 @Preview(showBackground = true)
 @Composable
 fun GoalItemPreview() {
-    GoalItemView(goalItem) {
+    GoalItemView(goalItem, true) {
 
     }
 }
