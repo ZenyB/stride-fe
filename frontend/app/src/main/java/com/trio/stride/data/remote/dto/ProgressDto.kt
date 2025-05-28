@@ -15,8 +15,8 @@ data class ProgressDetailDto(
 )
 
 data class ProgressActivityDto(
-    val distance: Double,
-    val elevation: Long,
-    val time: Long,
-    val activities: List<ProgressActivity>,
+    val distance: Double?,
+    val elevation: Long?,
+    val time: Long?,
+    val activities: List<ProgressActivity>?,
 )

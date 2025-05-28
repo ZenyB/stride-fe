@@ -3,6 +3,7 @@ package com.trio.stride.data.repositoryimpl
 import com.trio.stride.data.local.dao.ProgressDao
 import com.trio.stride.data.local.entity.ProgressEntity
 import com.trio.stride.data.remote.apiservice.progress.ProgressApi
+import com.trio.stride.data.remote.dto.ProgressActivityDto
 import com.trio.stride.data.remote.dto.ProgressDetailDto
 import com.trio.stride.data.remote.dto.ProgressListDto
 import com.trio.stride.domain.repository.ProgressRepository
@@ -22,6 +23,14 @@ class ProgressRepositoryImpl @Inject constructor(
         return progressApi.getProgressDetail(
             sportId = sportId,
         )
+    }
+
+    override suspend fun getProgressActivity(
+        sportId: String,
+        fromDate: Long,
+        toDate: Long
+    ): Response<ProgressActivityDto> {
+        return progressApi.getProgressActivity(sportId, fromDate, toDate)
     }
 
     override fun getProgressOverviewLocal(sportId: String): Flow<List<ProgressEntity>> {

@@ -32,10 +32,10 @@ data class ProgressData(
 data class ProgressActivity(
     val id: String,
     val name: String,
-    val mapImage: String,
-    val distance: Double,
-    val elevation: Long,
-    val time: Long,
+    val mapImage: String?,
+    val distance: Double?,
+    val elevation: Long?,
+    val time: Long?,
 )
 
 data class ProgressDetails(

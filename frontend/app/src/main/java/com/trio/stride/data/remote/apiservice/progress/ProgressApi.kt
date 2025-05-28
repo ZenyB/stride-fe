@@ -1,6 +1,7 @@
 package com.trio.stride.data.remote.apiservice.progress
 
 import com.trio.stride.data.ApiConstants
+import com.trio.stride.data.remote.dto.ProgressActivityDto
 import com.trio.stride.data.remote.dto.ProgressDetailDto
 import com.trio.stride.data.remote.dto.ProgressListDto
 import retrofit2.Response
@@ -16,4 +17,11 @@ interface ProgressApi {
     suspend fun getProgressDetail(
         @Query("sportId") sportId: String? = null,
     ): Response<ProgressDetailDto>
+
+    @GET(ApiConstants.PROGRESS_ACTIVITY)
+    suspend fun getProgressActivity(
+        @Query("sportId") sportId: String? = null,
+        @Query("fromDate") fromDate: Long? = null,
+        @Query("toDate") toDate: Long? = null,
+    ): Response<ProgressActivityDto>
 }

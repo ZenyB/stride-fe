@@ -28,6 +28,7 @@ class GetProgressDetailUseCase @Inject constructor(
                             id = sportWithProgressDto.id,
                             name = sportWithProgressDto.name,
                             image = sportWithProgressDto.image,
+                            sportMapType = sportWithProgressDto.sportMapType?.name
                         )
                     }
                     availableSportDao.upsertSports(sportsEntities)

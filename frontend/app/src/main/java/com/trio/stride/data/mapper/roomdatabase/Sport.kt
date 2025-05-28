@@ -44,7 +44,10 @@ fun AvailableSportEntity.toSport(): Sport {
     return Sport(
         id = this.id,
         name = this.name,
-        image = this.image
+        image = this.image,
+        sportMapType = SportMapType.entries.firstOrNull {
+            it.name == this.sportMapType
+        }
     )
 }
 

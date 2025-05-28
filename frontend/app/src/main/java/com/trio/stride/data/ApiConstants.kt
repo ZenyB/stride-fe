@@ -27,5 +27,7 @@ object ApiConstants {
     const val PROGRESS = "progress"
     const val PROGRESS_LIST = "$PROGRESS/profile"
     const val PROGRESS_DETAIL = "$PROGRESS_LIST/detail"
+    const val PROGRESS_ACTIVITY = "$PROGRESS_DETAIL/activities"
+
 
 }

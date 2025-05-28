@@ -41,3 +41,14 @@ fun LoadingSmall() {
         strokeWidth = 3.dp
     )
 }
+
+
+@Composable
+fun LoadingLarger() {
+    CircularProgressIndicator(
+        modifier = Modifier.size(44.dp),
+        color = StrideTheme.colorScheme.primary,
+        strokeCap = StrokeCap.Round,
+        strokeWidth = 3.dp
+    )
+}

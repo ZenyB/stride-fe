@@ -37,9 +37,11 @@ import com.trio.stride.domain.model.Progress
 import com.trio.stride.domain.model.ProgressTimeRange
 import com.trio.stride.domain.model.ProgressType
 import com.trio.stride.domain.model.isEmpty
+import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.goal.FilledRadioButtons
 import com.trio.stride.ui.components.goal.OutlinedRadioButtonsHorizontal
+import com.trio.stride.ui.components.progress.ActivityBottomSheet
 import com.trio.stride.ui.components.progress.ProgressChart
 import com.trio.stride.ui.components.progress.ProgressDetailSkeleton
 import com.trio.stride.ui.components.progress.formatWeekRange
@@ -60,13 +62,19 @@ import kotlin.math.ceil
 @Composable
 fun ProgressDetailScreen(
     navController: NavController,
-    viewModel: ProgressDetailViewModel = hiltViewModel()
+    viewModel: ProgressDetailViewModel = hiltViewModel(),
+    activityViewModel: ProgressActivityViewModel = hiltViewModel()
 ) {
     val progressItems = viewModel.progressData.collectAsStateWithLifecycle()
+    val activityItems = activityViewModel.activityData.collectAsStateWithLifecycle()
+
+    val activityUiState by activityViewModel.uiState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sportList by viewModel.sportList.collectAsStateWithLifecycle()
 
     var showSportSheet by remember { mutableStateOf(false) }
+    var showActivitySheet by remember { mutableStateOf(false) }
+
     var normalizedItems by remember { mutableStateOf(emptyList<Progress>()) }
 
     LaunchedEffect(Unit) {
@@ -190,9 +198,17 @@ fun ProgressDetailScreen(
                         }
 
                         if (isClickable && normalizedItems[uiState.selectedIndex!!].numberActivities > 0) {
+                            val selectedItem = normalizedItems[uiState.selectedIndex!!]
                             IconButton(
                                 onClick = {
-
+                                    showActivitySheet = true
+                                    uiState.sport?.let {
+                                        activityViewModel.getProgressActivity(
+                                            it.id,
+                                            selectedItem.fromDate,
+                                            selectedItem.toDate
+                                        )
+                                    }
                                 },
                                 modifier = Modifier
                                     .background(
@@ -329,4 +345,24 @@ fun ProgressDetailScreen(
         },
         dismissAction = { showSportSheet = false },
     )
+
+    if (showActivitySheet) {
+        ActivityBottomSheet(
+            onDismiss = { showActivitySheet = false },
+            uiState = activityUiState,
+            item = activityItems.value,
+            sportImage = uiState.sport?.image,
+            title = formatWeekRange(
+                normalizedItems[uiState.selectedIndex!!].fromDate,
+                normalizedItems[uiState.selectedIndex!!].toDate
+            ),
+            onItemSelected = { id ->
+                if (uiState.sport?.sportMapType != null) {
+                    navController.navigate(Screen.ActivityDetail.createRoute(id))
+                } else {
+                    navController.navigate(Screen.ActivityDetailNoMap.createRoute(id))
+                }
+            },
+        )
+    }
 }

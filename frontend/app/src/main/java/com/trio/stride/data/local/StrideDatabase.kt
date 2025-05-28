@@ -30,7 +30,7 @@ import com.trio.stride.data.local.entity.SportEntity
         HeartRateZonesEntity::class,
         AvailableSportEntity::class,
         ProgressEntity::class
-    ], version = 6
+    ], version = 7
 )
 abstract class StrideDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
