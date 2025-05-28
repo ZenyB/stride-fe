@@ -50,4 +50,5 @@ sealed class Screen(val route: String) {
     object GoalListScreen : Screen("goal/list")
     object EditGoalScreen : Screen("goal/edit/{data}")
     object ProgressDetailScreen : Screen("progress-detail")
+    object TrainingLogScreen : Screen("trainingLogs")
 }

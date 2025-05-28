@@ -17,8 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,6 +35,8 @@ fun CustomCenterTopAppBar(
     backgroundColor: Color = StrideTheme.colorScheme.surface,
     contentColor: Color = StrideTheme.colorScheme.onSurface,
     height: Dp = 52.dp,
+    dividerColor: Color? = null,
+    hideDivider: Boolean = false,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -80,7 +81,11 @@ fun CustomCenterTopAppBar(
                 )
             }
         }
-        Divider()
+        if (!hideDivider) {
+            HorizontalDivider(
+                color = dividerColor ?: StrideTheme.colors.grayBorder.copy(alpha = 0.12f)
+            )
+        }
     }
 }
 
@@ -93,6 +98,7 @@ fun CustomLeftTopAppBar(
     contentColor: Color = StrideTheme.colorScheme.onSurface,
     height: Dp = 52.dp,
     dividerColor: Color? = null,
+    hideDivider: Boolean = false,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -145,9 +151,11 @@ fun CustomLeftTopAppBar(
                 )
             }
         }
-        Divider(
-            color = dividerColor ?: MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
-        )
+        if (!hideDivider) {
+            HorizontalDivider(
+                color = dividerColor ?: StrideTheme.colors.grayBorder.copy(alpha = 0.12f)
+            )
+        }
     }
 }
 
