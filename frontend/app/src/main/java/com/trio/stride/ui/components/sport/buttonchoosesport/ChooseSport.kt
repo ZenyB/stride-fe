@@ -18,6 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -171,6 +172,59 @@ fun ChooseSportInActivity(
                 contentDescription = "Show sport menu",
                 tint = StrideTheme.colorScheme.onBackground,
                 modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ChooseSportInProgress(
+    iconImage: String,
+    onClick: () -> Unit,
+    sport: Sport,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        modifier = modifier,
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = StrideTheme.colorScheme.primary
+        ),
+        contentPadding = PaddingValues(
+            start = 8.dp,
+            top = 0.dp,
+            end = 8.dp,
+            bottom = 0.dp
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(iconImage)
+                        .error(R.drawable.image_icon)
+                        .fallback(R.drawable.image_icon)
+                        .placeholder(R.drawable.image_icon)
+                        .crossfade(true)
+                        .build()
+                ),
+                contentDescription = "Sport Icon",
+                tint = StrideTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(sport.name)
+            Spacer(Modifier.width(4.dp))
+
+            Icon(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(R.drawable.park_down_icon),
+                contentDescription = "Park down icon",
+                tint = StrideTheme.colorScheme.primary
             )
         }
     }
