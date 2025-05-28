@@ -194,7 +194,7 @@ class RecordRepository @Inject constructor(
                 style.addSource(newSource)
 
                 val layer = lineLayer(layerId, sourceId) {
-                    lineColor("#2571db")
+                    lineColor("#D10A46")
                     lineWidth(4.0)
                 }
                 style.addLayer(layer)
@@ -253,7 +253,7 @@ class RecordRepository @Inject constructor(
 
                 style.addLayerAbove(
                     lineLayer(layerId, sourceId) {
-                        lineColor("#D10A46")
+                        lineColor("#2571DB")
                         lineWidth(4.0)
                     },
                     "recommend-route-layer"
