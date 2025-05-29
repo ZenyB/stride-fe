@@ -2,9 +2,11 @@ package com.trio.stride.data.mapper
 
 import com.trio.stride.data.remote.dto.TrainingLogActivityDto
 import com.trio.stride.data.remote.dto.TrainingLogItemDto
+import com.trio.stride.data.remote.dto.TrainingLogMetaDataDto
 import com.trio.stride.data.remote.dto.TrainingLogSportDto
 import com.trio.stride.domain.model.TrainingLogActivity
 import com.trio.stride.domain.model.TrainingLogItem
+import com.trio.stride.domain.model.TrainingLogMetaData
 import com.trio.stride.domain.model.TrainingLogSport
 
 fun TrainingLogItemDto.toModel() = TrainingLogItem(
@@ -31,4 +33,9 @@ fun TrainingLogSportDto.toModel() = TrainingLogSport(
     name = this.name,
     image = this.image,
     sportMapType = this.sportMapType
+)
+
+fun TrainingLogMetaDataDto.toModel() = TrainingLogMetaData(
+    from = this.from,
+    to = this.to
 )

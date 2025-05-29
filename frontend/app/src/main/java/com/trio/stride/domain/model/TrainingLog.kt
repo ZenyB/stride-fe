@@ -1,5 +1,10 @@
 package com.trio.stride.domain.model
 
+data class TrainingLogs(
+    val trainingLogs: List<TrainingLogItem>,
+    val metaData: TrainingLogMetaData
+)
+
 data class TrainingLogItem(
     val date: Long,
     val color: String,
@@ -29,6 +34,11 @@ data class TrainingLogSport(
 data class TrainingLogFilter(
     val dataType: TrainingLogFilterDataType = TrainingLogFilterDataType.DISTANCE,
     val selectedSports: List<Sport> = emptyList(),
+)
+
+data class TrainingLogMetaData(
+    val from: Long,
+    val to: Long,
 )
 
 enum class TrainingLogFilterDataType { TIME, DISTANCE, ELEVATION }

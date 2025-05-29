@@ -7,6 +7,7 @@ import com.trio.stride.ui.utils.getStartOf12WeeksInMillis
 data class TrainingLogsResponseDto(
     val data: List<TrainingLogItemDto>,
     val filterDto: TrainingLogFilterDto,
+    val metadata: TrainingLogMetaDataDto
 )
 
 data class TrainingLogFilterDto(
@@ -40,4 +41,9 @@ data class TrainingLogSportDto(
     val name: String,
     val image: String,
     val sportMapType: SportMapType?
+)
+
+data class TrainingLogMetaDataDto(
+    val from: Long,
+    val to: Long
 )

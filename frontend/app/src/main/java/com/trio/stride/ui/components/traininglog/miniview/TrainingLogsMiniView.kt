@@ -1,7 +1,5 @@
 package com.trio.stride.ui.components.traininglog.miniview
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -25,25 +21,21 @@ import com.trio.stride.ui.components.traininglog.HorizontalTrainingLogValue
 import com.trio.stride.ui.components.traininglog.HorizontalWeekTitles
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.getEndOfWeekInMillis
+import com.trio.stride.ui.utils.getStartOfWeekInMillis
 import java.time.LocalDate
 
 @Composable
 fun TrainingLogsMiniView(
-    navigateToTrainingLog: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TrainingLogsMiniViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val todayIndex = LocalDate.now().dayOfWeek.value - 1
-    val startDate = getEndOfWeekInMillis() - 6 * 24 * 60 * 60 * 1000
+    val startDate = getStartOfWeekInMillis()
     val endDate = getEndOfWeekInMillis()
 
     Box(modifier = Modifier.fillMaxWidth(), Alignment.Center) {
-        Column(
-            modifier = modifier.clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            ) { navigateToTrainingLog() }) {
+        Column(modifier = modifier) {
             Text(
                 "Training Log",
                 style = StrideTheme.typography.headlineMedium,

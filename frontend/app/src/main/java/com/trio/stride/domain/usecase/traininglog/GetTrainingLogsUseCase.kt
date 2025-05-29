@@ -4,7 +4,7 @@ import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
 import com.trio.stride.data.remote.dto.TrainingLogFilterDto
-import com.trio.stride.domain.model.TrainingLogItem
+import com.trio.stride.domain.model.TrainingLogs
 import com.trio.stride.domain.repository.TrainingLogRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 class GetTrainingLogsUseCase @Inject constructor(
     private val trainingLogRepository: TrainingLogRepository
 ) {
-    operator fun invoke(filter: TrainingLogFilterDto): Flow<Resource<List<TrainingLogItem>>> =
+    operator fun invoke(filter: TrainingLogFilterDto): Flow<Resource<TrainingLogs>> =
         flow {
             emit(Resource.Loading())
 

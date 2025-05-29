@@ -32,11 +32,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.trio.stride.R
 import com.trio.stride.domain.model.TrainingLogFilterDataType
 import com.trio.stride.ui.components.CustomLeftTopAppBar
+import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.traininglog.HorizontalTrainingLogSkeleton
 import com.trio.stride.ui.components.traininglog.HorizontalTrainingLogValue
 import com.trio.stride.ui.components.traininglog.HorizontalWeekTitles
 import com.trio.stride.ui.components.traininglog.TrainingLogActivitiesDialog
+import com.trio.stride.ui.components.traininglog.TrainingLogCalendarFilter
 import com.trio.stride.ui.components.traininglog.TrainingLogFilterSheet
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.advancedShadow
@@ -44,6 +46,7 @@ import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatTimeHM
 import com.trio.stride.ui.utils.minusNWeeks
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 
 @Composable
@@ -58,7 +61,18 @@ fun TrainingLogScreen(
     val today = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     val listState = rememberLazyListState()
     val showFilterSheet = remember { mutableStateOf(false) }
+    val showCalendarFilter = remember { mutableStateOf(false) }
+    val targetMonth = remember { mutableStateOf<YearMonth?>(null) }
 
+    LaunchedEffect(targetMonth.value) {
+        targetMonth.value?.let { month ->
+            val targetIndex = viewModel.scrollToTargetMonth(month)
+            if (targetIndex >= 0) {
+                listState.animateScrollToItem(targetIndex)
+                targetMonth.value = null
+            }
+        }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow {
@@ -105,7 +119,8 @@ fun TrainingLogScreen(
                             )
                         }
                         IconButton(
-                            onClick = {}
+                            onClick = { showCalendarFilter.value = true },
+                            enabled = !state.isLoading
                         ) {
                             Icon(
                                 modifier = Modifier
@@ -149,15 +164,15 @@ fun TrainingLogScreen(
                 Spacer(Modifier.height(8.dp))
                 if (state.isLoading) {
                     val startDates = (0..5).map {
-                        state.currentEndDate.minusNWeeks(
+                        state.nextStartDate.minusNWeeks(
                             it
-                        ) - 6 * 24 * 60 * 60 * 1000
+                        )
                     }
 
                     val endDates = (0..5).map {
-                        state.currentEndDate.minusNWeeks(
+                        state.nextStartDate.minusNWeeks(
                             it
-                        )
+                        ) + 6 * 24 * 60 * 60 * 1000
                     }
                     Column(modifier = Modifier.padding(12.dp)) {
                         HorizontalTrainingLogSkeleton(
@@ -169,7 +184,7 @@ fun TrainingLogScreen(
                 LazyColumn(modifier = Modifier.padding(12.dp), state = listState) {
                     itemsIndexed(
                         state.currentWeeksInfo,
-                        key = { index, weekInfo -> index }) { index, weekInfo ->
+                        key = { index, weekInfo -> weekInfo.startDate }) { index, weekInfo ->
                         var todayIndex: Int? = null
                         if (today in weekInfo.startDate..weekInfo.endDate) {
                             val millisecondsPerDay = 24 * 60 * 60 * 1000L
@@ -212,14 +227,16 @@ fun TrainingLogScreen(
                             todayIndex = todayIndex,
                         )
 
-                        HorizontalDivider()
-                        Spacer(Modifier.height(4.dp))
+                        if (state.hasLoadMorePermission || index != state.currentWeeksInfo.lastIndex) {
+                            HorizontalDivider()
+                            Spacer(Modifier.height(4.dp))
+                        }
 
                         if (index == state.currentWeeksInfo.lastIndex && state.hasLoadMorePermission) {
-                            val startDates = (1..3).map { state.currentStartDate.minusNWeeks(it) }
+                            val startDates = (0..2).map { state.nextStartDate.minusNWeeks(it) }
 
                             val endDates =
-                                (1..3).map { state.currentStartDate.minusNWeeks(it) + 6 * 24 * 60 * 60 * 1000 }
+                                (0..2).map { state.nextStartDate.minusNWeeks(it) + 6 * 24 * 60 * 60 * 1000 }
                             HorizontalTrainingLogSkeleton(
                                 startDates = startDates,
                                 endDates = endDates
@@ -242,7 +259,6 @@ fun TrainingLogScreen(
             onDataTypeChange = { dataType ->
                 viewModel.updateDataTypesFilter(dataType)
             },
-            modifier = Modifier.padding(bottom = 72.dp)
         )
 
         TrainingLogActivitiesDialog(
@@ -256,6 +272,16 @@ fun TrainingLogScreen(
                     activity.sport.sportMapType != null
                 )
             }
+        )
+
+        TrainingLogCalendarFilter(
+            visible = showCalendarFilter.value,
+            onDismiss = { showCalendarFilter.value = false },
+            onMonthSelect = {
+                targetMonth.value = it
+                showCalendarFilter.value = false
+            },
+            startDate = state.metaData.from
         )
 
         StrideDialog(
@@ -285,5 +311,9 @@ fun TrainingLogScreen(
                 viewModel.loadMore()
             }
         )
+    }
+
+    if (state.scrolling) {
+        Loading()
     }
 }

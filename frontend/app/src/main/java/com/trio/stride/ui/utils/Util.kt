@@ -137,18 +137,37 @@ fun getStartOf12WeeksInMillis(): Long {
     return start12Weeks
 }
 
-fun getEndOfWeekInMillis(): Long {
+fun getEndOfWeekInMillis(ofDate: Long? = null): Long {
     val zoneId = ZoneId.systemDefault()
 
-    val now = LocalDate.now()
+    val date = if (ofDate != null) Instant.ofEpochMilli(ofDate)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate() else LocalDate.now()
 
-    val endOfWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    val endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
         .atTime(LocalTime.MAX)
         .atZone(zoneId)
         .toInstant()
         .toEpochMilli()
 
     return endOfWeek
+}
+
+fun getStartOfWeekInMillis(ofDate: Long? = null): Long {
+    val zoneId = ZoneId.systemDefault()
+
+    val date = if (ofDate != null) Instant.ofEpochMilli(ofDate)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+    else LocalDate.now()
+
+    val startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        .atTime(LocalTime.MIN)
+        .atZone(zoneId)
+        .toInstant()
+        .toEpochMilli()
+
+    return startOfWeek
 }
 
 fun Long.minus12Weeks(): Long {

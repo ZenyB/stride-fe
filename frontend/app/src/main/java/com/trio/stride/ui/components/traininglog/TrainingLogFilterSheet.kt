@@ -86,11 +86,11 @@ fun TrainingLogFilterSheet(
                 visible = true,
                 enter = slideInVertically(
                     initialOffsetY = { -it },
-                    animationSpec = tween(durationMillis = 300)
+                    animationSpec = tween(durationMillis = 500)
                 ),
                 exit = slideOutVertically(
                     targetOffsetY = { -it },
-                    animationSpec = tween(durationMillis = 300)
+                    animationSpec = tween(durationMillis = 500)
                 )
             ) {
                 Column(

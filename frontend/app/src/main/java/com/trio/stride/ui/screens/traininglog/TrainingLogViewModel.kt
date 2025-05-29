@@ -10,10 +10,12 @@ import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.TrainingLogFilter
 import com.trio.stride.domain.model.TrainingLogFilterDataType
 import com.trio.stride.domain.model.TrainingLogItem
+import com.trio.stride.domain.model.TrainingLogMetaData
 import com.trio.stride.domain.usecase.traininglog.GetTrainingLogsUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.getEndOfWeekInMillis
 import com.trio.stride.ui.utils.getStartOf12WeeksInMillis
+import com.trio.stride.ui.utils.getStartOfWeekInMillis
 import com.trio.stride.ui.utils.minus12Weeks
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +23,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @HiltViewModel
 class TrainingLogViewModel @Inject constructor(
@@ -31,11 +37,12 @@ class TrainingLogViewModel @Inject constructor(
 ) : BaseViewModel<TrainingLogViewModel.ViewState>() {
 
     override fun createInitialState(): ViewState = ViewState()
+    private val startDateOf12Weeks = getStartOf12WeeksInMillis()
 
     val sports: StateFlow<List<Sport>> = sportManager.sports
 
     init {
-        getTrainingLogsData()
+        getFirstTrainingLogsData()
         setState {
             currentState.copy(
                 trainingLogFilter = currentState.trainingLogFilter.copy(
@@ -45,24 +52,94 @@ class TrainingLogViewModel @Inject constructor(
         }
     }
 
-    fun getTrainingLogsData() {
+    private fun getFirstTrainingLogsData() {
         viewModelScope.launch {
+            val today =
+                LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             getTrainingLogsUseCase.invoke(
-                TrainingLogFilterDto()
+                TrainingLogFilterDto(
+                    fromDate = today,
+                    toDate = today
+                )
             ).collectLatest { response ->
                 when (response) {
                     is Resource.Loading -> setState { currentState.copy(isLoading = true) }
                     is Resource.Success -> {
-                        setState { currentState.copy(trainingLogsData = response.data) }
-                        buildWeeks(
-                            currentState.currentStartDate,
-                            currentState.currentEndDate,
-                            currentState.trainingLogsData
-                        )
+                        val startOfMetadata =
+                            getStartOfWeekInMillis(response.data.metaData.from)
+
+                        setState {
+                            currentState.copy(
+                                metaData = response.data.metaData,
+                                nextStartDate = maxOf(
+                                    startOfMetadata,
+                                    startDateOf12Weeks
+                                ),
+                            )
+                        }
+
+                        if (startDateOf12Weeks < startOfMetadata) {
+                            setState { currentState.copy(hasLoadMorePermission = false) }
+                        }
+
+                        getTrainingLogsData()
                     }
 
                     is Resource.Error -> {
                         setState { currentState.copy(isFetchError = true) }
+                        Log.i("Error", response.error.toString())
+                    }
+                }
+            }
+        }
+    }
+
+    fun getTrainingLogsData() {
+        viewModelScope.launch {
+            val filter = TrainingLogFilterDto(
+                fromDate = currentState.nextStartDate,
+                toDate = currentState.nextEndDate
+            )
+            getTrainingLogsUseCase.invoke(filter).collectLatest { response ->
+                when (response) {
+                    is Resource.Loading -> setState { currentState.copy(isLoading = true) }
+                    is Resource.Success -> {
+                        val startDateOf12WeeksBefore = currentState.nextStartDate.minus12Weeks()
+                        val startDateOfMetaData =
+                            getStartOfWeekInMillis(response.data.metaData.from)
+
+                        buildWeeks(
+                            filter.fromDate,
+                            filter.toDate,
+                            response.data.trainingLogs
+                        )
+
+                        when {
+                            currentState.nextStartDate == startDateOfMetaData -> setState {
+                                currentState.copy(
+                                    hasLoadMorePermission = false
+                                )
+                            }
+
+                            startDateOf12WeeksBefore <= startDateOfMetaData -> setState {
+                                currentState.copy(
+                                    nextEndDate = nextStartDate - 1,
+                                    nextStartDate = startDateOfMetaData,
+                                )
+                            }
+
+                            startDateOf12WeeksBefore > startDateOfMetaData -> setState {
+                                currentState.copy(
+                                    nextStartDate = startDateOf12WeeksBefore,
+                                    nextEndDate = nextEndDate.minus12Weeks()
+                                )
+                            }
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        setState { currentState.copy(isFetchError = true) }
+                        Log.i("Error", response.error.toString())
                     }
                 }
             }
@@ -108,13 +185,12 @@ class TrainingLogViewModel @Inject constructor(
 
         result.reverse()
 
-        Log.i("TRAINING_LOG", result.toString())
-
         val newWeeksInfo = currentState.weeksInfo.toMutableList()
         newWeeksInfo.addAll(result)
         filterWeeksInfo(newWeeksInfo)
         setState {
             currentState.copy(
+                trainingLogsData = trainingLogsData,
                 loadingMore = false,
                 weeksInfo = newWeeksInfo,
                 isLoading = false
@@ -122,38 +198,68 @@ class TrainingLogViewModel @Inject constructor(
         }
     }
 
-    fun loadMore() {
-        viewModelScope.launch {
-            val filter = TrainingLogFilterDto(
-                fromDate = currentState.currentStartDate.minus12Weeks(),
-                toDate = currentState.currentEndDate.minus12Weeks(),
-            )
-            getTrainingLogsUseCase.invoke(filter).collectLatest { response ->
-                when (response) {
-                    is Resource.Loading -> setState { currentState.copy(loadingMore = true) }
-                    is Resource.Success -> {
-                        val newTrainingLogData = response.data.toMutableList()
-                        newTrainingLogData.addAll(response.data)
-                        setState {
-                            currentState.copy(
-                                trainingLogsData = newTrainingLogData,
-                                currentStartDate = filter.fromDate,
-                                currentEndDate = filter.toDate
-                            )
-                        }
-                        buildWeeks(
-                            filter.fromDate,
-                            filter.toDate,
-                            response.data
-                        )
-                    }
+    fun loadMore(successCallBack: () -> Unit = {}) {
+        Log.i("LOAD_MORE", currentState.hasLoadMorePermission.toString())
+        if (currentState.hasLoadMorePermission) {
+            viewModelScope.launch {
+                val filter = TrainingLogFilterDto(
+                    fromDate = currentState.nextStartDate,
+                    toDate = currentState.nextEndDate
+                )
 
-                    is Resource.Error -> {
-                        setState {
-                            currentState.copy(
-                                isLoadMoreError = true,
-                                hasLoadMorePermission = false
-                            )
+                if (filter.fromDate > filter.toDate) {
+                    setState { currentState.copy(hasLoadMorePermission = false) }
+                } else {
+                    getTrainingLogsUseCase.invoke(filter).collectLatest { response ->
+                        when (response) {
+                            is Resource.Loading -> setState { currentState.copy(loadingMore = true) }
+                            is Resource.Success -> {
+                                val newTrainingLogData = response.data.trainingLogs.toMutableList()
+                                newTrainingLogData.addAll(response.data.trainingLogs)
+
+                                buildWeeks(
+                                    filter.fromDate,
+                                    filter.toDate,
+                                    response.data.trainingLogs
+                                )
+
+                                val startDateOf12WeeksBefore =
+                                    currentState.nextStartDate.minus12Weeks()
+                                val startDateOfMetaData =
+                                    getStartOfWeekInMillis(response.data.metaData.from)
+
+                                when {
+                                    currentState.nextStartDate == startDateOfMetaData -> setState {
+                                        currentState.copy(
+                                            hasLoadMorePermission = false
+                                        )
+                                    }
+
+                                    startDateOf12WeeksBefore <= startDateOfMetaData -> setState {
+                                        currentState.copy(
+                                            nextEndDate = nextStartDate - 1,
+                                            nextStartDate = startDateOfMetaData
+                                        )
+                                    }
+
+                                    startDateOf12WeeksBefore > startDateOfMetaData -> setState {
+                                        currentState.copy(
+                                            nextStartDate = startDateOf12WeeksBefore,
+                                            nextEndDate = nextEndDate.minus12Weeks()
+                                        )
+                                    }
+                                }
+                                successCallBack()
+                            }
+
+                            is Resource.Error -> {
+                                setState {
+                                    currentState.copy(
+                                        isLoadMoreError = true,
+                                        hasLoadMorePermission = false
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -179,6 +285,38 @@ class TrainingLogViewModel @Inject constructor(
         }
 
         setState { currentState.copy(currentWeeksInfo = filteredWeeksInfo) }
+    }
+
+    private fun isMonthDataLoaded(selectedMonth: YearMonth): Boolean {
+
+        return currentState.weeksInfo.any { week ->
+            val weekStart = Instant.ofEpochMilli(week.startDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            YearMonth.from(weekStart) == selectedMonth
+        }
+    }
+
+    private suspend fun loadMoreAsync() = suspendCoroutine<Unit> { continuation ->
+        loadMore {
+            continuation.resume(Unit)
+        }
+    }
+
+    suspend fun scrollToTargetMonth(targetMonth: YearMonth): Int {
+        while (!isMonthDataLoaded(targetMonth)) {
+            setState { currentState.copy(scrolling = true) }
+            loadMoreAsync()
+        }
+
+        setState { currentState.copy(scrolling = false) }
+
+        return currentState.weeksInfo.indexOfFirst { week ->
+            val weekStart = Instant.ofEpochMilli(week.startDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            YearMonth.from(weekStart) == targetMonth
+        }
     }
 
     fun updateSportsFilter(value: List<Sport>) {
@@ -229,13 +367,18 @@ class TrainingLogViewModel @Inject constructor(
         val isLoadMoreError: Boolean = false,
         val hasLoadMorePermission: Boolean = true,
         val loadingMore: Boolean = false,
-        val currentStartDate: Long = getStartOf12WeeksInMillis(),
-        val currentEndDate: Long = getEndOfWeekInMillis(),
+        val scrolling: Boolean = false,
+        val nextStartDate: Long = getStartOfWeekInMillis(),
+        val nextEndDate: Long = getEndOfWeekInMillis(),
         val trainingLogsData: List<TrainingLogItem> = emptyList(),
         val trainingLogFilter: TrainingLogFilter = TrainingLogFilter(),
         val weeksInfo: List<WeekInfo> = emptyList(),
         val currentWeeksInfo: List<WeekInfo> = emptyList(),
         val selectedTrainingLog: TrainingLogItem? = null,
+        val metaData: TrainingLogMetaData = TrainingLogMetaData(
+            from = getStartOf12WeeksInMillis(),
+            to = getEndOfWeekInMillis()
+        ),
     ) : IViewState
 
     data class WeekInfo(

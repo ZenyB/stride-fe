@@ -1,6 +1,5 @@
 package com.trio.stride.ui.components.traininglog.miniview
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
@@ -9,13 +8,13 @@ import com.trio.stride.domain.model.TrainingLogItem
 import com.trio.stride.domain.usecase.traininglog.GetTrainingLogsUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.getEndOfWeekInMillis
-import com.trio.stride.ui.utils.toStringDate
+import com.trio.stride.ui.utils.getStartOfWeekInMillis
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private val startDate = getEndOfWeekInMillis() - 6 * 24 * 60 * 60 * 1000
+private val startDate = getStartOfWeekInMillis()
 private val endDate = getEndOfWeekInMillis()
 
 @HiltViewModel
@@ -40,7 +39,7 @@ class TrainingLogsMiniViewModel @Inject constructor(
                 when (response) {
                     is Resource.Loading -> {}
                     is Resource.Success -> {
-                        val trainingLogs = response.data
+                        val trainingLogs = response.data.trainingLogs
                         val newTrainingLogs = mutableListOf<TrainingLogItem?>()
 
                         var currentDayMillis = startDate
@@ -49,7 +48,7 @@ class TrainingLogsMiniViewModel @Inject constructor(
 
                         repeat(7) {
                             if (trainingLogsIdx < trainingLogs.size
-                                && trainingLogs[trainingLogsIdx].date.toStringDate() == currentDayMillis.toStringDate()
+                                && trainingLogs[trainingLogsIdx].date == currentDayMillis
                             ) {
                                 newTrainingLogs.add(trainingLogs[trainingLogsIdx])
                                 trainingLogsIdx += 1
@@ -59,8 +58,6 @@ class TrainingLogsMiniViewModel @Inject constructor(
 
                             currentDayMillis += 24 * 60 * 60 * 1000
                         }
-
-                        Log.i("TRAINING_LOGSS", newTrainingLogs.toString())
 
                         setState { currentState.copy(trainingLogs = newTrainingLogs) }
                     }
