@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -60,7 +61,10 @@ fun ActivityBottomSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(title, style = StrideTheme.typography.titleMedium)
+            Text(
+                title,
+                style = StrideTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
             Spacer(modifier = Modifier.height(8.dp))
             when (uiState) {
                 LoadingState.Loading -> {

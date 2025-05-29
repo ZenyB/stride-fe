@@ -34,7 +34,7 @@ import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.screens.activity.ActivityScreen
-import com.trio.stride.ui.screens.goal.view.GoalListPreview
+import com.trio.stride.ui.screens.goal.view.GoalListHomePreview
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -77,7 +77,7 @@ fun HomeScreen(
         ) {
             ActivityScreen(
                 navController = navController,
-                content = { GoalListPreview(navController) }
+                content = { GoalListHomePreview(navController) }
             )
             Spacer(Modifier.height(24.dp))
         }

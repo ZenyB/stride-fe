@@ -28,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trio.stride.R
 import com.trio.stride.domain.model.GoalHistoryItem
@@ -39,7 +38,7 @@ import com.trio.stride.domain.model.toTitle
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
-fun GoalItemView(item: GoalItem, preview: Boolean = false, onActionClick: () -> Unit) {
+fun GoalItemView(item: GoalItem, onActionClick: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(
@@ -52,7 +51,7 @@ fun GoalItemView(item: GoalItem, preview: Boolean = false, onActionClick: () -> 
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .background(StrideTheme.colorScheme.surface)
-                .padding(horizontal = if (preview) 0.dp else 16.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 CircularProgressWithImageUrl(
@@ -65,78 +64,56 @@ fun GoalItemView(item: GoalItem, preview: Boolean = false, onActionClick: () -> 
 
                 Column {
                     Text(item.toTitle(), style = StrideTheme.typography.bodyLarge)
-                    if (preview) {
-                        Text(
-                            "${item.formatAmount(item.amountGain)} / ${
-                                item.formatAmount(
-                                    (item.amountGoal - item.amountGain).coerceAtLeast(0)
-                                )
-                            }",
-                            color = StrideTheme.colors.gray600,
-                            style = StrideTheme.typography.bodySmall
-                        )
-
-                    } else {
-                        Text(item.sport.name, style = StrideTheme.typography.bodyMedium)
-                    }
+                    Text(item.sport.name, style = StrideTheme.typography.bodyMedium)
                 }
 
-                if (!preview) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = onActionClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ellipsis_more),
-                            contentDescription = "More Options",
-                        )
-                    }
-                }
-            }
-            if (!preview) {
-                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
-                    ColumnText(
-                        label = "To Go",
-                        value = item.formatAmount(
-                            (item.amountGoal - item.amountGain).coerceAtLeast(0)
-                        )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = onActionClick) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ellipsis_more),
+                        contentDescription = "More Options",
                     )
                 }
             }
-
-
-            if (!preview) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "History",
-                        modifier = Modifier.weight(1f),
-                        style = StrideTheme.typography.titleMedium
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                ColumnText(label = "Current", value = item.formatAmount(item.amountGain))
+                ColumnText(
+                    label = "To Go",
+                    value = item.formatAmount(
+                        (item.amountGoal - item.amountGain).coerceAtLeast(0)
                     )
-                    IconButton(onClick = { expanded = !expanded }) {
-                        Icon(
-                            imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                            contentDescription = if (expanded) "Collapse" else "Expand"
-                        )
-                    }
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "History",
+                    modifier = Modifier.weight(1f),
+                    style = StrideTheme.typography.titleMedium
+                )
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = if (expanded) "Collapse" else "Expand"
+                    )
                 }
             }
         }
 
         Spacer(Modifier.height(12.dp))
 
-        if (!preview) {
-            AnimatedVisibility(
-                visible = expanded, enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+        AnimatedVisibility(
+            visible = expanded, enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+                    .background(StrideTheme.colors.gray300.copy(alpha = 0.2f))
+                    .padding(horizontal = 16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .background(StrideTheme.colors.gray300.copy(alpha = 0.2f))
-                        .padding(horizontal = 16.dp)
-                ) {
-                    GoalChart(item)
-                }
+                GoalChart(item)
             }
         }
     }
@@ -149,7 +126,7 @@ fun ColumnText(
 ) {
     Column {
         Text(label, color = StrideTheme.colors.gray600, style = StrideTheme.typography.bodySmall)
-        Text(value, style = StrideTheme.typography.titleLarge)
+        Text(value, style = StrideTheme.typography.titleMedium)
     }
 }
 
@@ -193,18 +170,10 @@ val goalItem = GoalItem(
         name = "Cycling",
         image = "https://pglijwfxeearqkhmpsdq.supabase.co/storage/v1/object/public/users//15f639c2-5679-40ef-baa2-3cba4af77757.jpg"
     ),
-    type = "ACTIVITY",
+    type = "TIME",
     timeFrame = "WEEKLY",
-    amountGain = 3,
-    amountGoal = 10,
+    amountGain = 300,
+    amountGoal = 400,
     isActive = true,
     histories = histories
 )
-
-@Preview(showBackground = true)
-@Composable
-fun GoalItemPreview() {
-    GoalItemView(goalItem, true) {
-
-    }
-}

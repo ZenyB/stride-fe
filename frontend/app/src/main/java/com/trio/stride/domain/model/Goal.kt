@@ -42,7 +42,14 @@ fun GoalItem.toTitle(): String {
     return "$title Goal"
 }
 
-fun GoalItem.formatAmount(amount: Number): String {
+fun GoalItem.toPreviewTitle(): String {
+    val title = timeFrame
+        .split(" ")
+        .joinToString(" ") { it.lowercase(Locale.ROOT).replaceFirstChar { c -> c.uppercaseChar() } }
+    return title
+}
+
+fun GoalItem.formatAmount(amount: Number, hasActivity: Boolean? = false): String {
     if (type == GoalType.TIME.name) {
         val result = formatDuration(amount.toLong(), false)
         if (result.isEmpty()) {
@@ -53,7 +60,21 @@ fun GoalItem.formatAmount(amount: Number): String {
     } else if (type == GoalType.ELEVATION.name) {
         return "$amount m"
     } else {
-        return amount.toString()
+        if (hasActivity == true) {
+            val unitText = if (amount.toInt() > 1) "activities" else "activity"
+            return "$amount $unitText"
+        } else
+            return amount.toString()
+    }
+}
+
+fun GoalItem.getUnit(): String {
+    val time = GoalTimeFrame.entries.firstOrNull { it.name == timeFrame }
+    return when (time) {
+        GoalTimeFrame.WEEKLY -> "week"
+        GoalTimeFrame.MONTHLY -> "month"
+        GoalTimeFrame.ANNUALLY -> "year"
+        null -> ""
     }
 }
 

@@ -6,18 +6,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
+import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.GoalItem
+import com.trio.stride.domain.repository.GoalRepository
 import com.trio.stride.domain.usecase.goal.DeleteUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class GoalListViewModel @Inject constructor(
     private val getUserGoalUseCase: GetUserGoalUseCase,
-    private val deleteUserGoalUseCase: DeleteUserGoalUseCase
+    private val deleteUserGoalUseCase: DeleteUserGoalUseCase,
+    private val goalRepository: GoalRepository
 ) : BaseViewModel<UserGoalState>() {
 
     var items by mutableStateOf<List<GoalItem>>(emptyList())
@@ -27,36 +31,62 @@ class GoalListViewModel @Inject constructor(
     var selectedItemId by mutableStateOf<String?>(null)
 
     init {
-        getUserGoals()
+        getLocalGoals()
+        if (!goalRepository.hasSynced.get()) {
+            getRemoteUserGoals()
+        }
     }
 
     fun refresh() {
         isRefreshing = true
         items = emptyList()
-        getUserGoals()
+        getRemoteUserGoals()
     }
 
-    fun getUserGoals() {
-        if (currentState == UserGoalState.Loading
-        ) return
-
-        Log.d("okhttp", "Getting user goals")
-        setState { UserGoalState.Loading }
-
+    private fun getLocalGoals() {
         viewModelScope.launch {
-            val result =
-                getUserGoalUseCase()
-            result
-                .onSuccess { data ->
+            Log.d("Goal", "Loading local Goal")
+            setState { UserGoalState.Loading }
+
+            goalRepository.getGoalLocal()
+                .collectLatest { localData ->
+                    Log.d("Goal", "Loading local Goal: ${localData}")
+                    items = localData
                     setState { UserGoalState.Idle }
-                    if (data != null) {
-                        items = data.data
+
+                }
+        }
+    }
+
+    private fun getRemoteUserGoals() {
+        Log.d("okhttp", "Getting user goals")
+        viewModelScope.launch {
+            getUserGoalUseCase()
+                .collectLatest { data ->
+                    Log.d("Goal", "Loading remote Goal: ${data}")
+
+                    if (isRefreshing) {
+                        when (data) {
+                            is Resource.Loading -> {
+                                setState { UserGoalState.Loading }
+                            }
+
+                            is Resource.Success -> {
+                                isRefreshing = false
+                                setState { UserGoalState.Idle }
+                            }
+
+                            is Resource.Error -> {
+                                setState {
+                                    UserGoalState.Error(
+                                        data.error.message ?: "An error occurred"
+                                    )
+                                }
+                            }
+                        }
                     }
-                    isRefreshing = false
                 }
-                .onFailure {
-                    setState { UserGoalState.Error(it.message ?: "An error occurred") }
-                }
+
         }
     }
 
