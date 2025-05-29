@@ -2,6 +2,7 @@ package com.trio.stride.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.trio.stride.data.local.dao.ActivityDao
 import com.trio.stride.data.local.dao.AvailableSportDao
 import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
@@ -10,6 +11,7 @@ import com.trio.stride.data.local.dao.GoalDao
 import com.trio.stride.data.local.dao.ProgressDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.local.dao.SportDao
+import com.trio.stride.data.local.entity.ActivityEntity
 import com.trio.stride.data.local.entity.AvailableSportEntity
 import com.trio.stride.data.local.entity.CategoryEntity
 import com.trio.stride.data.local.entity.CurrentSportEntity
@@ -34,8 +36,9 @@ import com.trio.stride.data.local.entity.SportEntity
         AvailableSportEntity::class,
         ProgressEntity::class,
         GoalEntity::class,
-        GoalHistoryEntity::class
-    ], version = 8
+        GoalHistoryEntity::class,
+        ActivityEntity::class
+    ], version = 9
 )
 abstract class StrideDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
@@ -46,6 +49,5 @@ abstract class StrideDatabase : RoomDatabase() {
     abstract fun progressDao(): ProgressDao
     abstract fun availableSportDao(): AvailableSportDao
     abstract fun goalDao(): GoalDao
-
-
+    abstract fun activityDao(): ActivityDao
 }
