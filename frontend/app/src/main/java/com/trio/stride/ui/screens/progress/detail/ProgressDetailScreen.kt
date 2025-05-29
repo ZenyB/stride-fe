@@ -169,7 +169,8 @@ fun ProgressDetailScreen(
                                     color = StrideTheme.colors.gray600
                                 )
                             } else if (normalizedItems.isNotEmpty()) {
-                                val totalItem = normalizedItems.total()
+                                val totalItem =
+                                    remember(normalizedItems) { normalizedItems.total() }
                                 Text(
                                     "Total ${
                                         uiState.selectedFilterType.name.lowercase(Locale.ROOT)
@@ -323,6 +324,8 @@ fun ProgressDetailScreen(
                         ) { index ->
                             viewModel.selectIndex(index)
                         }
+                    } else {
+                        normalizedItems = emptyList()
                     }
                     FilledRadioButtons(
                         options = ProgressTimeRange.entries,
