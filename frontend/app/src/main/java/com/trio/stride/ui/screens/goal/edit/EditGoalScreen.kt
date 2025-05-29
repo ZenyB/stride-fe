@@ -145,7 +145,7 @@ fun EditGoalScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(StrideTheme.colorScheme.surface)
-                .padding(top = padding.calculateTopPadding())
+                .padding(top = padding.calculateTopPadding() + 16.dp)
                 .padding(horizontal = 24.dp)
         ) {
             viewModel.goalEdit.value?.type?.let { type ->

@@ -1,15 +1,14 @@
 package com.trio.stride.ui.screens.activity
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -17,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,14 +35,35 @@ import com.trio.stride.ui.theme.StrideTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
-    navController: NavController, viewModel: ActivityViewModel = hiltViewModel()
+    navController: NavController,
+    content: @Composable (() -> Unit)? = null,
+    viewModel: ActivityViewModel = hiltViewModel()
 ) {
     val items = viewModel.items
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val state = rememberPullToRefreshState()
-    
+    val shouldRefresh = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("refresh")
+        ?.observeAsState()
+
+    if (shouldRefresh != null) {
+        Log.d("refresh activity", "refresh null")
+        LaunchedEffect(shouldRefresh.value) {
+            Log.d("refresh activity", "refreshing")
+
+            if (shouldRefresh.value == true) {
+                Log.d("refresh activity", "start refresh")
+                viewModel.getRefreshActivity()
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.remove<Boolean>("refresh")
+            }
+        }
+    }
+
     PullToRefreshBox(
         isRefreshing = viewModel.isRefreshing,
         onRefresh = {
@@ -63,6 +84,11 @@ fun ActivityScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (content != null) {
+                item {
+                    content()
+                }
+            }
             items(items.size) { index ->
                 ActivityItemView(item = items[index], onClick = { id ->
                     if (items[index].sport.sportMapType != null) {
@@ -108,22 +134,6 @@ fun ActivityScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-fun ProfileScreen() {
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Profile Screen", style = StrideTheme.typography.headlineLarge)
         }
     }
 }

@@ -16,6 +16,7 @@ class UpdateGoalUseCase @Inject constructor(
         return try {
             val response = repository.updateGoal(id, request)
             if (response.isSuccessful) {
+                repository.updateLocalGoal(id, request)
                 Result.success(response.body())
             } else {
                 val errorResponse = parseErrorResponse(response.errorBody())

@@ -14,6 +14,7 @@ class DeleteUserGoalUseCase @Inject constructor(
         return try {
             val response = repository.deleteGoal(id)
             if (response.isSuccessful) {
+                repository.deleteLocalGoal(id)
                 Result.success(response.body())
             } else {
                 val errorResponse = parseErrorResponse(response.errorBody())

@@ -4,6 +4,8 @@ import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
+import com.trio.stride.domain.model.ActivityItem
+import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 
 interface ActivityRepository {
@@ -19,4 +21,7 @@ interface ActivityRepository {
     ): Response<ActivityDetailInfo>
 
     suspend fun deleteActivity(id: String): Boolean
+    suspend fun getRecentLocalActivity(): Flow<List<ActivityItem>>
+    suspend fun insertActivityList(items: List<ActivityItem>)
+    suspend fun clearAll()
 }

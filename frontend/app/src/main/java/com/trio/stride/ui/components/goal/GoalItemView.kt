@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trio.stride.R
 import com.trio.stride.domain.model.GoalHistoryItem
@@ -44,13 +44,14 @@ fun GoalItemView(item: GoalItem, onActionClick: () -> Unit) {
     Column(
         modifier = Modifier
             .background(StrideTheme.colorScheme.surface)
+            .fillMaxWidth()
             .padding(top = 16.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .background(StrideTheme.colorScheme.surface)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 CircularProgressWithImageUrl(
@@ -125,7 +126,7 @@ fun ColumnText(
 ) {
     Column {
         Text(label, color = StrideTheme.colors.gray600, style = StrideTheme.typography.bodySmall)
-        Text(value, style = StrideTheme.typography.titleLarge)
+        Text(value, style = StrideTheme.typography.titleMedium)
     }
 }
 
@@ -169,18 +170,10 @@ val goalItem = GoalItem(
         name = "Cycling",
         image = "https://pglijwfxeearqkhmpsdq.supabase.co/storage/v1/object/public/users//15f639c2-5679-40ef-baa2-3cba4af77757.jpg"
     ),
-    type = "ACTIVITY",
+    type = "TIME",
     timeFrame = "WEEKLY",
-    amountGain = 3,
-    amountGoal = 10,
+    amountGain = 300,
+    amountGoal = 400,
     isActive = true,
     histories = histories
 )
-
-@Preview(showBackground = true)
-@Composable
-fun GoalItemPreview() {
-    GoalItemView(goalItem) {
-
-    }
-}

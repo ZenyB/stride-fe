@@ -1,12 +1,16 @@
 package com.trio.stride.ui.screens.activity
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -20,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.trio.stride.ui.screens.goal.view.GoalListPreview
 import com.trio.stride.ui.screens.progress.ProgressOverview
 import com.trio.stride.ui.theme.StrideTheme
 
@@ -65,7 +70,17 @@ fun ActivityMainTabScreen(
             }
 
             when (selectedTabIndex) {
-                0 -> ProgressOverview(navController)
+                0 -> Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+
+                    ) {
+                    ProgressOverview(navController)
+                    GoalListPreview(navController)
+                }
+
                 1 -> ActivityScreen(
                     navController
                 )

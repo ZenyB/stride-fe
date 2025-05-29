@@ -434,7 +434,10 @@ fun ActivityDetailScreen(
                         rpe = item!!.rpe.toInt(),
                     )
                 } else Activity(),
-                onUpdate = { dto, sport -> viewModel.updateActivity(dto, sport) },
+                onUpdate = { dto, sport ->
+                    viewModel.updateActivity(dto, sport)
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+                },
                 onDiscard = {
                     showDiscardEditDialog = true
                 }

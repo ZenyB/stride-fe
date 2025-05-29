@@ -6,15 +6,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
+import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.ActivityItem
+import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.usecase.activity.GetAllActivityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ActivityViewModel @Inject constructor(
     private val getAllActivityUseCase: GetAllActivityUseCase,
+    private val activityRepository: ActivityRepository
 ) : BaseViewModel<ActivityListState>() {
 
     var items by mutableStateOf<List<ActivityItem>>(emptyList())
@@ -26,6 +30,13 @@ class ActivityViewModel @Inject constructor(
     private var totalPages: Int? = null
 
     init {
+        viewModelScope.launch {
+            activityRepository.getRecentLocalActivity().collectLatest { data ->
+                if (items.isEmpty()) {
+                    items = data
+                }
+            }
+        }
         getAllActivity()
     }
 
@@ -46,24 +57,69 @@ class ActivityViewModel @Inject constructor(
         setState { ActivityListState.Loading }
 
         viewModelScope.launch {
-            val result =
-                getAllActivityUseCase(
-                    currentPage,
-                    limit
-                )
-            result
-                .onSuccess { data ->
-                    setState { ActivityListState.Idle }
-                    if (data != null) {
-                        items = items + data.data
-                        totalPages = data.page.totalPages
-                        currentPage++
+            getAllActivityUseCase(
+                currentPage,
+                limit
+            )
+                .collectLatest { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            setState { ActivityListState.Idle }
+                            if (response.data != null) {
+                                if (currentPage == 1) {
+                                    items = emptyList()
+                                }
+                                items = items + response.data.data
+                                totalPages = response.data.page.totalPages
+                                currentPage++
+                            }
+                            isRefreshing = false
+                        }
+
+                        is Resource.Error -> setState {
+                            ActivityListState.Error(
+                                response.error.message ?: "An error occurred"
+                            )
+                        }
+
+                        else -> Unit
                     }
-                    isRefreshing = false
+
                 }
-                .onFailure {
-                    setState { ActivityListState.Error(it.message ?: "An error occurred") }
+
+        }
+    }
+
+    fun getRefreshActivity() {
+        Log.d("okhttp", "Re fetch Getting activities")
+        setState { ActivityListState.Loading }
+
+        viewModelScope.launch {
+            getAllActivityUseCase(
+                1,
+                currentPage * limit
+            )
+                .collectLatest { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            setState { ActivityListState.Idle }
+                            if (response.data != null) {
+                                items = response.data.data
+                            }
+                            isRefreshing = false
+                        }
+
+                        is Resource.Error -> setState {
+                            ActivityListState.Error(
+                                response.error.message ?: "An error occurred"
+                            )
+                        }
+
+                        else -> Unit
+                    }
+
                 }
+
         }
     }
 

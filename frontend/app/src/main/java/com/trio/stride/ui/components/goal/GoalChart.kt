@@ -86,17 +86,17 @@ private fun GoalPointChart(
             spannable.append(yStyled)
             spannable.append("\n")
 
-            val yStyled2 = SpannableString("Current: ${values.get(1)}")
+            val yStyled2 = SpannableString("Current: ${values[1]}")
             yStyled2.setSpan(
                 StyleSpan(Typeface.BOLD),
                 0,
-                yStyled.length,
+                yStyled2.length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             yStyled2.setSpan(
                 RelativeSizeSpan(1.1f),
                 0,
-                yStyled.length,
+                yStyled2.length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             spannable.append(yStyled2)

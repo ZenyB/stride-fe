@@ -139,7 +139,7 @@ fun CreateGoalScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(StrideTheme.colorScheme.surface)
-                .padding(top = padding.calculateTopPadding())
+                .padding(top = padding.calculateTopPadding() + 16.dp)
                 .padding(horizontal = 24.dp)
         ) {
             Text("Choose your sport", style = StrideTheme.typography.titleMedium)

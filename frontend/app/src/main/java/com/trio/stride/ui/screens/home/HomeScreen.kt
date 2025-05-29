@@ -2,15 +2,12 @@ package com.trio.stride.ui.screens.home
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,13 +32,9 @@ import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
-import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.Loading
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
-import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
-import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportIconButton
-import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
-import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.screens.activity.ActivityScreen
+import com.trio.stride.ui.screens.goal.view.GoalListHomePreview
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -78,59 +71,15 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .padding(bottom = 72.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
-            Text(userInfo.name, style = StrideTheme.typography.headlineLarge)
-            Button(
-                onClick = { viewModel.logout(context) }
-            ) {
-                Text("Logout", style = StrideTheme.typography.titleMedium)
-            }
-            Spacer(Modifier.height(8.dp))
-            if (viewModel.errorMessage.value != "")
-                Text(
-                    viewModel.errorMessage.value,
-                    style = StrideTheme.typography.bodyMedium,
-                    color = StrideTheme.colorScheme.error
-                )
-            ChooseSportIconButton(
-                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
-                onClick = {
-                    showBottomSheet = true
-                }
+            ActivityScreen(
+                navController = navController,
+                content = { GoalListHomePreview(navController) }
             )
-            ChooseSportInSearch(
-                "https://pixsector.com/cache/517d8be6/av5c8336583e291842624.png",
-                onClick = { showBottomSheet2 = true })
-            SportBottomSheetWithCategory(
-                categories = categories,
-                sportsByCategory = sportsByCategory,
-                selectedSport = selectedSport,
-                visible = showBottomSheet,
-                onItemClick = { sport -> viewModel.updateCurrentSport(sport) },
-                dismissAction = { showBottomSheet = false }
-            )
-            SportMapBottomSheet(
-                sports = sportsWithMap,
-                selectedSport = selectedSport2,
-                onItemClick = { viewModel.updateRouteFilterSport(it) },
-                dismissAction = { showBottomSheet2 = false },
-                visible = showBottomSheet2
-            )
-
-            Button(onClick = {
-                navController.navigate(Screen.CreateGoalScreen.route)
-            }) {
-                Text("Create goal")
-            }
-
-            Button(onClick = {
-                navController.navigate(Screen.GoalListScreen.route)
-            }) {
-                Text("Goal list")
-            }
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
