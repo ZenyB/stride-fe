@@ -1,5 +1,6 @@
 package com.trio.stride.ui.screens.activity
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -42,7 +44,26 @@ fun ActivityScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val state = rememberPullToRefreshState()
-    
+    val shouldRefresh = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("refresh")
+        ?.observeAsState()
+
+    if (shouldRefresh != null) {
+        Log.d("refresh activity", "refresh null")
+        LaunchedEffect(shouldRefresh.value) {
+            Log.d("refresh activity", "refreshing")
+
+            if (shouldRefresh.value == true) {
+                Log.d("refresh activity", "start refresh")
+                viewModel.getRefreshActivity()
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.remove<Boolean>("refresh")
+            }
+        }
+    }
+
     PullToRefreshBox(
         isRefreshing = viewModel.isRefreshing,
         onRefresh = {
