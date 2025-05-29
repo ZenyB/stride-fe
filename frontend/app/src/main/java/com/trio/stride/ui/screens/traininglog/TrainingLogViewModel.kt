@@ -17,6 +17,7 @@ import com.trio.stride.ui.utils.getEndOfWeekInMillis
 import com.trio.stride.ui.utils.getStartOf12WeeksInMillis
 import com.trio.stride.ui.utils.getStartOfWeekInMillis
 import com.trio.stride.ui.utils.minus12Weeks
+import com.trio.stride.ui.utils.systemZoneId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -25,7 +26,6 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -55,7 +55,7 @@ class TrainingLogViewModel @Inject constructor(
     private fun getFirstTrainingLogsData() {
         viewModelScope.launch {
             val today =
-                LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                LocalDate.now().atStartOfDay(systemZoneId).toInstant().toEpochMilli()
             getTrainingLogsUseCase.invoke(
                 TrainingLogFilterDto(
                     fromDate = today,
@@ -152,11 +152,11 @@ class TrainingLogViewModel @Inject constructor(
         rawData: List<TrainingLogItem>
     ) {
         val startDate =
-            Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-        val endDate = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+            Instant.ofEpochMilli(startMillis).atZone(systemZoneId).toLocalDate()
+        val endDate = Instant.ofEpochMilli(endMillis).atZone(systemZoneId).toLocalDate()
 
         val dataByDate = rawData.associateBy {
-            Instant.ofEpochMilli(it.date).atZone(ZoneId.systemDefault()).toLocalDate()
+            Instant.ofEpochMilli(it.date).atZone(systemZoneId).toLocalDate()
         }
 
         val result = mutableListOf<WeekInfo>()
@@ -172,9 +172,9 @@ class TrainingLogViewModel @Inject constructor(
 
             result.add(
                 WeekInfo(
-                    startDate = current.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                    startDate = current.atStartOfDay(systemZoneId).toInstant()
                         .toEpochMilli(),
-                    endDate = current.plusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                    endDate = current.plusDays(6).atStartOfDay(systemZoneId).toInstant()
                         .toEpochMilli(),
                     data = trainingLogItems
                 )
@@ -291,7 +291,7 @@ class TrainingLogViewModel @Inject constructor(
 
         return currentState.weeksInfo.any { week ->
             val weekStart = Instant.ofEpochMilli(week.startDate)
-                .atZone(ZoneId.systemDefault())
+                .atZone(systemZoneId)
                 .toLocalDate()
             YearMonth.from(weekStart) == selectedMonth
         }
@@ -313,7 +313,7 @@ class TrainingLogViewModel @Inject constructor(
 
         return currentState.weeksInfo.indexOfFirst { week ->
             val weekStart = Instant.ofEpochMilli(week.startDate)
-                .atZone(ZoneId.systemDefault())
+                .atZone(systemZoneId)
                 .toLocalDate()
             YearMonth.from(weekStart) == targetMonth
         }

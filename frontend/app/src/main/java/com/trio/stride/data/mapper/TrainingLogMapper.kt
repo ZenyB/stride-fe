@@ -32,6 +32,7 @@ fun TrainingLogSportDto.toModel() = TrainingLogSport(
     id = this.id,
     name = this.name,
     image = this.image,
+    color = this.color,
     sportMapType = this.sportMapType
 )
 

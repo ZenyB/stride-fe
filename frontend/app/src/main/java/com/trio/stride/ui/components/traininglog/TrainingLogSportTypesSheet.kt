@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.core.graphics.toColorInt
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.trio.stride.R
@@ -131,7 +132,7 @@ fun TrainingLogSportTypesSheet(
                                 modifier = Modifier
                                     .size(16.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Blue)
+                                    .background(Color(sport.color.toColorInt()))
                             )
                             Text(
                                 modifier = Modifier.weight(1f),

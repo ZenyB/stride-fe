@@ -5,6 +5,7 @@ data class Sport(
     val category: Category = Category(),
     val name: String = "",
     val image: String = "",
+    val color: String = "#CCCCCC",
     val sportMapType: SportMapType? = null,
 )
 

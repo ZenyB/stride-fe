@@ -7,6 +7,7 @@ import com.trio.stride.data.remote.dto.TrainingLogFilterDto
 import com.trio.stride.domain.model.TrainingLogItem
 import com.trio.stride.domain.usecase.traininglog.GetTrainingLogsUseCase
 import com.trio.stride.domain.viewstate.IViewState
+import com.trio.stride.ui.utils.compareHCMDateWithSystemDate
 import com.trio.stride.ui.utils.getEndOfWeekInMillis
 import com.trio.stride.ui.utils.getStartOfWeekInMillis
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,7 +49,9 @@ class TrainingLogsMiniViewModel @Inject constructor(
 
                         repeat(7) {
                             if (trainingLogsIdx < trainingLogs.size
-                                && trainingLogs[trainingLogsIdx].date == currentDayMillis
+                                && trainingLogs[trainingLogsIdx].date.compareHCMDateWithSystemDate(
+                                    currentDayMillis
+                                ) == 0
                             ) {
                                 newTrainingLogs.add(trainingLogs[trainingLogsIdx])
                                 trainingLogsIdx += 1

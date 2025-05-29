@@ -44,10 +44,12 @@ import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.advancedShadow
 import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatTimeHM
+import com.trio.stride.ui.utils.getEndOfWeekInMillis
+import com.trio.stride.ui.utils.getStartOfWeekInMillis
 import com.trio.stride.ui.utils.minusNWeeks
+import com.trio.stride.ui.utils.systemZoneId
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 
 @Composable
 fun TrainingLogScreen(
@@ -58,7 +60,7 @@ fun TrainingLogScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sports by viewModel.sports.collectAsStateWithLifecycle()
 
-    val today = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    val today = LocalDate.now().atStartOfDay(systemZoneId).toInstant().toEpochMilli()
     val listState = rememberLazyListState()
     val showFilterSheet = remember { mutableStateOf(false) }
     val showCalendarFilter = remember { mutableStateOf(false) }
@@ -163,17 +165,9 @@ fun TrainingLogScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 if (state.isLoading) {
-                    val startDates = (0..5).map {
-                        state.nextStartDate.minusNWeeks(
-                            it
-                        )
-                    }
+                    val startDates = (0..5).map { getStartOfWeekInMillis().minusNWeeks(it) }
 
-                    val endDates = (0..5).map {
-                        state.nextStartDate.minusNWeeks(
-                            it
-                        ) + 6 * 24 * 60 * 60 * 1000
-                    }
+                    val endDates = (0..5).map { getEndOfWeekInMillis().minusNWeeks(it) }
                     Column(modifier = Modifier.padding(12.dp)) {
                         HorizontalTrainingLogSkeleton(
                             startDates = startDates,
@@ -281,7 +275,7 @@ fun TrainingLogScreen(
                 targetMonth.value = it
                 showCalendarFilter.value = false
             },
-            startDate = state.metaData.from
+            startDate = state.metaData.from,
         )
 
         StrideDialog(

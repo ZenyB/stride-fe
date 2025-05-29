@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,7 +59,7 @@ fun GoalListPreview(
                 }) {
                     Text(
                         "Add Goal",
-                        style = StrideTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                        style = StrideTheme.typography.titleMedium
                     )
                 }
                 TextButton(onClick = {
@@ -68,7 +67,7 @@ fun GoalListPreview(
                 }) {
                     Text(
                         "See All Your Goals",
-                        style = StrideTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                        style = StrideTheme.typography.titleMedium
                     )
                 }
             }

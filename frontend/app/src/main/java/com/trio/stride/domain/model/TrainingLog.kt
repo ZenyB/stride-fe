@@ -28,6 +28,7 @@ data class TrainingLogSport(
     val id: String,
     val name: String,
     val image: String,
+    val color: String = "#CCCCCC",
     val sportMapType: SportMapType?
 )
 

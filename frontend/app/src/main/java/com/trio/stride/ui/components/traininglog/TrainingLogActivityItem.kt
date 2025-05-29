@@ -22,6 +22,7 @@ import com.trio.stride.domain.model.TrainingLogActivity
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatTimeHMS
+import com.trio.stride.ui.utils.formatTimeWithDateTimestamp
 
 @Composable
 fun TrainingLogActivityItem(
@@ -49,6 +50,14 @@ fun TrainingLogActivityItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = StrideTheme.typography.labelLarge.copy(fontSize = 20.sp),
+                color = StrideTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                formatTimeWithDateTimestamp(activity.date),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = StrideTheme.typography.labelLarge,
                 color = StrideTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(8.dp))

@@ -13,6 +13,7 @@ data class SportDto(
     val category: CategoryDto,
     val name: String,
     val image: String,
+    val color: String,
     val sportMapType: SportMapType?,
     val rules: List<RuleDto>
 )

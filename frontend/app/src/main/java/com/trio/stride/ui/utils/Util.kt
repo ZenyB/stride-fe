@@ -41,6 +41,9 @@ fun parseErrorResponse(errorBody: ResponseBody?): ErrorResponse {
 }
 
 // region: Date&Time fun
+val zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh")!!
+val systemZoneId: ZoneId = ZoneId.systemDefault()
+
 fun formatTime(seconds: Int): String {
     val minutes = seconds / 60
     val secs = seconds % 60
@@ -97,9 +100,8 @@ fun formatDuration(seconds: Long, showSeconds: Boolean = true): String {
 }
 
 fun formatDate(timestamp: Long): String {
-    val zoneId = ZoneId.systemDefault()
-    val now = LocalDate.now(zoneId)
-    val dateTime = Instant.ofEpochMilli(timestamp).atZone(zoneId)
+    val now = LocalDate.now(systemZoneId)
+    val dateTime = Instant.ofEpochMilli(timestamp).atZone(systemZoneId)
     val date = dateTime.toLocalDate()
 
     val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
@@ -110,6 +112,12 @@ fun formatDate(timestamp: Long): String {
         date.isEqual(now.minusDays(1)) -> "Yesterday at ${dateTime.format(timeFormatter)}"
         else -> "${dateTime.format(fullDateFormatter)} at ${dateTime.format(timeFormatter)}"
     }
+}
+
+fun formatTimeWithDateTimestamp(timestamp: Long): String {
+    val dateTime = Instant.ofEpochMilli(timestamp).atZone(systemZoneId)
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+    return dateTime.format(timeFormatter)
 }
 
 fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -123,14 +131,12 @@ fun String.toDate(): LocalDate {
 }
 
 fun getStartOf12WeeksInMillis(): Long {
-    val zoneId = ZoneId.systemDefault()
-
     val now = LocalDate.now()
 
     val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
     val start12Weeks = startOfWeek.minusWeeks(11)
-        .atStartOfDay(zoneId)
+        .atStartOfDay(systemZoneId)
         .toInstant()
         .toEpochMilli()
 
@@ -138,15 +144,13 @@ fun getStartOf12WeeksInMillis(): Long {
 }
 
 fun getEndOfWeekInMillis(ofDate: Long? = null): Long {
-    val zoneId = ZoneId.systemDefault()
-
     val date = if (ofDate != null) Instant.ofEpochMilli(ofDate)
-        .atZone(ZoneId.systemDefault())
+        .atZone(systemZoneId)
         .toLocalDate() else LocalDate.now()
 
     val endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
         .atTime(LocalTime.MAX)
-        .atZone(zoneId)
+        .atZone(systemZoneId)
         .toInstant()
         .toEpochMilli()
 
@@ -154,16 +158,14 @@ fun getEndOfWeekInMillis(ofDate: Long? = null): Long {
 }
 
 fun getStartOfWeekInMillis(ofDate: Long? = null): Long {
-    val zoneId = ZoneId.systemDefault()
-
     val date = if (ofDate != null) Instant.ofEpochMilli(ofDate)
-        .atZone(ZoneId.systemDefault())
+        .atZone(systemZoneId)
         .toLocalDate()
     else LocalDate.now()
 
     val startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         .atTime(LocalTime.MIN)
-        .atZone(zoneId)
+        .atZone(systemZoneId)
         .toInstant()
         .toEpochMilli()
 
@@ -211,6 +213,18 @@ fun Pair<Long, Long>.toStringDateRange(): String {
     } else {
         "$startDay $startMonth $startYear - $endDay $endMonth $endYear".uppercase()
     }
+}
+
+fun Long.compareHCMDateWithSystemDate(otherTimestamp: Long): Int {
+    val thisDate = Instant.ofEpochMilli(this)
+        .atZone(zoneId)
+        .toLocalDate()
+
+    val otherDate = Instant.ofEpochMilli(otherTimestamp)
+        .atZone(systemZoneId)
+        .toLocalDate()
+
+    return thisDate.compareTo(otherDate)
 }
 
 fun Long.toStringDate(): String {

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.trio.stride.ui.components.traininglog.miniview.TrainingLogsMiniView
 import com.trio.stride.ui.screens.goal.view.GoalListPreview
 import com.trio.stride.ui.screens.progress.ProgressOverview
 import com.trio.stride.ui.theme.StrideTheme
@@ -78,6 +79,13 @@ fun ActivityMainTabScreen(
 
                     ) {
                     ProgressOverview(navController)
+
+                    TrainingLogsMiniView(
+                        navController,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                    )
                     GoalListPreview(navController)
                 }
 
