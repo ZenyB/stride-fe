@@ -190,7 +190,10 @@ fun ActivityDetailScreen(
         subtitle = "Your activity will be permanently deleted.",
         dismiss = { showDeleteDialog = false },
         destructiveText = "Discard",
-        destructive = { viewModel.deleteActivity() },
+        destructive = {
+            viewModel.deleteActivity()
+            navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+        },
         dismissText = "Cancel"
     )
 
@@ -435,8 +438,9 @@ fun ActivityDetailScreen(
                     )
                 } else Activity(),
                 onUpdate = { dto, sport ->
-                    viewModel.updateActivity(dto, sport)
-                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+                    viewModel.updateActivity(dto, sport, {
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+                    })
                 },
                 onDiscard = {
                     showDiscardEditDialog = true
