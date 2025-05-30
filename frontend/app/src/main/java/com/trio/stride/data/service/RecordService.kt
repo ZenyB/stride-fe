@@ -119,9 +119,7 @@ class RecordService : LifecycleService() {
                 Log.d("bluetoothScan", "stop foreground")
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopTimer()
-                if (sportManager.currentSport.value?.sportMapType != null) {
-                    stopTracking()
-                }
+                stopTracking()
             }
         }
 
@@ -182,6 +180,7 @@ class RecordService : LifecycleService() {
     private fun startTimer() {
         timeJob?.cancel()
         timeJob = serviceScope.launch {
+            isPaused = false
             val startTime = System.currentTimeMillis()
             var lastUpdateTime = startTime
             var movingTime = 0L

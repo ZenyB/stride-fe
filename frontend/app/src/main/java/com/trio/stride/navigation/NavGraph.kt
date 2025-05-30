@@ -26,6 +26,7 @@ import com.trio.stride.ui.screens.profile.ProfileScreen
 import com.trio.stride.ui.screens.progress.detail.ProgressDetailScreen
 import com.trio.stride.ui.screens.record.RecordScreen
 import com.trio.stride.ui.screens.signup.SignUpScreen
+import com.trio.stride.ui.screens.traininglog.TrainingLogScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
 
 @Composable
@@ -181,6 +182,17 @@ fun NavGraphBuilder.mainAppGraph(
         }
         composable(Screen.ProgressDetailScreen.route) {
             ProgressDetailScreen(navController)
+        }
+        composable(Screen.TrainingLogScreen.route) {
+            TrainingLogScreen(
+                onBack = { navController.popBackStack() },
+                navigateToActivityDetail = { id, hasMap ->
+                    if (hasMap)
+                        navController.navigate(Screen.ActivityDetail.createRoute(id))
+                    else
+                        navController.navigate(Screen.ActivityDetailNoMap.createRoute(id))
+                }
+            )
         }
     }
 

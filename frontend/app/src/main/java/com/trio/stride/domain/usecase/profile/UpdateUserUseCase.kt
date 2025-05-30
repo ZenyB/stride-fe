@@ -1,11 +1,14 @@
 package com.trio.stride.domain.usecase.profile
 
+import com.trio.stride.base.FalseResponseException
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
+import com.trio.stride.base.SyncLocalDataFailed
 import com.trio.stride.data.remote.dto.UpdateUserRequestDto
 import com.trio.stride.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
@@ -20,9 +23,16 @@ class UpdateUserUseCase @Inject constructor(
         try {
             val result = userRepository.updateUser(request)
 
-            syncUserUseCase.invoke()
-
-            emit(Resource.Success(result))
+            if (result) {
+                syncUserUseCase.invoke().map { response ->
+                    when (response) {
+                        is Resource.Error -> Resource.Error(SyncLocalDataFailed("Update local user failed"))
+                        is Resource.Success -> Resource.Success(true)
+                        else -> Resource.Loading()
+                    }
+                }
+            } else
+                emit(Resource.Error(FalseResponseException("Update profile failed")))
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))
         } catch (e: Exception) {

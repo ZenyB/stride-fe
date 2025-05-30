@@ -137,6 +137,15 @@ fun ProfileScreen(
         done = { viewModel.changeToDefault() }
     )
 
+    StrideDialog(
+        visible = state.isNotSync,
+        title = "Sync Error",
+        description = "Update successful but data may not be synchronized",
+        dismiss = { viewModel.ignoreIsNotSync() },
+        neutralText = "OK",
+        neutral = { viewModel.ignoreIsNotSync() }
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()

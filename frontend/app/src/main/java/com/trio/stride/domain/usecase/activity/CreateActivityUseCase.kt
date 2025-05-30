@@ -1,5 +1,6 @@
 package com.trio.stride.domain.usecase.activity
 
+import com.trio.stride.base.FalseResponseException
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
@@ -16,14 +17,16 @@ class CreateActivityUseCase(
         emit(Resource.Loading())
 
         try {
-            activityRepository.createActivity(request)
+            val result = activityRepository.createActivity(request)
+            if (result)
+                emit(Resource.Success(true))
+            else
+                emit(Resource.Error(FalseResponseException("Create activity failed")))
             emit(Resource.Success(true))
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))
         } catch (e: Exception) {
-            if (e.message == "Failed to invoke private com.trio.stride.base.Resource() with no args")
-                emit(Resource.Success(true))
-            else emit(Resource.Error(UnknownException(e.message.toString())))
+            emit(Resource.Error(UnknownException(e.message.toString())))
         }
     }
 }

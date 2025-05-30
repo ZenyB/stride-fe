@@ -4,8 +4,6 @@ import com.trio.stride.domain.model.Sport
 
 interface SportRepository {
     suspend fun getSports(
-        page: Int? = null,
-        limit: Int? = null,
         name: String? = null,
         categoryId: String? = null,
     ): List<Sport>

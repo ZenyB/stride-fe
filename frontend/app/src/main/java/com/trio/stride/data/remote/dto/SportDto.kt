@@ -10,9 +10,10 @@ data class GetSportResponseDto(
 
 data class SportDto(
     val id: String,
-    val category: CategoryDto,
+    val categoryName: String? = "Foot sports",
     val name: String,
     val image: String,
+    val color: String,
     val sportMapType: SportMapType?,
     val rules: List<RuleDto>
 )

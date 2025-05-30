@@ -136,7 +136,6 @@ fun RecordScreen(
     val selectedDevice by viewModel.selectedDevice.collectAsStateWithLifecycle()
     val heartRate by viewModel.heartRate.collectAsState()
     val currentSport by viewModel.currentSport.collectAsStateWithLifecycle()
-    val categories by viewModel.categories.collectAsState()
     val sportsByCategory by viewModel.sportsByCategory.collectAsState()
 
     val launcher = GpsUtils.createGpsLauncher(context, mapView, updateGpsStatus = { status ->
@@ -298,20 +297,19 @@ fun RecordScreen(
                                 iconImage = currentSport!!.image,
                                 onClick = { showSportBottomSheet = true }
                             )
-                        }
-
-                        IconButton(
-                            modifier = Modifier
-                                .padding(vertical = 4.dp)
-                                .size(40.dp),
-                            onClick = { viewModel.handleShowSensorView() }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.heart_pulse),
-                                contentDescription = "Show sensor",
-                                modifier = Modifier.size(24.dp),
-                                tint = StrideTheme.colorScheme.onSurface
-                            )
+                            IconButton(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .size(40.dp),
+                                onClick = { viewModel.handleShowSensorView() }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.heart_pulse),
+                                    contentDescription = "Show sensor",
+                                    modifier = Modifier.size(24.dp),
+                                    tint = StrideTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
                 }
@@ -615,29 +613,33 @@ fun RecordScreen(
                     if (currentSport?.sportMapType != null) {
                         RecordValueBlock(
                             title = "Time",
-                            value = formatTimeByMillis(time)
+                            value = if (time == 0L) "--" else formatTimeByMillis(time)
                         )
                         RecordValueBlock(
-                            type = RecordValueBlockType.Large,
                             title = "Avg Speed",
-                            value = formatSpeed(avgSpeed),
+                            value = if (avgSpeed == 0.0) "--" else formatSpeed(avgSpeed),
                             unit = "km/h"
                         )
                         RecordValueBlock(
                             title = "Distance",
-                            value = formatDistance(distance),
+                            value = if (distance == 0.0) "--" else formatDistance(distance),
                             unit = "km"
+                        )
+                        RecordValueBlock(
+                            title = "Heart Rate",
+                            value = if (heartRate == 0) "--" else heartRate.toString(),
+                            unit = "BPM"
                         )
                     } else {
                         RecordValueBlock(
                             type = RecordValueBlockType.Large,
                             title = "Time",
-                            value = formatTimeByMillis(time),
+                            value = if (time == 0L) "--" else formatTimeByMillis(time),
                         )
                         RecordValueBlock(
                             type = RecordValueBlockType.Large,
                             title = "Heart Rate",
-                            value = heartRate.toString(),
+                            value = if (heartRate == 0) "--" else heartRate.toString(),
                             unit = "BPM"
                         )
                     }
@@ -669,27 +671,42 @@ fun RecordScreen(
                             .padding(vertical = 2.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        RecordValueBlock(
-                            title = "Time",
-                            value = formatTimeByMillis(time),
-                            type = RecordValueBlockType.OnMapLarge
-                        )
-                        Spacer(Modifier.height(2.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RecordValueBlock(
+                                modifier = Modifier.weight(1f),
+                                title = "Time",
+                                value = if (time == 0L) "--" else formatTimeByMillis(time),
+                                type = RecordValueBlockType.OnMapLarge
+                            )
+                            RecordValueBlock(
+                                modifier = Modifier.weight(1f),
+                                title = "Heart Rate",
+                                unit = "BPM",
+                                value = if (heartRate == 0) "--" else heartRate.toString(),
+                                type = RecordValueBlockType.OnMapLarge
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RecordValueBlock(
+                                modifier = Modifier.weight(1f),
                                 title = "Avg speed",
                                 unit = "km/h",
-                                value = formatTimeByMillis(time),
+                                value = if (avgSpeed == 0.0) "--" else formatTimeByMillis(time),
                                 type = RecordValueBlockType.OnMapSmall
                             )
                             RecordValueBlock(
+                                modifier = Modifier.weight(1f),
                                 title = "Distance",
                                 unit = "km",
-                                value = formatDistance(distance),
+                                value = if (distance == 0.0) "--" else formatDistance(distance),
                                 type = RecordValueBlockType.OnMapSmall
                             )
                         }
@@ -767,7 +784,6 @@ fun RecordScreen(
     }
 
     SportBottomSheetWithCategory(
-        categories = categories,
         sportsByCategory = sportsByCategory,
         selectedSport = currentSport!!,
         onItemClick = {

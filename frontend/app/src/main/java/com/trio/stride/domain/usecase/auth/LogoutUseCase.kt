@@ -1,5 +1,6 @@
 package com.trio.stride.domain.usecase.auth
 
+import com.trio.stride.base.FalseResponseException
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
@@ -25,10 +26,13 @@ class LogoutUseCase @Inject constructor(
 
         try {
             val result = repository.logout(tokenManager.getAccessToken().first().toString())
-            currentUserDao.deleteCurrentUser()
-            tokenManager.clearTokens()
-            sportManager.clearSportUserData()
-            emit(Resource.Success(result))
+            if (result) {
+                currentUserDao.deleteCurrentUser()
+                tokenManager.clearTokens()
+                sportManager.clearSportUserData()
+                emit(Resource.Success(true))
+            } else
+                emit(Resource.Error(FalseResponseException("Logout failed")))
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))
         } catch (e: Exception) {

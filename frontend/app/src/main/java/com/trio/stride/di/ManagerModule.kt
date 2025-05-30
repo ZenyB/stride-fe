@@ -6,10 +6,8 @@ import com.trio.stride.data.datastoremanager.MapStyleManager
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.datastoremanager.UserManager
-import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
-import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
@@ -50,18 +48,18 @@ object ManagerModule {
     @Provides
     @Singleton
     fun provideSportManager(
-        getCategoriesUseCase: GetCategoriesUseCase,
+//        getCategoriesUseCase: GetCategoriesUseCase,
         getSportsUseCase: GetSportsUseCase,
         currentSportDao: CurrentSportDao,
         routeFilterSportDao: RouteFilterSportDao,
-        categoryDao: CategoryDao
+//        categoryDao: CategoryDao
     ): SportManager {
         return SportManager(
-            getCategoriesUseCase,
+//            getCategoriesUseCase,
             getSportsUseCase,
             currentSportDao,
             routeFilterSportDao,
-            categoryDao
+//            categoryDao
         )
     }
 }

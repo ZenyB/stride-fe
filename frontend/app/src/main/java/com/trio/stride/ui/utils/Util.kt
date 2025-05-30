@@ -1,21 +1,22 @@
 package com.trio.stride.ui.utils
 
-import android.content.ContentResolver
-import android.content.Context
-import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import com.google.gson.Gson
 import okhttp3.ResponseBody
-import java.io.File
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
+import java.util.Date
+import java.util.Locale
 
 fun isValidEmail(email: String): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -39,10 +40,38 @@ fun parseErrorResponse(errorBody: ResponseBody?): ErrorResponse {
     }
 }
 
+// region: Date&Time fun
+val zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh")!!
+val systemZoneId: ZoneId = ZoneId.systemDefault()
+
 fun formatTime(seconds: Int): String {
     val minutes = seconds / 60
     val secs = seconds % 60
     return "%02d:%02d".format(minutes, secs)
+}
+
+fun formatTimeHM(seconds: Int): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+
+    return if (hours == 0 && minutes == 0)
+        "%dh".format(hours, minutes)
+    else
+        "%dh %dm".format(hours, minutes)
+}
+
+fun formatTimeHMS(seconds: Int): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    val secs = (seconds % 3600) % 60
+
+    return if (hours == 0) {
+        if (minutes == 0)
+            "%ds".format(secs)
+        else
+            "%dm %ds".format(minutes, secs)
+    } else
+        "%dh %dm %ds".format(hours, minutes, secs)
 }
 
 fun formatTimeByMillis(millis: Long): String {
@@ -58,9 +87,158 @@ fun formatTimeByMillis(millis: Long): String {
     return timeString
 }
 
+fun formatDuration(seconds: Long, showSeconds: Boolean = true): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    val secs = seconds % 60
+
+    return buildString {
+        if (hours > 0) append("${hours}h")
+        if (minutes > 0) append("${minutes}m")
+        if (showSeconds && (hours == 0L && minutes == 0L || secs > 0)) append("${secs}s")
+    }
+}
+
+fun formatDate(timestamp: Long): String {
+    val now = LocalDate.now(systemZoneId)
+    val dateTime = Instant.ofEpochMilli(timestamp).atZone(systemZoneId)
+    val date = dateTime.toLocalDate()
+
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+    val fullDateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy")
+
+    return when {
+        date.isEqual(now) -> "Today at ${dateTime.format(timeFormatter)}"
+        date.isEqual(now.minusDays(1)) -> "Yesterday at ${dateTime.format(timeFormatter)}"
+        else -> "${dateTime.format(fullDateFormatter)} at ${dateTime.format(timeFormatter)}"
+    }
+}
+
+fun formatTimeWithDateTimestamp(timestamp: Long): String {
+    val dateTime = Instant.ofEpochMilli(timestamp).atZone(systemZoneId)
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+    return dateTime.format(timeFormatter)
+}
+
+fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+fun String.toDate(): LocalDate {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    return try {
+        LocalDate.parse(this, formatter)
+    } catch (e: Exception) {
+        LocalDate.now()
+    }
+}
+
+fun getStartOf12WeeksInMillis(): Long {
+    val now = LocalDate.now()
+
+    val startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+    val start12Weeks = startOfWeek.minusWeeks(11)
+        .atStartOfDay(systemZoneId)
+        .toInstant()
+        .toEpochMilli()
+
+    return start12Weeks
+}
+
+fun getEndOfWeekInMillis(ofDate: Long? = null): Long {
+    val date = if (ofDate != null) Instant.ofEpochMilli(ofDate)
+        .atZone(systemZoneId)
+        .toLocalDate() else LocalDate.now()
+
+    val endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+        .atTime(LocalTime.MAX)
+        .atZone(systemZoneId)
+        .toInstant()
+        .toEpochMilli()
+
+    return endOfWeek
+}
+
+fun getStartOfWeekInMillis(ofDate: Long? = null): Long {
+    val date = if (ofDate != null) Instant.ofEpochMilli(ofDate)
+        .atZone(systemZoneId)
+        .toLocalDate()
+    else LocalDate.now()
+
+    val startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        .atTime(LocalTime.MIN)
+        .atZone(systemZoneId)
+        .toInstant()
+        .toEpochMilli()
+
+    return startOfWeek
+}
+
+fun Long.minus12Weeks(): Long {
+    val twelveWeeksInMillis = 12L * 7 * 24 * 60 * 60 * 1000
+
+    val newMillis = this - twelveWeeksInMillis
+
+    return newMillis
+}
+
+fun Long.minusNWeeks(n: Int): Long {
+    val nWeeksInMillis = n * 7 * 24 * 60 * 60 * 1000
+
+    val newMillis = this - nWeeksInMillis
+
+    return newMillis
+}
+
+fun Pair<Long, Long>.toStringDateRange(): String {
+    val startDate = Date(first)
+    val endDate = Date(second)
+
+    val dayFormat = SimpleDateFormat("d", Locale.ENGLISH)
+    val monthFormat =
+        SimpleDateFormat("MMM", Locale.ENGLISH)
+    val yearFormat =
+        SimpleDateFormat("yyyy", Locale.ENGLISH)
+
+    val startDay = dayFormat.format(startDate)
+    val endDay = dayFormat.format(endDate)
+    val startMonth = monthFormat.format(startDate)
+    val endMonth = monthFormat.format(endDate)
+    val startYear = yearFormat.format(startDate)
+    val endYear = yearFormat.format(endDate)
+
+    return if (startYear == endYear) {
+        if (startMonth == endMonth)
+            "$startDay - $endDay $endMonth $startYear".uppercase()
+        else
+            "$startDay $startMonth - $endDay $endMonth $startYear".uppercase()
+    } else {
+        "$startDay $startMonth $startYear - $endDay $endMonth $endYear".uppercase()
+    }
+}
+
+fun Long.compareHCMDateWithSystemDate(otherTimestamp: Long): Int {
+    val thisDate = Instant.ofEpochMilli(this)
+        .atZone(zoneId)
+        .toLocalDate()
+
+    val otherDate = Instant.ofEpochMilli(otherTimestamp)
+        .atZone(systemZoneId)
+        .toLocalDate()
+
+    return thisDate.compareTo(otherDate)
+}
+
+fun Long.toStringDate(): String {
+    val date = Date(this)
+    val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.ENGLISH)
+    return dateFormat.format(date)
+}
+
+// endregion
+
+// region: format activity values
 fun formatDistance(distance: Double): String {
     val df = DecimalFormat("#.##")
-    val formattedDistance = df.format(distance / 1000)
+    val formattedDistance = df.format(distance / 1000.0)
     return formattedDistance
 }
 
@@ -75,33 +253,7 @@ fun formatSpeed(speed: Double): String {
     return formattedSpeed
 }
 
-fun formatDuration(seconds: Long, showSeconds: Boolean = true): String {
-    val hours = seconds / 3600
-    val minutes = (seconds % 3600) / 60
-    val secs = seconds % 60
-
-    return buildString {
-        if (hours > 0) append("${hours}h")
-        if (minutes > 0) append("${minutes}m")
-        if (showSeconds && (hours == 0L && minutes == 0L || secs > 0)) append("${secs}s")
-    }
-}
-
-fun formatDate(timestamp: Long): String {
-    val zoneId = ZoneId.systemDefault()
-    val now = LocalDate.now(zoneId)
-    val dateTime = Instant.ofEpochMilli(timestamp).atZone(zoneId)
-    val date = dateTime.toLocalDate()
-
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-    val fullDateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy")
-
-    return when {
-        date.isEqual(now) -> "Today at ${dateTime.format(timeFormatter)}"
-        date.isEqual(now.minusDays(1)) -> "Yesterday at ${dateTime.format(timeFormatter)}"
-        else -> "${dateTime.format(fullDateFormatter)} at ${dateTime.format(timeFormatter)}"
-    }
-}
+// endregion
 
 fun calculateContrast(bg: Color, fg: Color): Float {
     val l1 = bg.luminance() + 0.05f
@@ -115,16 +267,6 @@ fun Color.contrastingTextColor(): Color {
     return if (whiteContrast >= blackContrast) Color.White else Color.Black
 }
 
-fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-fun String.toDate(): LocalDate {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    return try {
-        LocalDate.parse(this, formatter)
-    } catch (e: Exception) {
-        LocalDate.now()
-    }
-}
-
 fun Boolean.toGender(): String = if (this) "Male" else "Female"
 fun String.toBoolGender(): Boolean = this != "Female"
 
@@ -132,27 +274,4 @@ fun LocalDate.isValidBirthDay(): Boolean {
     val today = LocalDate.now()
     val age = Period.between(this, today).years
     return age >= 10
-}
-
-fun uriToFile(uri: Uri, context: Context): File {
-    val contentResolver = context.contentResolver
-    val fileName = queryName(contentResolver, uri)
-    val inputStream = contentResolver.openInputStream(uri)
-    val tempFile = File.createTempFile("upload_", fileName, context.cacheDir)
-    tempFile.outputStream().use { fileOut ->
-        inputStream?.copyTo(fileOut)
-    }
-    return tempFile
-}
-
-fun queryName(resolver: ContentResolver, uri: Uri): String {
-    var name = "temp_file"
-    val returnCursor = resolver.query(uri, null, null, null, null)
-    returnCursor?.use {
-        val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        if (it.moveToFirst()) {
-            name = it.getString(nameIndex)
-        }
-    }
-    return name
 }

@@ -7,21 +7,22 @@ import com.trio.stride.data.remote.apiservice.category.CategoryApi
 import com.trio.stride.data.remote.apiservice.goal.GoalApi
 import com.trio.stride.data.remote.apiservice.progress.ProgressApi
 import com.trio.stride.data.remote.apiservice.sport.SportApi
+import com.trio.stride.data.remote.apiservice.traininglog.TrainingLogApi
 import com.trio.stride.domain.repository.ActivityRepository
-import com.trio.stride.domain.repository.CategoryRepository
 import com.trio.stride.domain.repository.GoalRepository
 import com.trio.stride.domain.repository.ProgressRepository
 import com.trio.stride.domain.repository.SportRepository
+import com.trio.stride.domain.repository.TrainingLogRepository
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.usecase.activity.DeleteActivityUseCase
 import com.trio.stride.domain.usecase.activity.GetAllActivityUseCase
-import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
 import com.trio.stride.domain.usecase.goal.DeleteUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.UpdateGoalUseCase
 import com.trio.stride.domain.usecase.progress.GetProgressActivityUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
+import com.trio.stride.domain.usecase.traininglog.GetTrainingLogsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -142,15 +143,21 @@ object CoreModule {
 
     @Provides
     @Singleton
-    fun provideGetSportsUseCase(sportRepository: SportRepository): GetSportsUseCase {
-        return GetSportsUseCase(sportRepository)
+    fun provideTrainingLogApi(@CoreBaseUrl retrofit: Retrofit): TrainingLogApi {
+        return retrofit.create(TrainingLogApi::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideGetCategoriesUseCase(categoryRepository: CategoryRepository): GetCategoriesUseCase {
-        return GetCategoriesUseCase(categoryRepository)
+    fun provideGetSportsUseCase(sportRepository: SportRepository): GetSportsUseCase {
+        return GetSportsUseCase(sportRepository)
     }
+
+//    @Provides
+//    @Singleton
+//    fun provideGetCategoriesUseCase(categoryRepository: CategoryRepository): GetCategoriesUseCase {
+//        return GetCategoriesUseCase(categoryRepository)
+//    }
 
     @Provides
     @Singleton
@@ -198,5 +205,11 @@ object CoreModule {
     @Singleton
     fun provideGetProgressActivityUseCase(progressRepository: ProgressRepository): GetProgressActivityUseCase {
         return GetProgressActivityUseCase(progressRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetTrainingLogsUseCase(trainingLogRepository: TrainingLogRepository): GetTrainingLogsUseCase {
+        return GetTrainingLogsUseCase(trainingLogRepository)
     }
 }

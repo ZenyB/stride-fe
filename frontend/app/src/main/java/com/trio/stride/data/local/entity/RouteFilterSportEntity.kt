@@ -10,5 +10,6 @@ data class RouteFilterSportEntity(
     val categoryId: String,
     val name: String,
     val image: String,
+    val color: String,
     val sportMapType: String? = null,
 )

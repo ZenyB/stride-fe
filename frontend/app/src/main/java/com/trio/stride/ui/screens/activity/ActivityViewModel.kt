@@ -7,10 +7,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
+import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.domain.model.ActivityItem
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.usecase.activity.GetAllActivityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ActivityViewModel @Inject constructor(
     private val getAllActivityUseCase: GetAllActivityUseCase,
-    private val activityRepository: ActivityRepository
+    private val activityRepository: ActivityRepository,
+    private val sportManager: SportManager,
 ) : BaseViewModel<ActivityListState>() {
 
     var items by mutableStateOf<List<ActivityItem>>(emptyList())
@@ -31,6 +34,10 @@ class ActivityViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            while (sportManager.sports.value.isEmpty()) {
+                delay(100L)
+            }
+
             activityRepository.getRecentLocalActivity().collectLatest { data ->
                 if (items.isEmpty()) {
                     items = data

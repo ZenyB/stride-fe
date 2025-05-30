@@ -16,7 +16,7 @@ object ApiConstants {
     const val USERS = "users"
     const val RECOMMEND = "stride-routes/recommend"
     const val USER_ROUTES = "stride-routes/profile"
-    const val SPORT = "sports"
+    const val SPORT = "sports/all"
     const val CATEGORY = "categories"
     const val ACTIVITY = "activities"
     const val FILE = "files"
@@ -28,6 +28,5 @@ object ApiConstants {
     const val PROGRESS_LIST = "$PROGRESS/profile"
     const val PROGRESS_DETAIL = "$PROGRESS_LIST/detail"
     const val PROGRESS_ACTIVITY = "$PROGRESS_DETAIL/activities"
-
-
+    const val TRAINING_LOGS = "training-logs/profile"
 }

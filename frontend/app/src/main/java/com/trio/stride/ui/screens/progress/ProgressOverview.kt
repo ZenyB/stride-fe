@@ -114,7 +114,8 @@ fun ProgressOverview(
             }
         }
 
-        Button(modifier = Modifier.fillMaxWidth(),
+        Button(
+            modifier = Modifier.fillMaxWidth(),
             onClick = {
                 navController.navigate(
                     Screen.ProgressDetailScreen.route

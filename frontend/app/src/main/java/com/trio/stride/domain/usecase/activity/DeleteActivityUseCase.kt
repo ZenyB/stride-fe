@@ -1,5 +1,6 @@
 package com.trio.stride.domain.usecase.activity
 
+import com.trio.stride.base.FalseResponseException
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
@@ -18,13 +19,14 @@ class DeleteActivityUseCase @Inject constructor(
 
             try {
                 val result = activityRepository.deleteActivity(id)
-                emit(Resource.Success(result))
+                if (result)
+                    emit(Resource.Success(true))
+                else
+                    emit(Resource.Error(FalseResponseException("Delete activity failed")))
             } catch (e: IOException) {
                 emit(Resource.Error(NetworkException(e.message.toString())))
             } catch (e: Exception) {
-                if (e.message == "Failed to invoke private com.trio.stride.base.Resource() with no args")
-                    emit(Resource.Success(true))
-                else emit(Resource.Error(UnknownException(e.message.toString())))
+                emit(Resource.Error(UnknownException(e.message.toString())))
             }
 
         }

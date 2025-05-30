@@ -1,7 +1,6 @@
 package com.trio.stride.data.datastoremanager
 
 import com.trio.stride.base.Resource
-import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.mapper.roomdatabase.toCurrentSportEntity
@@ -9,9 +8,7 @@ import com.trio.stride.data.mapper.roomdatabase.toEntity
 import com.trio.stride.data.mapper.roomdatabase.toModel
 import com.trio.stride.data.mapper.roomdatabase.toRouteFilterSportEntity
 import com.trio.stride.data.mapper.roomdatabase.toSportEntity
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
-import com.trio.stride.domain.usecase.category.GetCategoriesUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,22 +21,19 @@ import javax.inject.Singleton
 
 @Singleton
 class SportManager @Inject constructor(
-    private val getCategoriesUseCase: GetCategoriesUseCase,
+//    private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getSportsUseCase: GetSportsUseCase,
     private val currentSportDao: CurrentSportDao,
     private val routeFilterSportDao: RouteFilterSportDao,
-    private val categoryDao: CategoryDao,
+//    private val categoryDao: CategoryDao,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
-
-    private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    val categories: StateFlow<List<Category>> = _categories
 
     private val _sports = MutableStateFlow<List<Sport>>(emptyList())
     val sports: StateFlow<List<Sport>> = _sports
 
-    private val _sportsByCategory = MutableStateFlow<Map<Category, List<Sport>>>(emptyMap())
-    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
+    private val _sportsByCategory = MutableStateFlow<Map<String, List<Sport>>>(emptyMap())
+    val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
 
     private val _currentSport = MutableStateFlow<Sport?>(null)
     val currentSport: StateFlow<Sport?> = _currentSport
@@ -57,25 +51,7 @@ class SportManager @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage
 
     init {
-        fetchCategories()
         fetchSports()
-    }
-
-    private fun fetchCategories() {
-        coroutineScope.launch {
-            getCategoriesUseCase().collectLatest { response ->
-                when (response) {
-                    is Resource.Success -> {
-                        _isError.value = false
-                        _errorMessage.value = null
-                        _categories.value = response.data
-                    }
-
-                    is Resource.Error -> handleError(response.error.message)
-                    else -> Unit
-                }
-            }
-        }
     }
 
     private fun fetchSports() {
@@ -87,7 +63,7 @@ class SportManager @Inject constructor(
                         _errorMessage.value = null
                         _sports.value = response.data
 
-                        _sportsByCategory.value = response.data.groupBy { it.category }
+                        _sportsByCategory.value = response.data.groupBy { it.categoryName }
                         _sportsWithMap.value = response.data.filter { it.sportMapType != null }
 
                         getCurrentSport()
@@ -116,10 +92,7 @@ class SportManager @Inject constructor(
                 currentSportDao.saveCurrentSport(currentSportEntity)
                 _currentSport.value = sports[0]
             } else {
-                val category = categoryDao.getCategoryById(localCurrentSport.categoryId)
-                category?.let {
-                    _currentSport.value = localCurrentSport.toModel(category.toModel())
-                }
+                _currentSport.value = localCurrentSport.toModel()
             }
         }
     }
@@ -134,10 +107,7 @@ class SportManager @Inject constructor(
                 currentSportDao.saveCurrentSport(routeFilterSportEntity)
                 _routeFilterSport.value = sportsWithMap[0]
             } else {
-                val category = categoryDao.getCategoryById(localRouteFilterSport.categoryId)
-                category?.let {
-                    _routeFilterSport.value = localRouteFilterSport.toModel(category.toModel())
-                }
+                _routeFilterSport.value = localRouteFilterSport.toModel()
             }
         }
     }
