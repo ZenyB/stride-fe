@@ -2,10 +2,10 @@ package com.trio.stride.domain.model
 
 data class Sport(
     val id: String = "",
-    val category: Category = Category(),
+    val categoryName: String = "Foot Sports",
     val name: String = "",
     val image: String = "",
-    val color: String = "#CCCCCC",
+    val color: String = "",
     val sportMapType: SportMapType? = null,
 )
 

@@ -3,7 +3,6 @@ package com.trio.stride.data.mapper.roomdatabase
 import com.trio.stride.data.local.entity.GoalEntity
 import com.trio.stride.data.local.entity.GoalHistoryEntity
 import com.trio.stride.data.local.entity.GoalWithHistoriesAndSport
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.GoalHistoryItem
 import com.trio.stride.domain.model.GoalItem
 import com.trio.stride.domain.model.Sport
@@ -31,7 +30,7 @@ fun GoalItem.toHistoryEntities(): List<GoalHistoryEntity> =
 
 fun GoalWithHistoriesAndSport.toModel(): GoalItem = GoalItem(
     id = goal.id,
-    sport = sport?.toModel(Category()) ?: Sport(id = "", name = "", image = ""),
+    sport = sport?.toModel() ?: Sport(id = "", name = "", image = ""),
     type = goal.type,
     timeFrame = goal.timeFrame,
     amountGain = goal.amountGain,

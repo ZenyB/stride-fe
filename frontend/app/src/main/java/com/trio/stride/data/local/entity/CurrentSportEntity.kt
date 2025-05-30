@@ -8,8 +8,9 @@ import androidx.room.PrimaryKey
 data class CurrentSportEntity(
     @PrimaryKey
     val id: String,
-    val categoryId: String,
+    val categoryName: String,
     val name: String,
     val image: String,
+    val color: String,
     val sportMapType: String? = null,
 )

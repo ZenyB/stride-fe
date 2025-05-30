@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.remote.dto.CreateGoalDTO
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.GoalTimeFrame
 import com.trio.stride.domain.model.GoalType
 import com.trio.stride.domain.model.Sport
@@ -20,11 +19,9 @@ class CreateGoalViewModel @Inject constructor(
     private val sportManager: SportManager,
     private val createGoalUseCase: CreateGoalUseCase,
 ) : BaseViewModel<CreateGoalState>() {
-    private val _categories = sportManager.categories
-    val categories: StateFlow<List<Category>> = _categories
 
     private val _sportsByCategory = sportManager.sportsByCategory
-    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
+    val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
 
     val defaultSport = _sportsByCategory.value.entries.first { item ->
         item.value.isNotEmpty()
@@ -38,12 +35,12 @@ class CreateGoalViewModel @Inject constructor(
             val result =
                 createGoalUseCase(
                     request =
-                    CreateGoalDTO(
-                        sportId = "d81c0cf1-7b18-44d4-8e4f-bbd8408aa45d",
-                        type = currentState.selectedGoalType,
-                        timeFrame = currentState.selectedTimeFrame,
-                        amount = currentState.amount
-                    )
+                        CreateGoalDTO(
+                            sportId = "d81c0cf1-7b18-44d4-8e4f-bbd8408aa45d",
+                            type = currentState.selectedGoalType,
+                            timeFrame = currentState.selectedTimeFrame,
+                            amount = currentState.amount
+                        )
                 )
             result
                 .onSuccess { data ->

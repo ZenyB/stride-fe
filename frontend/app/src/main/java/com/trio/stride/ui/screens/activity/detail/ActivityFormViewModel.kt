@@ -11,7 +11,6 @@ import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.Activity
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.usecase.file.UploadFileUseCase
 import com.trio.stride.domain.viewstate.IViewState
@@ -32,11 +31,8 @@ class ActivityFormViewModel @Inject constructor(
 ) : BaseViewModel<ActivityFormViewModel.ViewState>() {
     override fun createInitialState(): ViewState = ViewState()
 
-    private val _categories = sportManager.categories
-    val categories: StateFlow<List<Category>> = _categories
-
     private val _sportsByCategory = sportManager.sportsByCategory
-    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
+    val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
 
     private fun uriToFile(uri: Uri, context: Context): File {
         val contentResolver = context.contentResolver

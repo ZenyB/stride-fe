@@ -91,7 +91,6 @@ fun ActivityFormView(
     feelingBottomSheetState: RateFeelingBottomSheetState = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val categories by viewModel.categories.collectAsState()
     val sportsByCategory by viewModel.sportsByCategory.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -254,7 +253,6 @@ fun ActivityFormView(
                         onClick = { showSportBottomSheet = true }
                     )
                     SportBottomSheetWithCategory(
-                        categories = categories,
                         sportsByCategory = sportsByCategory,
                         selectedSport = selectedSport,
                         visible = showSportBottomSheet,
