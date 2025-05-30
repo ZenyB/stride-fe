@@ -36,15 +36,13 @@ import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.trio.stride.R
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.ui.theme.StrideTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SportBottomSheetWithCategory(
-    categories: List<Category>,
-    sportsByCategory: Map<Category, List<Sport>>,
+    sportsByCategory: Map<String, List<Sport>>,
     selectedSport: Sport?,
     visible: Boolean,
     dismissAction: () -> Unit,
@@ -80,14 +78,13 @@ fun SportBottomSheetWithCategory(
                     )
                     HorizontalDivider()
                 }
-                items(categories) { category ->
-                    val sports = sportsByCategory[category] ?: emptyList()
+                items(sportsByCategory.entries.toList()) { (categoryName, sports) ->
                     Column(
                         modifier = Modifier
                     ) {
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            text = category.name,
+                            text = categoryName,
                             style = StrideTheme.typography.titleMedium
                         )
 

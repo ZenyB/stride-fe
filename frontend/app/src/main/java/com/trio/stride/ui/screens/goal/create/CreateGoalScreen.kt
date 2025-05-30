@@ -53,7 +53,6 @@ fun CreateGoalScreen(
     viewModel: CreateGoalViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val categories by viewModel.categories.collectAsStateWithLifecycle()
     val sportsByCategory by viewModel.sportsByCategory.collectAsStateWithLifecycle()
     var selectedSport by remember {
         mutableStateOf(viewModel.defaultSport)
@@ -263,7 +262,6 @@ fun CreateGoalScreen(
     }
 
     SportBottomSheetWithCategory(
-        categories = categories,
         sportsByCategory = sportsByCategory,
         selectedSport = selectedSport,
         onItemClick = {

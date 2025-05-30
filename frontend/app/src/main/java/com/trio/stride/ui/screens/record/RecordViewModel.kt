@@ -19,7 +19,6 @@ import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.repositoryimpl.GpsRepository
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.viewstate.IViewState
@@ -62,8 +61,7 @@ class RecordViewModel @Inject constructor(
     val coordinates: StateFlow<List<Coordinate>> = recordRepository.coordinates
     val mapViewportState: StateFlow<MapViewportState> = recordRepository.mapViewportState
 
-    val categories: StateFlow<List<Category>> = sportManager.categories
-    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = sportManager.sportsByCategory
+    val sportsByCategory: StateFlow<Map<String, List<Sport>>> = sportManager.sportsByCategory
     val currentSport: StateFlow<Sport?> = sportManager.currentSport
 
     val geometry: String? = savedStateHandle["geometry"]
@@ -134,8 +132,6 @@ class RecordViewModel @Inject constructor(
                         }
                         context.startService(startIntent)
 
-                        Log.i("ACTIVITY_INFO_SAVED", requestDto.toString())
-                        recordRepository.end()
                         back()
                     }
 
@@ -164,8 +160,6 @@ class RecordViewModel @Inject constructor(
                         }
                         context.startService(startIntent)
 
-                        Log.i("ACTIVITY_INFO_SAVED", currentState.createActivityDto.toString())
-                        recordRepository.end()
                         setState { currentState.copy(isLoading = false, isSavingError = true) }
                     }
 
@@ -238,8 +232,6 @@ class RecordViewModel @Inject constructor(
         context.startService(startIntent)
 
         setState { currentState.copy(isNotEnoughDataToSave = false) }
-
-        recordRepository.resume()
     }
 
     fun stop(context: Context) {
@@ -247,8 +239,6 @@ class RecordViewModel @Inject constructor(
             action = RecordService.PAUSE_RECORDING
         }
         context.startService(startIntent)
-
-        recordRepository.stop()
     }
 
     fun finish(context: Context) {
@@ -259,11 +249,9 @@ class RecordViewModel @Inject constructor(
         }
 
         val startIntent = Intent(context, RecordService::class.java).apply {
-            action = RecordService.PAUSE_RECORDING
+            action = RecordService.SAVING_RECORDING
         }
         context.startService(startIntent)
-
-        recordRepository.finish()
     }
 
     fun discard(context: Context) {
@@ -273,8 +261,6 @@ class RecordViewModel @Inject constructor(
         context.startService(startIntent)
 
         setState { currentState.copy(isNotEnoughDataToSave = false) }
-
-        recordRepository.end()
     }
 
     fun handleVisibleMetric() {
@@ -302,8 +288,6 @@ class RecordViewModel @Inject constructor(
             action = RecordService.RESUME_RECORDING
         }
         context.startService(startIntent)
-
-        recordRepository.resume()
     }
 
     fun updateGpsStatus(status: GPSStatus) {

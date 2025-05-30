@@ -4,15 +4,15 @@ import com.trio.stride.data.local.entity.AvailableSportEntity
 import com.trio.stride.data.local.entity.CurrentSportEntity
 import com.trio.stride.data.local.entity.RouteFilterSportEntity
 import com.trio.stride.data.local.entity.SportEntity
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.SportMapType
 
-fun SportEntity.toModel(category: Category): Sport = Sport(
+fun SportEntity.toModel(): Sport = Sport(
     id = this.id,
-    category = category,
+    categoryName = this.categoryName,
     name = this.name,
     image = this.image,
+    color = this.color,
     sportMapType = this.sportMapType?.let { type ->
         SportMapType.entries.firstOrNull {
             it.name == type
@@ -22,23 +22,24 @@ fun SportEntity.toModel(category: Category): Sport = Sport(
 
 fun Sport.toEntity(): SportEntity = SportEntity(
     id = this.id,
-    categoryId = this.category.id,
+    categoryName = this.categoryName,
     name = this.name,
     image = this.image,
+    color = this.color,
     sportMapType = this.sportMapType?.name
 )
 
 fun CurrentSportEntity.toSportEntity(): SportEntity =
-    SportEntity(id, categoryId, name, image, sportMapType)
+    SportEntity(id, categoryName, name, image, color, sportMapType)
 
 fun SportEntity.toCurrentSportEntity(): CurrentSportEntity =
-    CurrentSportEntity(id, categoryId, name, image, sportMapType)
+    CurrentSportEntity(id, categoryName, name, image, color, sportMapType)
 
 fun RouteFilterSportEntity.toSportEntity(): SportEntity =
-    SportEntity(id, categoryId, name, image, sportMapType)
+    SportEntity(id, categoryId, name, image, color, sportMapType)
 
 fun SportEntity.toRouteFilterSportEntity(): RouteFilterSportEntity =
-    RouteFilterSportEntity(id, categoryId, name, image, sportMapType)
+    RouteFilterSportEntity(id, categoryName, name, image, color, sportMapType)
 
 fun AvailableSportEntity.toSport(): Sport {
     return Sport(

@@ -16,7 +16,7 @@ object ApiConstants {
     const val USERS = "users"
     const val RECOMMEND = "stride-routes/recommend"
     const val USER_ROUTES = "stride-routes/profile"
-    const val SPORT = "sports"
+    const val SPORT = "sports/all"
     const val CATEGORY = "categories"
     const val ACTIVITY = "activities"
     const val FILE = "files"

@@ -27,7 +27,6 @@ import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService
-import com.trio.stride.domain.model.Category
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
@@ -54,7 +53,6 @@ fun HomeScreen(
     val logoutSuccess by viewModel.logoutSuccess.collectAsState()
     val loggingOut by viewModel.isLoggingOut.collectAsState()
     val userInfo by viewModel.userInfo.collectAsState()
-    val categories by viewModel.categories.collectAsState()
     val sportsWithMap by viewModel.sportsWithMap.collectAsState()
     val sportsByCategory by viewModel.sportsByCategory.collectAsState()
     val selectedSport by viewModel.currentSport.collectAsState()
@@ -103,11 +101,8 @@ class HomeScreenViewModel @Inject constructor(
     private val _userInfo = MutableStateFlow(UserInfo())
     val userInfo: StateFlow<UserInfo> = _userInfo
 
-    private val _categories = sportManager.categories
-    val categories: StateFlow<List<Category>> = _categories
-
     private val _sportsByCategory = sportManager.sportsByCategory
-    val sportsByCategory: StateFlow<Map<Category, List<Sport>>> = _sportsByCategory
+    val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
 
     private val _sportsWithMap = sportManager.sportsWithMap
     val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap

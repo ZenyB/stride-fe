@@ -5,7 +5,6 @@ import androidx.room.Room
 import com.trio.stride.data.local.StrideDatabase
 import com.trio.stride.data.local.dao.ActivityDao
 import com.trio.stride.data.local.dao.AvailableSportDao
-import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.local.dao.GoalDao
@@ -38,8 +37,8 @@ object RoomDatabaseModule {
     @Provides
     fun provideSportDao(db: StrideDatabase): SportDao = db.sportDao()
 
-    @Provides
-    fun provideCategoryDao(db: StrideDatabase): CategoryDao = db.categoryDao()
+//    @Provides
+//    fun provideCategoryDao(db: StrideDatabase): CategoryDao = db.categoryDao()
 
     @Provides
     fun provideCurrentSportDao(db: StrideDatabase): CurrentSportDao = db.currentSportDao()

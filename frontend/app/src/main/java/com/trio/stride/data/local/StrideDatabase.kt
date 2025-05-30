@@ -4,7 +4,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.trio.stride.data.local.dao.ActivityDao
 import com.trio.stride.data.local.dao.AvailableSportDao
-import com.trio.stride.data.local.dao.CategoryDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.local.dao.GoalDao
@@ -13,7 +12,6 @@ import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.local.dao.SportDao
 import com.trio.stride.data.local.entity.ActivityEntity
 import com.trio.stride.data.local.entity.AvailableSportEntity
-import com.trio.stride.data.local.entity.CategoryEntity
 import com.trio.stride.data.local.entity.CurrentSportEntity
 import com.trio.stride.data.local.entity.CurrentUserEntity
 import com.trio.stride.data.local.entity.EquipmentWeightEntity
@@ -27,7 +25,7 @@ import com.trio.stride.data.local.entity.SportEntity
 @Database(
     entities = [
         SportEntity::class,
-        CategoryEntity::class,
+//        CategoryEntity::class,
         CurrentSportEntity::class,
         RouteFilterSportEntity::class,
         CurrentUserEntity::class,
@@ -38,10 +36,10 @@ import com.trio.stride.data.local.entity.SportEntity
         GoalEntity::class,
         GoalHistoryEntity::class,
         ActivityEntity::class
-    ], version = 9
+    ], version = 10
 )
 abstract class StrideDatabase : RoomDatabase() {
-    abstract fun categoryDao(): CategoryDao
+    //    abstract fun categoryDao(): CategoryDao
     abstract fun sportDao(): SportDao
     abstract fun currentSportDao(): CurrentSportDao
     abstract fun routeFilterSportDao(): RouteFilterSportDao

@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Relation
-import androidx.room.Transaction
 import com.trio.stride.data.local.entity.CategoryEntity
 import com.trio.stride.data.local.entity.SportEntity
 
@@ -27,10 +26,10 @@ interface CategoryDao {
     @Query("SELECT * FROM category")
     suspend fun getAllCategories(): List<CategoryEntity>
 
-    @Transaction
-    @Query("SELECT * FROM category")
-    suspend fun getAllCategoryWithSports(): List<CategoryWithSports>
+//    @Transaction
+//    @Query("SELECT * FROM category")
+//    suspend fun getAllCategoryWithSports(): List<CategoryWithSports>
 
-    @Query("SELECT * FROM category WHERE id = :id")
-    suspend fun getCategoryById(id: String): CategoryEntity?
+//    @Query("SELECT * FROM category WHERE id = :id")
+//    suspend fun getCategoryById(id: String): CategoryEntity?
 }

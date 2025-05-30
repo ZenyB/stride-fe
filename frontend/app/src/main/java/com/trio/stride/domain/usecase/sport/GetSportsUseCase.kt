@@ -1,5 +1,6 @@
 package com.trio.stride.domain.usecase.sport
 
+import android.util.Log
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
@@ -14,8 +15,6 @@ class GetSportsUseCase(
 ) {
 
     operator fun invoke(
-        page: Int? = null,
-        limit: Int? = null,
         name: String? = null,
         categoryId: String? = null,
         forceRefresh: Boolean = false,
@@ -23,22 +22,27 @@ class GetSportsUseCase(
         emit(Resource.Loading())
 
         val localData = sportRepository.getLocalSports(categoryId)
+        Log.i("SPORT_LOCAL", localData.toString())
         if (localData.isNotEmpty() && !forceRefresh) {
+            Log.i("SPORT_LOCAL", localData.toString())
             emit(Resource.Success(localData))
             return@flow
         }
 
         try {
-            val remoteData = sportRepository.getSports(page, limit, name, categoryId)
+            val remoteData = sportRepository.getSports(name, categoryId)
 
             sportRepository.insertSports(remoteData)
 
             val updatedLocal = sportRepository.getLocalSports(categoryId)
+            Log.i("SPORT_REMOTE", updatedLocal.toString())
             emit(Resource.Success(updatedLocal))
         } catch (e: IOException) {
             emit(Resource.Error(NetworkException(e.message.toString())))
+            Log.i("SPORT_ERROR", e.message.toString())
         } catch (e: Exception) {
             emit(Resource.Error(UnknownException(e.message.toString())))
+            Log.i("SPORT_ERROR", e.message.toString())
         }
     }
 
