@@ -53,6 +53,7 @@ import com.google.gson.JsonObject
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -65,6 +66,7 @@ import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import com.mapbox.maps.util.isEmpty
 import com.trio.stride.R
 import com.trio.stride.domain.model.Activity
 import com.trio.stride.ui.components.CustomLeftTopAppBar
@@ -158,20 +160,6 @@ fun ActivityDetailScreen(
     }
 
     if (polylineManager != null) {
-        LaunchedEffect(item) {
-            if (item != null) {
-                val coords =
-                    LineString.fromPolyline(item?.geometry ?: "", 5).coordinates()
-                if (coords.isNotEmpty()) {
-                    drawRoute(coords)
-
-                    val cameraOptions =
-                        CameraOptions.Builder().center(coords[0]).zoom(ZOOM_MORE).build()
-
-                    mapViewportState.flyTo(cameraOptions)
-                }
-            }
-        }
     }
 
     StrideDialog(
@@ -398,6 +386,30 @@ fun ActivityDetailScreen(
                     )
                     polylineManager?.lineJoin = LineJoin.ROUND
                     polylineManager?.lineCap = LineCap.ROUND
+                }
+                MapEffect(item) { mapView ->
+                    if (item != null) {
+                        val coords =
+                            LineString.fromPolyline(item?.geometry ?: "", 5).coordinates()
+                        if (coords.isNotEmpty()) {
+                            drawRoute(coords)
+
+                            val cameraOptions =
+                                CameraOptions.Builder().center(coords[0]).build()
+                            val options =
+                                CameraOptions.Builder().build()
+                            mapView.mapboxMap.cameraForCoordinates(
+                                coords,
+                                cameraOptions, EdgeInsets(300.0, 300.0, 700.0, 300.0), ZOOM_MORE, null
+                            ) { result ->
+                                if (result.isEmpty) {
+                                    //TODO: error
+                                } else {
+                                    mapViewportState.flyTo(result)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
