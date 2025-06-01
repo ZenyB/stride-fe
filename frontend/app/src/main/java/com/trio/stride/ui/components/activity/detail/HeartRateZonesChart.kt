@@ -9,27 +9,36 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.trio.stride.domain.model.HeartRateInfo
+import com.trio.stride.ui.components.activity.DonutChart
+import com.trio.stride.ui.components.activity.DonutChartDataCollection
 import com.trio.stride.ui.theme.StrideTheme
 import java.text.DecimalFormat
 
+val redShades = listOf(
+    Color(0xFFFDB4B5),
+    Color(0xFFF6716D),
+    Color(0xFFDF2824),
+    Color(0xFFB81506),
+    Color(0xFF890E11)
+)
 
 @Composable
 fun HeartRateZonesChart(
     modifier: Modifier = Modifier,
     items: List<HeartRateInfo>
 ) {
-//    var selected by remember { mutableStateOf<HeartRateInfo?>(items[0]) }
-    var selectedIndex = remember { mutableStateOf(0) }
-    var previousSelected = remember { mutableStateOf(-1) }
+    val selectedIndex = remember { mutableStateOf(-1) }
 
     val viewData = DonutChartDataCollection(
         items.filter { it ->
             it.value > 0
         }
     )
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             "Heart Rate Zones",
@@ -42,8 +51,8 @@ fun HeartRateZonesChart(
             modifier = Modifier.padding(bottom = 32.dp),
             data = viewData,
             chartSize = 250.dp,
-            selectedIndex = selectedIndex,
-            previousSelected = previousSelected
+            selectedIndex = selectedIndex.value,
+            onSelectedIndexChange = { selectedIndex.value = it }
         ) { selectedValue ->
             val amount = selectedValue?.value
             val percent =
@@ -77,10 +86,8 @@ fun HeartRateZonesChart(
             selected = selectedIndex.value,
             onClick = { index ->
                 if (index < viewData.items.size) {
-                    previousSelected.value = selectedIndex.value
                     selectedIndex.value = index
                 } else {
-                    previousSelected.value = selectedIndex.value
                     selectedIndex.value = -1
                 }
             }
