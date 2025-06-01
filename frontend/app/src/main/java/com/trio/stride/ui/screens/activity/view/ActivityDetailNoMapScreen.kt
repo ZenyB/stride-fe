@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -40,7 +39,6 @@ import com.trio.stride.ui.screens.activity.detail.ActivityFormMode
 import com.trio.stride.ui.screens.activity.detail.ActivityFormView
 import com.trio.stride.ui.theme.StrideTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityDetailNoMapScreen(
     id: String = "",
@@ -72,7 +70,10 @@ fun ActivityDetailNoMapScreen(
         subtitle = "Your activity will be permanently deleted.",
         dismiss = { showDeleteDialog = false },
         destructiveText = "Discard",
-        destructive = { viewModel.deleteActivity() },
+        destructive = {
+            viewModel.deleteActivity()
+            navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+        },
         dismissText = "Cancel"
     )
 
@@ -177,7 +178,17 @@ fun ActivityDetailNoMapScreen(
                         rpe = item!!.rpe.toInt(),
                     )
                 } else Activity(),
-                onUpdate = { dto, sport -> viewModel.updateActivity(dto, sport) },
+                onUpdate = { dto, sport ->
+                    viewModel.updateActivity(
+                        dto,
+                        sport,
+                        {
+                            navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "refresh",
+                                true
+                            )
+                        })
+                },
                 onDiscard = {
                     showDiscardEditDialog = true
                 }

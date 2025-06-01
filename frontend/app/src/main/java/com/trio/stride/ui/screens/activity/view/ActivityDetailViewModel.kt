@@ -56,7 +56,7 @@ class ActivityDetailViewModel @Inject constructor(
         setState { ActivityDetailState.Idle }
     }
 
-    fun updateActivity(dto: UpdateActivityRequestDto, sport: Sport) {
+    fun updateActivity(dto: UpdateActivityRequestDto, sport: Sport, refreshActivity: () -> Unit) {
         if (item.value == null) {
             setState { ActivityDetailState.Error("Activity Not Found") }
             return
@@ -76,6 +76,7 @@ class ActivityDetailViewModel @Inject constructor(
                         is Resource.Loading -> setState { ActivityDetailState.Loading }
                         is Resource.Success -> {
                             getActivityDetail(it.id)
+                            refreshActivity()
                         }
 
                         is Resource.Error -> {

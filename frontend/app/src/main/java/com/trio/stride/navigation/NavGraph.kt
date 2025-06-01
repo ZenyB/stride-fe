@@ -29,6 +29,8 @@ import com.trio.stride.ui.screens.signup.SignUpScreen
 import com.trio.stride.ui.screens.traininglog.TrainingLogScreen
 import com.trio.stride.ui.screens.verifyOtp.VerifyOtpScreen
 
+const val strideBasePath = "myapp://stride.com"
+
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController(),
@@ -149,7 +151,11 @@ fun NavGraphBuilder.mainAppGraph(
                 type = NavType.StringType
                 nullable = true
                 defaultValue = null
-            })
+            }),
+//            deepLinks = listOf(navDeepLink {
+//                uriPattern =
+//                    "${strideBasePath}"
+//            })
         ) {
             RecordScreen(back = { navController.popBackStack() })
         }

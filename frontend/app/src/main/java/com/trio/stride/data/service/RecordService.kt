@@ -32,6 +32,8 @@ import com.trio.stride.data.ble.HeartRateReceiveManager
 import com.trio.stride.data.ble.HeartRateResult
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.repositoryimpl.RecordRepository
+import com.trio.stride.navigation.Screen
+import com.trio.stride.receiver.RecordReceiver
 import com.trio.stride.ui.utils.ble.Resource
 import com.trio.stride.ui.utils.formatTimeByMillis
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,6 +74,8 @@ class RecordService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
+        Log.i("RecordService", "Received intent: ${intent?.action}")
+
         when (intent?.action) {
 
             START_RECEIVING -> {
@@ -98,28 +102,23 @@ class RecordService : LifecycleService() {
             }
 
             START_RECORDING -> {
-                Log.d("bluetoothScan", "start foreground")
-                observeDistanceAndTime()
-                startTimer()
-                startForeground()
-                if (sportManager.currentSport.value?.sportMapType != null) {
-                    startTracking()
-                }
+                startRecording()
             }
 
             PAUSE_RECORDING -> {
-                isPaused = true
+                pauseRecording()
             }
 
             RESUME_RECORDING -> {
-                isPaused = false
+                resumeRecording()
             }
 
             STOP_RECORDING -> {
-                Log.d("bluetoothScan", "stop foreground")
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopTimer()
-                stopTracking()
+                endRecording()
+            }
+
+            SAVING_RECORDING -> {
+                savingRecording()
             }
         }
 
@@ -139,19 +138,24 @@ class RecordService : LifecycleService() {
     }
 
     private fun startForeground() {
-        startForeground(NOTIFICATION_ID, buildNotification(0, 0.0))
+        startForeground(
+            NOTIFICATION_ID,
+            buildNotification(recordRepository.sportName.value, 0, 0.0, true)
+        )
     }
 
-    private fun observeDistanceAndTime() {
+    private fun observeRecordValues() {
         observeJob?.cancel()
         observeJob = serviceScope.launch {
             combine(
+                recordRepository.sportName,
                 recordRepository.distance,
-                recordRepository.time
-            ) { dist, time ->
-                Pair(dist, time)
-            }.collect { (dist, time) ->
-                updateNotification(time, dist)
+                recordRepository.time,
+                recordRepository.recording
+            ) { sportName, dist, time, recording ->
+                Quadruple(sportName, dist, time, recording)
+            }.collect { (sportName, dist, time, recording) ->
+                updateNotification(sportName, time, dist, recording)
             }
         }
     }
@@ -274,34 +278,128 @@ class RecordService : LifecycleService() {
         }
     }
 
-    private fun updateNotification(time: Long, distance: Double) {
-        val notification = buildNotification(time, distance)
+    private fun startRecording() {
+        Log.d("bluetoothScan", "start foreground")
+        observeRecordValues()
+        startTimer()
+        startForeground()
+        if (sportManager.currentSport.value?.sportMapType != null) {
+            startTracking()
+        }
+    }
+
+    private fun pauseRecording() {
+        Log.i("PAUSE_RECORDINGG", "saving")
+        isPaused = true
+        recordRepository.stop()
+        updateNotification(
+            recordRepository.sportName.value,
+            recordRepository.time.value,
+            recordRepository.distance.value,
+            recordRepository.recording.value
+        )
+    }
+
+    private fun resumeRecording() {
+        Log.i("RESUME_RECORDINGG", "saving")
+        isPaused = false
+        recordRepository.resume()
+        updateNotification(
+            recordRepository.sportName.value,
+            recordRepository.time.value,
+            recordRepository.distance.value,
+            recordRepository.recording.value
+        )
+    }
+
+    private fun savingRecording() {
+        Log.i("SAVING_RECORDINGG", "saving")
+        isPaused = true
+        recordRepository.finish()
+    }
+
+    private fun endRecording() {
+        Log.i("END_RECORDINGG", "end")
+        Log.d("bluetoothScan", "stop foreground")
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopTimer()
+        stopTracking()
+        recordRepository.end()
+    }
+
+    private fun updateNotification(
+        sportName: String,
+        time: Long,
+        distance: Double,
+        recording: Boolean
+    ) {
+        val notification = buildNotification(sportName, time, distance, recording)
+        startForeground(NOTIFICATION_ID, notification)
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(NOTIFICATION_ID, notification)
     }
 
-    private fun buildNotification(time: Long, distance: Double): Notification {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    private fun buildNotification(
+        sportName: String,
+        time: Long,
+        distance: Double,
+        recording: Boolean
+    ): Notification {
+        var requestCode = 0
+
+        val routeIntent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("navigateTo", Screen.BottomNavScreen.Record.route)
         }
+
+        val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            applicationContext,
+            0,
+            routeIntent,
+            flags
         )
 
+        val actionIntentAction =
+            if (recording) RecordReceiver.ACTION_TYPE_STOP else RecordReceiver.ACTION_TYPE_START
+        val actionIntent = Intent(applicationContext, RecordReceiver::class.java).apply {
+            action = actionIntentAction
+        }
+
+        requestCode = 1
+        val actionPendingIntent = PendingIntent.getBroadcast(
+            this,
+            requestCode,
+            actionIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val actionText = if (recording) "Stop" else "Resume"
+        val contentText = if (!recording) "Stopped" else null
+
         notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Workout in progress")
-            .setContentText(
-                "${formatTimeByMillis(time)} | Distance: ${
+            .setContentTitle(
+                "$sportName | ${formatTimeByMillis(time)} | ${
                     "%.2f".format(
                         distance / 1000
                     )
                 } km"
             )
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentText(
+                contentText
+            )
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(
+                        contentText
+                    )
+            )
+            .setSmallIcon(R.drawable.ic_flag)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .addAction(R.drawable.ic_flag, actionText, actionPendingIntent)
+
 
         return notificationBuilder!!.build()
     }
@@ -332,6 +430,7 @@ class RecordService : LifecycleService() {
         const val CLOSE_CONNECTION = "CLOSE_CONNECTION"
         const val START_RECORDING = "START_RECORDING"
         const val STOP_RECORDING = "STOP_RECORDING"
+        const val SAVING_RECORDING = "SAVING_RECORDING"
         const val PAUSE_RECORDING = "PAUSE_RECORDING"
         const val RESUME_RECORDING = "RESUME_RECORDING"
     }
@@ -368,5 +467,7 @@ class RecordService : LifecycleService() {
         }
     }
 }
+
+data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 

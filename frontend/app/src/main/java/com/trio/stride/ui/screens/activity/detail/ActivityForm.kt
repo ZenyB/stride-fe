@@ -109,6 +109,14 @@ fun ActivityFormView(
     }
     var selectedSport by remember { mutableStateOf(sport) }
     var isShowDiscardDialog by remember { mutableStateOf(false) }
+    val discardDialogTitle = when (mode) {
+        is ActivityFormMode.Create -> "Discard Activity"
+        is ActivityFormMode.Update -> "Discard Unsaved Changes"
+    }
+    val discardDialogSubTitle = when (mode) {
+        is ActivityFormMode.Create -> "Are you sure to discard unsaved activity?"
+        is ActivityFormMode.Update -> "Are you sure to discard unsaved changes?"
+    }
 
     LaunchedEffect(Unit) {
         viewModel.initial(mode)
@@ -116,8 +124,8 @@ fun ActivityFormView(
 
     StrideDialog(
         visible = isShowDiscardDialog,
-        title = "Discard Activity",
-        subtitle = "Are you sure to discard unsaved activity?",
+        title = discardDialogTitle,
+        subtitle = discardDialogSubTitle,
         dismiss = { isShowDiscardDialog = false },
         dismissText = "Cancel",
         destructiveText = "Discard",
@@ -179,17 +187,6 @@ fun ActivityFormView(
                 is ActivityFormMode.Create -> "Discard Activity"
                 is ActivityFormMode.Update -> "Discard Unsaved Changed"
             }
-            val action: () -> Unit = {
-                when (mode) {
-                    is ActivityFormMode.Create -> {
-                        isShowDiscardDialog = true
-                    }
-
-                    is ActivityFormMode.Update -> {
-                        mode.onDiscard()
-                    }
-                }
-            }
 
             Box(
                 modifier = Modifier
@@ -202,7 +199,7 @@ fun ActivityFormView(
                         .padding(16.dp)
                         .fillMaxWidth(),
                     border = BorderStroke(1.dp, StrideTheme.colorScheme.error),
-                    onClick = action,
+                    onClick = { isShowDiscardDialog = true },
                 ) {
                     Text(
                         buttonText,

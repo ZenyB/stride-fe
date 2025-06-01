@@ -37,6 +37,12 @@ class RecordRepository @Inject constructor(
 ) {
     val MIN_METER_TO_ADD_NEW_POINT = 1
 
+    private val _sportName = MutableStateFlow("")
+    val sportName: StateFlow<String> = _sportName
+
+    private val _recording = MutableStateFlow(false)
+    val recording: StateFlow<Boolean> = _recording
+
     private val _heartRate = MutableStateFlow(0)
     val heartRate: StateFlow<Int> = _heartRate
 
@@ -88,6 +94,10 @@ class RecordRepository @Inject constructor(
         }
     })
     val mapViewportState: StateFlow<MapViewportState> = _mapViewportState
+
+    fun updateSportName(newSportName: String) {
+        _sportName.value = newSportName
+    }
 
     fun updateConnectionState(newState: ConnectionState) {
         _connectionState.value = newState
@@ -143,6 +153,7 @@ class RecordRepository @Inject constructor(
     }
 
     fun startRecord(startPoint: Point) {
+        _recording.value = true
         _startPoint.value = startPoint
         _recordStatus.value = RecordViewModel.RecordStatus.RECORDING
         addPoints(startPoint)
@@ -150,15 +161,18 @@ class RecordRepository @Inject constructor(
 
     fun resume() {
         _recordStatus.value = RecordViewModel.RecordStatus.RECORDING
+        _recording.value = true
     }
 
     fun stop() {
         _recordStatus.value = RecordViewModel.RecordStatus.STOP
+        _recording.value = false
     }
 
     fun finish() {
         _screenStatus.value = RecordViewModel.ScreenStatus.SAVING
         _recordStatus.value = RecordViewModel.RecordStatus.STOP
+        _recording.value = false
     }
 
     fun end() {
@@ -174,6 +188,7 @@ class RecordRepository @Inject constructor(
         _recommendRoutePoints.value = emptyList()
         _heartRates.value = emptyList()
         mapView.value?.let { updatePolyline() }
+        _recording.value = false
     }
 
     private fun drawRecommendRoute() {

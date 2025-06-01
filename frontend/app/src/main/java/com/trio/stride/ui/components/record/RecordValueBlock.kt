@@ -28,7 +28,7 @@ fun RecordValueBlock(
     unit: String? = null,
 ) {
     val textSpacing = when (type) {
-        RecordValueBlockType.Small, RecordValueBlockType.Large -> 16.dp
+        RecordValueBlockType.Small, RecordValueBlockType.Large -> 12.dp
         else -> 8.dp
     }
     Column(
@@ -41,7 +41,7 @@ fun RecordValueBlock(
                 "${title.uppercase()} (${unit.lowercase()})"
             else title.uppercase()
         when (type) {
-            RecordValueBlockType.Small, RecordValueBlockType.Large -> Spacer(Modifier.height(16.dp))
+            RecordValueBlockType.Small, RecordValueBlockType.Large -> Spacer(Modifier.height(8.dp))
             else -> {}
         }
         Text(
@@ -73,7 +73,7 @@ fun RecordValueBlock(
             else -> {}
         }
         when (type) {
-            RecordValueBlockType.Small, RecordValueBlockType.Large -> Spacer(Modifier.height(16.dp))
+            RecordValueBlockType.Small, RecordValueBlockType.Large -> Spacer(Modifier.height(8.dp))
             else -> {}
         }
     }

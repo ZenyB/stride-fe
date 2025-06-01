@@ -31,20 +31,23 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +56,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -89,6 +96,8 @@ import com.trio.stride.ui.utils.map.GpsUtils
 import com.trio.stride.ui.utils.map.RequestLocationPermission
 import com.trio.stride.ui.utils.map.checkLocationOn
 import com.trio.stride.ui.utils.map.focusToUser
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -159,10 +168,27 @@ fun RecordScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-        focusToUser(mapView)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                lifecycleOwner.lifecycleScope.launch {
+                    val mapInstance = snapshotFlow { mapView }
+                        .filterNotNull()
+                        .first()
+                    focusToUser(mapInstance)
+                }
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
+
 
     if (state.isLoading) {
         Loading()
@@ -488,28 +514,36 @@ fun RecordScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            RequestLocationPermission(
-                requestCount = permissionRequestCount,
-                onPermissionDenied = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("You need to accept location permissions.")
-                    }
-                    showRequestPermissionButton = true
-                },
-                onPermissionReady = {
-                    showRequestPermissionButton = false
-                    showMap = true
-                }
-            )
+            var locationGranted by remember { mutableStateOf(false) }
+            var notificationRequested by remember { mutableStateOf(false) }
 
-            RequestNotificationPermission(
-                onPermissionGranted = {
-                    Log.d("bluetoothScan", "notification permission granted")
-                },
-                onPermissionDenied = {
-                    Log.d("bluetoothScan", "notification permission denied")
-                }
-            )
+            if (!locationGranted) {
+                RequestLocationPermission(
+                    requestCount = permissionRequestCount,
+                    onPermissionDenied = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("You need to accept location permissions.")
+                        }
+                        showRequestPermissionButton = true
+                    },
+                    onPermissionReady = {
+                        showRequestPermissionButton = false
+                        showMap = true
+                        locationGranted = true
+                    }
+                )
+            } else if (!notificationRequested) {
+                RequestNotificationPermission(
+                    onPermissionGranted = {
+                        Log.d("bluetoothScan", "notification permission granted")
+                        notificationRequested = true
+                    },
+                    onPermissionDenied = {
+                        Log.d("bluetoothScan", "notification permission denied")
+                        notificationRequested = true
+                    }
+                )
+            }
 
             Box {
                 if (currentSport?.sportMapType != null) {
@@ -521,6 +555,15 @@ fun RecordScreen(
                         mapViewportState = mapViewportState.value,
                         style = { MapStyle(style = mapStyle) },
                     ) {
+                        if (startPoint != null) {
+                            CircleAnnotation(point = startPoint!!) {
+                                circleRadius = 5.0
+                                circleColor = StrideColor.green600
+                                circleStrokeWidth = 1.5
+                                circleStrokeColor = Color(0xffffffff)
+                            }
+                        }
+
                         MapEffect(Unit) { mv ->
                             viewModel.setMapView(mv)
                             viewModel.reloadMapStyle()
@@ -529,15 +572,6 @@ fun RecordScreen(
 
                         MapEffect(mapStyle) {
                             viewModel.reloadMapStyle()
-                        }
-
-                        if (startPoint != null) {
-                            CircleAnnotation(point = startPoint!!) {
-                                circleRadius = 5.0
-                                circleColor = StrideColor.green600
-                                circleStrokeWidth = 1.5
-                                circleStrokeColor = Color(0xffffffff)
-                            }
                         }
                     }
                 }
@@ -605,7 +639,7 @@ fun RecordScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(StrideTheme.colorScheme.surface)
-                        .padding(bottom = padding.calculateBottomPadding())
+                        .padding(bottom = padding.calculateBottomPadding() + 16.dp)
                         .windowInsetsPadding(WindowInsets.statusBars),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
@@ -615,27 +649,42 @@ fun RecordScreen(
                             title = "Time",
                             value = if (time == 0L) "--" else formatTimeByMillis(time)
                         )
+                        HorizontalDivider(thickness = 1.dp, color = StrideTheme.colors.grayBorder)
                         RecordValueBlock(
                             title = "Avg Speed",
                             value = if (avgSpeed == 0.0) "--" else formatSpeed(avgSpeed),
-                            unit = "km/h"
+                            unit = "km/h",
+                            type = RecordValueBlockType.Large
                         )
-                        RecordValueBlock(
-                            title = "Distance",
-                            value = if (distance == 0.0) "--" else formatDistance(distance),
-                            unit = "km"
-                        )
-                        RecordValueBlock(
-                            title = "Heart Rate",
-                            value = if (heartRate == 0) "--" else heartRate.toString(),
-                            unit = "BPM"
-                        )
+                        HorizontalDivider(thickness = 1.dp, color = StrideTheme.colors.grayBorder)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            RecordValueBlock(
+                                modifier = Modifier.weight(1f),
+                                title = "Distance",
+                                value = if (distance < 0.1) "--" else formatDistance(distance),
+                                unit = "km"
+                            )
+                            VerticalDivider(thickness = 1.dp, color = StrideTheme.colors.grayBorder)
+                            RecordValueBlock(
+                                modifier = Modifier.weight(1f),
+                                title = "Heart Rate",
+                                value = if (heartRate == 0) "--" else heartRate.toString(),
+                                unit = "BPM"
+                            )
+                        }
                     } else {
                         RecordValueBlock(
                             type = RecordValueBlockType.Large,
                             title = "Time",
                             value = if (time == 0L) "--" else formatTimeByMillis(time),
                         )
+                        HorizontalDivider(thickness = 1.dp, color = StrideTheme.colors.grayBorder)
                         RecordValueBlock(
                             type = RecordValueBlockType.Large,
                             title = "Heart Rate",
@@ -669,7 +718,8 @@ fun RecordScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -706,7 +756,7 @@ fun RecordScreen(
                                 modifier = Modifier.weight(1f),
                                 title = "Distance",
                                 unit = "km",
-                                value = if (distance == 0.0) "--" else formatDistance(distance),
+                                value = if (distance < 0.1) "--" else formatDistance(distance),
                                 type = RecordValueBlockType.OnMapSmall
                             )
                         }
