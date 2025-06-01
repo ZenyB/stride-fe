@@ -22,6 +22,7 @@ import com.trio.stride.domain.model.ProgressTimeRange
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.activity.detail.StatText
 import com.trio.stride.ui.components.progress.ProgressChart
+import com.trio.stride.ui.components.progress.ProgressOverviewSkeleton
 import com.trio.stride.ui.components.progress.formatWeekRange
 import com.trio.stride.ui.components.progress.getLast12WeeksLabels
 import com.trio.stride.ui.components.progress.getLastWeeksChartData
@@ -57,72 +58,79 @@ fun ProgressOverview(
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Log.d("ProgressIndex", "ui index: ${uiState.selectedIndex}")
+        when (uiState.state) {
+            OverviewLoadingState.Idle -> {
+                if (uiState.selectedIndex != null && normalizedItems.getOrNull(uiState.selectedIndex!!) != null) {
+                    val selectedItem = normalizedItems[uiState.selectedIndex!!]
 
-        if (uiState.selectedIndex != null && normalizedItems.getOrNull(uiState.selectedIndex!!) != null) {
-            val selectedItem = normalizedItems[uiState.selectedIndex!!]
-
-            Text(
-                formatWeekRange(
-                    selectedItem.fromDate,
-                    selectedItem.toDate,
-                ),
-                style = StrideTheme.typography.titleLarge
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                StatText("Distance", "${formatDistance(selectedItem.distance)} km")
-                StatText("Time", formatDuration(selectedItem.time))
-                StatText("Elev Gain", "${selectedItem.elevation} m")
-            }
-        } else {
-            Text(
-                "_ _",
-                style = StrideTheme.typography.titleLarge
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                StatText("Distance", "_")
-                StatText("Time", "_")
-                StatText("Elev Gain", "_")
-            }
-        }
-
-        uiState.sportId?.let {
-            SportHorizontalList(
-                sportList,
-                selectedId = it,
-                onOptionSelected = { sportId ->
-                    viewModel.selectSport(sportId)
+                    Text(
+                        formatWeekRange(
+                            selectedItem.fromDate,
+                            selectedItem.toDate,
+                        ),
+                        style = StrideTheme.typography.titleLarge
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        StatText("Distance", "${formatDistance(selectedItem.distance)} km")
+                        StatText("Time", formatDuration(selectedItem.time))
+                        StatText("Elev Gain", "${selectedItem.elevation} m")
+                    }
+                } else {
+                    Text(
+                        "_ _",
+                        style = StrideTheme.typography.titleLarge
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        StatText("Distance", "_")
+                        StatText("Time", "_")
+                        StatText("Elev Gain", "_")
+                    }
                 }
-            )
-        }
 
-        if (progressItems.value.isNotEmpty()) {
-            val maxDistance = normalizedItems.fastMaxOfOrNull { it.distance } ?: 5.0
-            val yStepValue: Double =
-                roundToHalf(((ceil(maxDistance).coerceAtLeast(1.0)) / 2))
+                uiState.sportId?.let {
+                    SportHorizontalList(
+                        sportList,
+                        selectedId = it,
+                        onOptionSelected = { sportId ->
+                            viewModel.selectSport(sportId)
+                        }
+                    )
+                }
+
+                if (progressItems.value.isNotEmpty()) {
+                    val maxDistance = normalizedItems.fastMaxOfOrNull { it.distance } ?: 5.0
+                    val yStepValue: Double =
+                        roundToHalf(((ceil(maxDistance).coerceAtLeast(1.0)) / 2))
 
 
-            Log.d("Progress chart", "max distance: $maxDistance")
-            Log.d("Progress chart", "yStepValue: $yStepValue")
+                    Log.d("Progress chart", "max distance: $maxDistance")
+                    Log.d("Progress chart", "yStepValue: $yStepValue")
 
-            val labels = getLast12WeeksLabels(normalizedItems, ProgressTimeRange.LAST_3_MONTHS)
-            ProgressChart(
-                items = normalizedItems,
-                yStep = yStepValue,
-                labels = labels
-            ) { index ->
-                viewModel.selectIndex(index)
+                    val labels =
+                        getLast12WeeksLabels(normalizedItems, ProgressTimeRange.LAST_3_MONTHS)
+                    ProgressChart(
+                        items = normalizedItems,
+                        yStep = yStepValue,
+                        labels = labels
+                    ) { index ->
+                        viewModel.selectIndex(index)
+                    }
+                }
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        navController.navigate(
+                            Screen.ProgressDetailScreen.route
+                        )
+                    }
+                ) {
+                    Text("See more of your progress")
+                }
             }
-        }
 
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                navController.navigate(
-                    Screen.ProgressDetailScreen.route
-                )
-            }
-        ) {
-            Text("See more of your progress")
+            OverviewLoadingState.Loading -> ProgressOverviewSkeleton()
+            else -> {}
         }
     }
 }
