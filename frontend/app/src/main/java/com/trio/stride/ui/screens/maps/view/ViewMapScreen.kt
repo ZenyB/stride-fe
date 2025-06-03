@@ -131,7 +131,7 @@ fun ViewMapScreen(
     val selectedSport by searchSportViewModel.selectedSport.collectAsStateWithLifecycle()
     val sportsList by searchSportViewModel.sportsList.collectAsStateWithLifecycle()
     var showSportSheet by remember { mutableStateOf(false) }
-
+    var showLocationRequest by remember { mutableStateOf(true) }
 
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     val selectedPoint = navController
@@ -153,9 +153,6 @@ fun ViewMapScreen(
     )
     val pagerState = rememberPagerState(pageCount = { routeItems.size })
 
-    var permissionRequestCount by remember {
-        mutableIntStateOf(0)
-    }
     var isMapAvailable by remember {
         mutableStateOf(false)
     }
@@ -425,9 +422,10 @@ fun ViewMapScreen(
         },
     ) { padding ->
         RequestLocationPermission(
-            requestCount = permissionRequestCount,
+            showRequest = showLocationRequest,
             onPermissionDenied = {
                 isMapAvailable = false
+                showLocationRequest = false
             },
             onPermissionReady = {
                 isMapAvailable = true
@@ -645,7 +643,7 @@ fun ViewMapScreen(
 
         if (!isMapAvailable) {
             MapFallbackScreen(
-                onRetry = { permissionRequestCount += 1 },
+                onRetry = { showLocationRequest = true },
                 goToSetting = {
                     context.startActivity(
                         Intent(
