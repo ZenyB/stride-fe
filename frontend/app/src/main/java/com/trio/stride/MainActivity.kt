@@ -18,8 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -35,9 +35,9 @@ import kotlinx.coroutines.delay
 class MainActivity : ComponentActivity() {
 
     private var navController: NavHostController? = null
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val mainViewModel: MainViewModel by viewModels()
         val route = intent?.getStringExtra("navigateTo")
 
         super.onCreate(savedInstanceState)
@@ -45,24 +45,34 @@ class MainActivity : ComponentActivity() {
         setContent {
             val controller = rememberNavController()
             navController = controller
-            val context = LocalContext.current
 
             var didNavigate by rememberSaveable { mutableStateOf(false) }
 
+            val navigateToRoute by mainViewModel.navigateTo.collectAsState(initial = null)
 
-            LaunchedEffect(route, navController) {
+            LaunchedEffect(route) {
                 if (!didNavigate && !route.isNullOrBlank()) {
                     delay(100)
-                    navController?.navigate(route) {
+                    controller.navigate(route) {
                         popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
                         launchSingleTop = true
                     }
-                    intent = null
                     didNavigate = true
                 }
             }
 
-            val authState by mainViewModel.authState.collectAsState()
+            LaunchedEffect(navigateToRoute) {
+                navigateToRoute?.let {
+                    controller.navigate(it) {
+                        popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+
+                    mainViewModel.clearNavigateTo()
+                }
+            }
+
+            val authState by mainViewModel.authState.collectAsStateWithLifecycle()
             val currentBackStack by controller.currentBackStackEntryAsState()
             var startDestination: String? = null
 
@@ -117,13 +127,14 @@ class MainActivity : ComponentActivity() {
         Log.d("DeepLink", "onStart received: ${intent?.data}")
         intent?.let {
             val route = intent.getStringExtra("navigateTo")
+            Log.i("ON_START_ROUTE", route.toString())
             route?.let {
                 navController?.navigate(it) {
                     popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
                     launchSingleTop = true
                 }
             }
-            intent = null
+            intent.removeExtra("navigateTo")
         }
     }
 
@@ -132,12 +143,8 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         val route = intent.getStringExtra("navigateTo")
         route?.let {
-            navController?.navigate(it) {
-                popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
-                launchSingleTop = true
-            }
+            mainViewModel.sendNavigate(it)
         }
-        setIntent(null)
     }
 }
 

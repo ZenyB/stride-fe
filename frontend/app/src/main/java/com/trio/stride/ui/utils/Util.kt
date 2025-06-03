@@ -15,6 +15,7 @@ import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -185,7 +186,7 @@ fun Long.minus12Weeks(): Long {
 }
 
 fun Long.minusNWeeks(n: Int): Long {
-    val nWeeksInMillis = n * 7 * 24 * 60 * 60 * 1000
+    val nWeeksInMillis = n * 7L * 24 * 60 * 60 * 1000
 
     val newMillis = this - nWeeksInMillis
 
@@ -235,6 +236,37 @@ fun Long.toStringDate(): String {
     val date = Date(this)
     val dateFormat = SimpleDateFormat("d MMM yyyy", Locale.ENGLISH)
     return dateFormat.format(date)
+}
+
+fun Long.toTimeAgo(): String {
+    val now = System.currentTimeMillis()
+    val diff = now - this
+
+    val seconds = diff / 1000
+    val minutes = diff / (1000 * 60)
+    val hours = diff / (1000 * 60 * 60)
+    val days = diff / (1000 * 60 * 60 * 24)
+
+    return when {
+        seconds < 60 -> "just now"
+        minutes < 60 -> "$minutes minute${if (minutes == 1L) "" else "s"} ago"
+        hours < 24 -> "$hours hour${if (hours == 1L) "" else "s"} ago"
+        days < 30 -> "$days day${if (days == 1L) "" else "s"} ago"
+        else -> {
+            val date = Date(this)
+            val calendar = Calendar.getInstance()
+            val currentYear = calendar.get(Calendar.YEAR)
+
+            calendar.time = date
+            val year = calendar.get(Calendar.YEAR)
+
+            if (year == currentYear) {
+                SimpleDateFormat("dd MMMM", Locale.getDefault()).format(date)
+            } else {
+                SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(date)
+            }
+        }
+    }
 }
 
 // endregion
