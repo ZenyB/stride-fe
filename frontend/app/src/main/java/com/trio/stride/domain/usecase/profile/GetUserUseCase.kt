@@ -26,7 +26,7 @@ class GetUserUseCase(val repository: UserRepository) {
         } catch (e: IOException) {
             if (localData == null) {
                 emit(Resource.Error(NetworkException(e.message ?: "IO Error")))
-            }
+            } else emit(Resource.Success(localData))
         } catch (e: Exception) {
             if (localData == null) {
                 emit(
@@ -36,7 +36,7 @@ class GetUserUseCase(val repository: UserRepository) {
                         )
                     )
                 )
-            }
+            } else emit(Resource.Success(localData))
         }
     }
 }

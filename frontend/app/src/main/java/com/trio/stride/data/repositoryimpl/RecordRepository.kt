@@ -161,6 +161,8 @@ class RecordRepository @Inject constructor(
 
     fun resume() {
         _recordStatus.value = RecordViewModel.RecordStatus.RECORDING
+        if (screenStatus.value == RecordViewModel.ScreenStatus.SAVING)
+            _screenStatus.value = RecordViewModel.ScreenStatus.DEFAULT
         _recording.value = true
     }
 
