@@ -828,7 +828,6 @@ fun RecordScreen(
                 targetOffsetY = { it }
             )
         ) {
-
             ActivityFormView(
                 "Save",
                 "SAVE",

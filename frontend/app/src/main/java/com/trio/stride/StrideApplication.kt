@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.os.Bundle
+import com.google.firebase.FirebaseApp
 import com.trio.stride.data.service.GpsService
 import dagger.hilt.android.HiltAndroidApp
 
@@ -13,6 +14,7 @@ class StrideApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         setupServiceLifecycle()
+        FirebaseApp.initializeApp(this)
     }
 
     private fun setupServiceLifecycle() {

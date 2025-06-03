@@ -49,6 +49,14 @@
             android:name=".data.service.GpsService"
             android:foregroundServiceType="location" />
 
+        <service
+            android:name=".data.service.FCMNotificationService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".receiver.RecordReceiver"
             android:exported="false"

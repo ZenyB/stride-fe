@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,11 +20,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.trio.stride.R
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
@@ -31,9 +36,12 @@ import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.UserInfo
 import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
+import com.trio.stride.navigation.Screen
+import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.screens.activity.ActivityScreen
 import com.trio.stride.ui.screens.goal.view.GoalListHomePreview
+import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,7 +73,25 @@ fun HomeScreen(
         Loading()
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        topBar = {
+            CustomLeftTopAppBar(
+                title = "Home",
+                actions = {
+                    IconButton(
+                        onClick = { navController.navigate(Screen.NotificationScreen.route) }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_bell),
+                            contentDescription = "Notification",
+                            tint = StrideTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
