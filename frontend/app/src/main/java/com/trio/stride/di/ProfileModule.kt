@@ -4,6 +4,7 @@ import com.trio.stride.data.ApiConstants
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.domain.repository.UserRepository
+import com.trio.stride.domain.usecase.profile.ClearLocalUserUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import com.trio.stride.domain.usecase.profile.SyncUserUseCase
 import com.trio.stride.domain.usecase.profile.UpdateUserUseCase
@@ -24,7 +25,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object ProfileModule {
-
 
     @Provides
     @ProfileBaseUrl
@@ -78,4 +78,8 @@ object ProfileModule {
     @Singleton
     fun provideSyncUserCase(repository: UserRepository) =
         SyncUserUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideClearUserUseCase(repository: UserRepository) = ClearLocalUserUseCase(repository)
 }

@@ -10,4 +10,5 @@ interface UserRepository {
 
     suspend fun getCurrentUser(): UserInfo?
     suspend fun saveCurrentUser(user: CurrentUserEntity)
+    suspend fun clearCurrentUser()
 }

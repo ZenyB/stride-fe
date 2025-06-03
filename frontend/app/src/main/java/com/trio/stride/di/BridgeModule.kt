@@ -1,10 +1,21 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
+import com.trio.stride.data.datastoremanager.FCMTokenManager
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.remote.apiservice.fcmnotification.FCMNotificationApi
 import com.trio.stride.data.remote.apiservice.file.FileApi
+import com.trio.stride.data.remote.apiservice.notification.NotificationApi
+import com.trio.stride.domain.repository.FCMNotificationRepository
 import com.trio.stride.domain.repository.FileRepository
+import com.trio.stride.domain.repository.NotificationRepository
+import com.trio.stride.domain.usecase.fcmnotification.DeleteFCMTokenUseCase
+import com.trio.stride.domain.usecase.fcmnotification.RefreshAndSaveFCMTokenUseCase
+import com.trio.stride.domain.usecase.fcmnotification.SaveFCMTokenUseCase
 import com.trio.stride.domain.usecase.file.UploadFileUseCase
+import com.trio.stride.domain.usecase.notification.GetNotificationsUseCase
+import com.trio.stride.domain.usecase.notification.MakeSeenAllNotificationsUseCase
+import com.trio.stride.domain.usecase.notification.MakeSeenNotificationUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -66,5 +77,61 @@ object BridgeModule {
     @Singleton
     fun provideUploadFileUseCase(fileRepository: FileRepository): UploadFileUseCase {
         return UploadFileUseCase(fileRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFCMNotificationApi(@BridgeBaseUrl retrofit: Retrofit): FCMNotificationApi {
+        return retrofit.create(FCMNotificationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveFCMUseCase(fcmNotificationRepository: FCMNotificationRepository): SaveFCMTokenUseCase {
+        return SaveFCMTokenUseCase(fcmNotificationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteFCMTokenUseCase(fcmNotificationRepository: FCMNotificationRepository): DeleteFCMTokenUseCase {
+        return DeleteFCMTokenUseCase(fcmNotificationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRefreshAndSaveFCMTokenUseCase(
+        fcmTokenManager: FCMTokenManager,
+        saveFCMTokenUseCase: SaveFCMTokenUseCase,
+        deleteFCMTokenUseCase: DeleteFCMTokenUseCase
+    ): RefreshAndSaveFCMTokenUseCase {
+        return RefreshAndSaveFCMTokenUseCase(
+            fcmTokenManager,
+            saveFCMTokenUseCase,
+            deleteFCMTokenUseCase
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationApi(@BridgeBaseUrl retrofit: Retrofit): NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNotificationsUseCase(notificationRepository: NotificationRepository): GetNotificationsUseCase {
+        return GetNotificationsUseCase(notificationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMakeSeenAllNotificationUseCase(notificationRepository: NotificationRepository): MakeSeenAllNotificationsUseCase {
+        return MakeSeenAllNotificationsUseCase(notificationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMakeSeenNotificationUseCase(notificationRepository: NotificationRepository): MakeSeenNotificationUseCase {
+        return MakeSeenNotificationUseCase(notificationRepository)
     }
 }

@@ -1,14 +1,22 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
+import com.trio.stride.data.datastoremanager.FCMTokenManager
+import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.remote.apiservice.auth.IdentityApi
 import com.trio.stride.data.remote.apiservice.user.UserApi
 import com.trio.stride.domain.repository.AuthRepository
 import com.trio.stride.domain.repository.IdentityRepository
 import com.trio.stride.domain.usecase.auth.LoginUseCase
 import com.trio.stride.domain.usecase.auth.LoginWithGoogleUseCase
+import com.trio.stride.domain.usecase.auth.LogoutUseCase
+import com.trio.stride.domain.usecase.fcmnotification.DeleteFCMTokenUseCase
+import com.trio.stride.domain.usecase.fcmnotification.RefreshAndSaveFCMTokenUseCase
 import com.trio.stride.domain.usecase.identity.SignUpUseCase
+import com.trio.stride.domain.usecase.profile.ClearLocalUserUseCase
+import com.trio.stride.domain.usecase.profile.SyncUserUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -83,9 +91,16 @@ object IdentityModule {
     @Singleton
     fun provideLoginUseCase(
         authRepository: AuthRepository,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        refreshAndSaveFCMTokenUseCase: RefreshAndSaveFCMTokenUseCase,
+        syncUserUseCase: SyncUserUseCase
     ): LoginUseCase {
-        return LoginUseCase(authRepository, tokenManager)
+        return LoginUseCase(
+            authRepository,
+            tokenManager,
+            refreshAndSaveFCMTokenUseCase,
+            syncUserUseCase
+        )
     }
 
     @Provides
@@ -104,8 +119,37 @@ object IdentityModule {
     @Singleton
     fun provideLoginWithGoogleUseCase(
         authRepository: AuthRepository,
-        tokenManager: TokenManager
+        tokenManager: TokenManager,
+        refreshAndSaveFCMTokenUseCase: RefreshAndSaveFCMTokenUseCase,
+        syncUserUseCase: SyncUserUseCase
     ): LoginWithGoogleUseCase {
-        return LoginWithGoogleUseCase(authRepository, tokenManager)
+        return LoginWithGoogleUseCase(
+            authRepository,
+            tokenManager,
+            refreshAndSaveFCMTokenUseCase,
+            syncUserUseCase
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideLogoutUseCase(
+        repository: AuthRepository,
+        tokenManager: TokenManager,
+        currentUserDao: CurrentUserDao,
+        sportManager: SportManager,
+        fcmTokenManager: FCMTokenManager,
+        clearCurrentUserUseCase: ClearLocalUserUseCase,
+        deleteFCMTokenUseCase: DeleteFCMTokenUseCase
+    ): LogoutUseCase {
+        return LogoutUseCase(
+            repository,
+            tokenManager,
+            currentUserDao,
+            sportManager,
+            fcmTokenManager,
+            clearCurrentUserUseCase,
+            deleteFCMTokenUseCase
+        )
     }
 }

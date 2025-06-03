@@ -29,4 +29,8 @@ object ApiConstants {
     const val PROGRESS_DETAIL = "$PROGRESS_LIST/detail"
     const val PROGRESS_ACTIVITY = "$PROGRESS_DETAIL/activities"
     const val TRAINING_LOGS = "training-logs/profile"
+    const val FCM = "fcm"
+    const val DELETE_FCM = "${FCM}/tokens"
+    const val NOTIFICATIONS = "notifications/profile"
+    const val MAKE_SEEN_NOTIFICATION = "$NOTIFICATIONS/seen"
 }

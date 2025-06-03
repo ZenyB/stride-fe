@@ -2,7 +2,9 @@ package com.trio.stride.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.trio.stride.data.datastoremanager.FCMTokenManager
 import com.trio.stride.data.datastoremanager.MapStyleManager
+import com.trio.stride.data.datastoremanager.PermissionCountManager
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.datastoremanager.UserManager
@@ -61,5 +63,17 @@ object ManagerModule {
             routeFilterSportDao,
 //            categoryDao
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideFCMTokenManager(dataStore: DataStore<Preferences>): FCMTokenManager {
+        return FCMTokenManager(dataStore)
+    }
+
+    @Provides
+    @Singleton
+    fun providePermissionCountManager(dataStore: DataStore<Preferences>): PermissionCountManager {
+        return PermissionCountManager(dataStore)
     }
 }
