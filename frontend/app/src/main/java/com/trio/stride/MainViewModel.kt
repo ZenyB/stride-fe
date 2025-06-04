@@ -29,6 +29,9 @@ class MainViewModel @Inject constructor(
     private val _navigateTo = MutableStateFlow<String?>(null)
     val navigateTo = _navigateTo.asStateFlow()
 
+    private val _isNavigated = MutableStateFlow(false)
+    val isNavigated = _isNavigated.asStateFlow()
+
     init {
         viewModelScope.launch {
             enqueueDeleteFCMTokenWorkerUseCase.invoke()
@@ -60,6 +63,11 @@ class MainViewModel @Inject constructor(
     }
 
     fun clearNavigateTo() {
+//        _navigateTo.value = null
+        _isNavigated.value = true
+    }
+
+    fun resetNavigateTo() {
         _navigateTo.value = null
     }
 
