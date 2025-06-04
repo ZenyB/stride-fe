@@ -51,6 +51,10 @@ annotation class BridgeBaseUrl
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class MetricBaseUrl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class Unauthorized
 
 @Qualifier
