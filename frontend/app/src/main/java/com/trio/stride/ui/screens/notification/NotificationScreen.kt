@@ -1,12 +1,16 @@
 package com.trio.stride.ui.screens.notification
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,7 +18,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -28,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -39,6 +44,7 @@ import com.trio.stride.ui.components.notification.NotificationItemSkeleton
 import com.trio.stride.ui.components.notification.NotificationItemView
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.RequestNotificationPermission
+import com.trio.stride.ui.utils.advancedShadow
 
 @Composable
 fun NotificationScreen(
@@ -55,7 +61,8 @@ fun NotificationScreen(
             val totalItemsCount = listState.layoutInfo.totalItemsCount
             lastVisibleItemIndex to totalItemsCount
         }.collect { (lastVisible, total) ->
-            if (lastVisible != null && lastVisible >= total - 1) {
+            if (lastVisible != null && lastVisible >= total - 1 && viewModel.isInitialLoadDone && state.hasNextPage && !state.loadingMore) {
+                Log.i("LOAD_MORE", "load more")
                 viewModel.loadMore()
             }
         }
@@ -116,6 +123,7 @@ fun NotificationScreen(
                 Box(
                     Modifier
                         .padding(top = paddingValues.calculateTopPadding())
+                        .fillMaxSize()
                         .windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
                     NotificationItemSkeleton(10)
@@ -125,10 +133,25 @@ fun NotificationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = paddingValues.calculateTopPadding())
-                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
+                    state = listState
                 ) {
+                    item {
+                        Spacer(Modifier.height(12.dp))
+                    }
+                    
                     itemsIndexed(state.notifications) { index, notification ->
-                        Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .advancedShadow(cornersRadius = 16.dp, shadowBlurRadius = 5.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    StrideTheme.colorScheme.surface,
+                                    RoundedCornerShape(16.dp)
+                                )
+                        ) {
                             NotificationItemView(
                                 onItemClick = { viewModel.makeSeen(notification.id) },
                                 user = state.user,
@@ -136,9 +159,6 @@ fun NotificationScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                             )
-                        }
-                        if (index != state.notifications.lastIndex || state.loadingMore) {
-                            HorizontalDivider()
                         }
                     }
 

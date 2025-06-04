@@ -18,6 +18,8 @@ class SaveFCMTokenUseCase @Inject constructor(
         try {
             val result = fcmNotificationRepository.saveToken(token)
             Log.i("SEND_FCM_TOKEN_TO_SERVER", token)
+            fcmNotificationRepository.setIsTokenSynced(true)
+            fcmNotificationRepository.addTokenToDelete(token)
             emit(Resource.Success(result))
         } catch (e: IOException) {
             Log.i("SEND_FCM_TOKEN_TO_SERVER_ERROR", e.message.toString())

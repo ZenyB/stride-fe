@@ -8,6 +8,7 @@ import com.trio.stride.data.local.dao.AvailableSportDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.local.dao.GoalDao
+import com.trio.stride.data.local.dao.NotificationDao
 import com.trio.stride.data.local.dao.ProgressDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.local.dao.SportDao
@@ -66,4 +67,8 @@ object RoomDatabaseModule {
     @Provides
     fun provideActivityDao(db: StrideDatabase): ActivityDao =
         db.activityDao()
+
+    @Provides
+    fun provideNotificationDao(db: StrideDatabase): NotificationDao =
+        db.notificationDao()
 }

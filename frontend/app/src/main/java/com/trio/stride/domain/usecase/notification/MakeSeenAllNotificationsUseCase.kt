@@ -7,6 +7,7 @@ class MakeSeenAllNotificationsUseCase @Inject constructor(
     private val notificationRepository: NotificationRepository
 ) {
     suspend operator fun invoke(): Boolean {
+        notificationRepository.lcMakeSeenNotifications()
         return notificationRepository.makeSeenAllNoti()
     }
 }

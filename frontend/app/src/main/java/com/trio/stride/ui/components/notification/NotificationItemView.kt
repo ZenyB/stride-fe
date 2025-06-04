@@ -53,8 +53,11 @@ fun NotificationItemView(
     var isBodyExpand by remember { mutableStateOf(false) }
     val containerColor =
         if (notification.seen) StrideTheme.colors.transparent else StrideTheme.colorScheme.primary.copy(
-            alpha = 0.2f
+            alpha = 0.8f
         )
+    val contentColor =
+        if (notification.seen) StrideTheme.colorScheme.onSurface else StrideTheme.colorScheme.onPrimary
+    val grayText = if (notification.seen) StrideTheme.colors.gray else StrideTheme.colors.gray300
     val plainText = parseHtmlToAnnotatedString(notification.body.trimIndent())
 
     Box(
@@ -76,14 +79,17 @@ fun NotificationItemView(
             )
             Spacer(Modifier.width(16.dp))
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = if (notification.seen) 0.dp else 12.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     notification.title,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = StrideTheme.typography.titleMedium,
-                    color = StrideTheme.colorScheme.onBackground,
+                    color = contentColor,
                 )
 
                 Text(
@@ -91,7 +97,7 @@ fun NotificationItemView(
                     maxLines = if (isBodyExpand) Int.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis,
                     style = StrideTheme.typography.labelLarge,
-                    color = StrideTheme.colorScheme.onBackground,
+                    color = contentColor,
                     onTextLayout = { textLayoutResult ->
                         val didOverflow = textLayoutResult.hasVisualOverflow
                         if (didOverflow) {
@@ -108,19 +114,29 @@ fun NotificationItemView(
                         notification.time.toTimeAgo(),
                         maxLines = 1,
                         style = StrideTheme.typography.labelMedium,
-                        color = StrideTheme.colors.gray
+                        color = grayText
                     )
                     if (isBodyOverflowing) {
                         Text(
                             if (isBodyExpand) "Show less" else "See more",
                             maxLines = 1,
                             style = StrideTheme.typography.labelMedium,
-                            color = StrideTheme.colors.placeHolderText
+                            color = grayText
                         )
                     }
                 }
             }
         }
+//        if (!notification.seen) {
+//            Box(
+//                modifier = Modifier
+//                    .align(Alignment.TopEnd)
+//                    .padding(top = 12.dp, end = 12.dp)
+//                    .size(12.dp)
+//                    .clip(CircleShape)
+//                    .background(StrideTheme.colorScheme.primary, CircleShape)
+//            )
+//        }
     }
 }
 
