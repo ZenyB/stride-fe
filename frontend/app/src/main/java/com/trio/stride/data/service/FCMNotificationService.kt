@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URL
-import kotlin.random.Random
 
 @AndroidEntryPoint
 class FCMNotificationService : FirebaseMessagingService() {
@@ -99,8 +98,9 @@ class FCMNotificationService : FirebaseMessagingService() {
         title: String,
         message: String,
         banner: Bitmap? = null,
-        notificationId: Int = Random.nextInt()
+        notificationId: Int = System.currentTimeMillis().toInt()
     ) {
+        val requestCode = 1002
         val routeIntent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("navigateTo", Screen.NotificationScreen.route)
@@ -110,7 +110,7 @@ class FCMNotificationService : FirebaseMessagingService() {
 
         val pendingIntent = PendingIntent.getActivity(
             applicationContext,
-            Random.nextInt(),
+            requestCode,
             routeIntent,
             flags
         )
@@ -123,7 +123,6 @@ class FCMNotificationService : FirebaseMessagingService() {
             .setContentText(message)
             .setStyle(NotificationCompat.BigPictureStyle().bigPicture(banner))
             .setAutoCancel(true)
-            .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(pendingIntent)
 

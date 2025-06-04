@@ -26,7 +26,6 @@ import androidx.navigation.compose.rememberNavController
 import com.trio.stride.navigation.AppNavHost
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.BottomNavBar
-import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.theme.StrideTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -38,9 +37,18 @@ class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val route = intent?.getStringExtra("navigateTo")
-
+        var route = intent.getStringExtra("navigateTo")
         super.onCreate(savedInstanceState)
+        route?.let {
+            mainViewModel.sendNavigate(it)
+            mainViewModel.clearNavigateTo()
+        }
+        Log.d("ON_CREATE", "Received: ${mainViewModel.navigateTo.value}")
+//        route?.let {
+//            if (mainViewModel.navigateTo.value != route)
+//                mainViewModel.sendNavigate(it)
+//            else route = null
+//        }
         enableEdgeToEdge()
         setContent {
             val controller = rememberNavController()
@@ -49,33 +57,46 @@ class MainActivity : ComponentActivity() {
             var didNavigate by rememberSaveable { mutableStateOf(false) }
 
             val navigateToRoute by mainViewModel.navigateTo.collectAsState(initial = null)
+            val authState by mainViewModel.authState.collectAsStateWithLifecycle()
 
-            LaunchedEffect(route) {
-                if (!didNavigate && !route.isNullOrBlank()) {
+            val startDestination = remember(authState) {
+                when (authState) {
+                    MainViewModel.AuthState.UNKNOWN -> null
+                    MainViewModel.AuthState.AUTHORIZED -> Screen.MainApp.route
+                    MainViewModel.AuthState.UNAUTHORIZED -> Screen.Auth.ROUTE
+                    MainViewModel.AuthState.AUTHORIZED_NOT_INITIALIZED -> Screen.Onboarding.route
+                }
+            }
+
+            LaunchedEffect(route, startDestination) {
+                val navRoute = route
+                if (!didNavigate && !navRoute.isNullOrBlank() && startDestination != null) {
                     delay(100)
-                    controller.navigate(route) {
+                    Log.d("ON_LEF", "Received: $navRoute")
+                    controller.navigate(navRoute) {
                         popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
                         launchSingleTop = true
                     }
                     didNavigate = true
+//                    _intent?.removeExtra("navigateTo")
+                    mainViewModel.resetNavigateTo()
                 }
             }
 
-            LaunchedEffect(navigateToRoute) {
-                navigateToRoute?.let {
-                    controller.navigate(it) {
+            LaunchedEffect(navigateToRoute, startDestination) {
+                Log.d("ON_NAVIGATE_TO_ROUTE", "Received: $navigateToRoute")
+                val navRoute = navigateToRoute
+                if (navRoute != null && startDestination != null) {
+                    controller.navigate(navRoute) {
                         popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
                         launchSingleTop = true
                     }
-
-                    mainViewModel.clearNavigateTo()
+//                    _intent?.removeExtra("navigateTo")
+                    mainViewModel.resetNavigateTo()
                 }
             }
 
-            val authState by mainViewModel.authState.collectAsStateWithLifecycle()
             val currentBackStack by controller.currentBackStackEntryAsState()
-            var startDestination: String? = null
-
             var showBottomBarState by remember { mutableStateOf(false) }
 
             LaunchedEffect(currentBackStack) {
@@ -85,23 +106,6 @@ class MainActivity : ComponentActivity() {
             }
 
             StrideTheme {
-                when (authState) {
-                    MainViewModel.AuthState.UNKNOWN -> {
-                        Loading()
-                    }
-
-                    MainViewModel.AuthState.AUTHORIZED -> {
-                        startDestination = Screen.MainApp.route
-                    }
-
-                    MainViewModel.AuthState.UNAUTHORIZED -> {
-                        startDestination = Screen.Auth.ROUTE
-                    }
-
-                    MainViewModel.AuthState.AUTHORIZED_NOT_INITIALIZED -> {
-                        startDestination = Screen.Onboarding.route
-                    }
-                }
                 Scaffold(
                     bottomBar = {
                         Log.i("BOTTOM_BAR", showBottomBarState.toString())
@@ -120,23 +124,34 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d("DeepLink", "onStart received: ${intent?.data}")
-        val route = intent.getStringExtra("navigateTo")
-        route?.let {
-            mainViewModel.sendNavigate(it)
+
+        val route = intent?.getStringExtra("navigateTo")
+        if (route == null) {
+            intent?.removeExtra("navigateTo")
+            setIntent(null)
         }
+//        Log.d("ON_START", "onStart received: $route")
+//        route?.let {
+//            if (mainViewModel.isNavigated.value == null) {
+//                mainViewModel.sendNavigate(it)
+////                intent.removeExtra("navigateTo")
+//            }
+//        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         val route = intent.getStringExtra("navigateTo")
+        Log.d("ON_NEW_INTENT", "Received: $route")
         route?.let {
             mainViewModel.sendNavigate(it)
+            mainViewModel.clearNavigateTo()
         }
     }
 }
