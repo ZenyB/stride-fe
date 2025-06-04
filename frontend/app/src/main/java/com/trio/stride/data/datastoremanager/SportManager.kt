@@ -22,11 +22,9 @@ import javax.inject.Singleton
 
 @Singleton
 class SportManager @Inject constructor(
-//    private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getSportsUseCase: GetSportsUseCase,
     private val currentSportDao: CurrentSportDao,
     private val routeFilterSportDao: RouteFilterSportDao,
-//    private val categoryDao: CategoryDao,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 

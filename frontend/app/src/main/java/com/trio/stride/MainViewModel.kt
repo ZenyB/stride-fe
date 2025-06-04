@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.TokenManager
+import com.trio.stride.domain.usecase.fcmnotification.EnqueueDeleteFCMTokenWorkerUseCase
+import com.trio.stride.domain.usecase.fcmnotification.EnqueueUploadFCMTokenWorkerUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val getUserUseCase: GetUserUseCase,
+    private val enqueueUploadFCMTokenWorkerUseCase: EnqueueUploadFCMTokenWorkerUseCase,
+    private val enqueueDeleteFCMTokenWorkerUseCase: EnqueueDeleteFCMTokenWorkerUseCase
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow(AuthState.UNKNOWN)
@@ -27,6 +31,7 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            enqueueDeleteFCMTokenWorkerUseCase.invoke()
             tokenManager.getAccessToken().collect { token ->
                 if (!token.isNullOrEmpty()) {
                     getUser()
@@ -42,6 +47,9 @@ class MainViewModel @Inject constructor(
                 if (response is Resource.Success) {
                     _authState.value =
                         if (response.data.dob.isBlank()) AuthState.AUTHORIZED_NOT_INITIALIZED else AuthState.AUTHORIZED
+                    if (authState.value == AuthState.AUTHORIZED) {
+                        enqueueUploadFCMTokenWorkerUseCase.invoke()
+                    }
                 }
             }
         }

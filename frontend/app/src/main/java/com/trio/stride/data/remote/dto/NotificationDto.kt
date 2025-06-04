@@ -1,7 +1,8 @@
 package com.trio.stride.data.remote.dto
 
 data class NotificationResponseDto(
-    val data: List<NotificationItemDto>
+    val data: List<NotificationItemDto>,
+    val page: PageDto
 )
 
 data class NotificationItemDto(

@@ -6,6 +6,7 @@ import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
 import com.trio.stride.domain.model.NotificationItem
 import com.trio.stride.domain.model.UserInfo
+import com.trio.stride.domain.repository.NotificationRepository
 import com.trio.stride.domain.usecase.notification.GetNotificationsUseCase
 import com.trio.stride.domain.usecase.notification.MakeSeenAllNotificationsUseCase
 import com.trio.stride.domain.usecase.notification.MakeSeenNotificationUseCase
@@ -21,23 +22,37 @@ class NotificationViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val getNotificationsUseCase: GetNotificationsUseCase,
     private val makeSeenNotificationUseCase: MakeSeenNotificationUseCase,
-    private val makeSeenAllNotificationsUseCase: MakeSeenAllNotificationsUseCase
+    private val makeSeenAllNotificationsUseCase: MakeSeenAllNotificationsUseCase,
+    private val notificationRepository: NotificationRepository
 ) : BaseViewModel<NotificationViewModel.ViewState>() {
 
     override fun createInitialState(): ViewState = ViewState()
 
+    var isInitialLoadDone = false
+
     init {
         viewModelScope.launch {
+            setState { currentState.copy(isLoading = true) }
             getUserUseCase.invoke().collectLatest { user ->
                 if (user is Resource.Success) {
                     setState { currentState.copy(user = user.data) }
                 }
             }
-            getNotifications()
+            getLocalNotifications()
+            refreshNotifications()
         }
     }
 
-    private fun getNotifications() {
+    private fun getLocalNotifications() {
+        viewModelScope.launch {
+            val items = notificationRepository.lcGetNotificationsPage1()
+            Log.i("LOCAL_NOTIFICATON", items.toString())
+            isInitialLoadDone = true
+            setState { currentState.copy(isLoading = false, notifications = items) }
+        }
+    }
+
+    private fun initNotifications() {
         viewModelScope.launch {
             getNotificationsUseCase.invoke().collectLatest { response ->
                 when (response) {
@@ -49,16 +64,15 @@ class NotificationViewModel @Inject constructor(
 
                     is Resource.Success -> {
                         Log.i("NOTIFICATION_GET", response.data.toString())
-                        val notis = currentState.notifications.toMutableList()
-                        notis.addAll(response.data)
-                        val hasMore = response.data.isNotEmpty()
                         setState {
                             currentState.copy(
-                                notifications = notis,
+                                notifications = response.data.notificationItems,
                                 isLoading = false,
-                                hasNextPage = hasMore
+                                hasNextPage = true,
                             )
                         }
+                        isInitialLoadDone = true
+                        refreshNotifications()
                     }
 
                     is Resource.Error -> {
@@ -76,10 +90,51 @@ class NotificationViewModel @Inject constructor(
         }
     }
 
+    private fun refreshNotifications() {
+        viewModelScope.launch {
+            getNotificationsUseCase.invoke(forceRefresh = true).collectLatest { response ->
+                when (response) {
+                    is Resource.Loading -> setState { currentState.copy(isRefresh = true) }
+
+                    is Resource.Success -> {
+                        setState {
+                            currentState.copy(
+                                notifications = response.data.notificationItems,
+                                hasNextPage = response.data.page.index < (response.data.page.totalPages
+                                    ?: Int.MAX_VALUE),
+                                totalPages = response.data.page.totalPages,
+                                currentPage = response.data.page.index,
+                                isRefresh = false,
+                                isError = false,
+                                errorMessage = null
+                            )
+                        }
+                        Log.i("REFRESH", response.data.notificationItems.toString())
+                    }
+
+                    is Resource.Error -> {
+                        Log.i("GET_NOTI_ERR", response.error.message.toString())
+                        setState {
+                            currentState.copy(
+                                isError = true,
+                                errorMessage = response.error.message.toString(),
+                                isRefresh = false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun loadMore() {
+        if (!isInitialLoadDone || currentState.isLoading || currentState.loadingMore || currentState.isRefresh
+            || !currentState.hasNextPage || currentState.totalPages == null
+        ) return
+        Log.i("LOAD_MORE", currentState.notifications.toString())
         viewModelScope.launch {
             val newPage = currentState.currentPage + 1
-            getNotificationsUseCase.invoke(newPage).collectLatest { response ->
+            getNotificationsUseCase.invoke(newPage, forceRefresh = true).collectLatest { response ->
                 when (response) {
                     is Resource.Loading -> setState {
                         currentState.copy(
@@ -88,17 +143,18 @@ class NotificationViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        if (response.data.isEmpty()) {
-                            setState { currentState.copy(loadingMore = false, hasNextPage = false) }
-                        } else {
-                            val notis = currentState.notifications.toMutableList()
-                            notis.addAll(response.data)
-                            setState {
-                                currentState.copy(
-                                    notifications = notis,
-                                    loadingMore = false
-                                )
-                            }
+                        val notis = currentState.notifications.toMutableList()
+                        Log.i("LOAD_MORE_SUCCESS", response.data.notificationItems.toString())
+                        notis.addAll(response.data.notificationItems)
+                        setState {
+                            currentState.copy(
+                                notifications = notis,
+                                loadingMore = false,
+                                currentPage = response.data.page.index,
+                                hasNextPage = newPage < (response.data.page.totalPages
+                                    ?: Int.MAX_VALUE),
+                                totalPages = response.data.page.totalPages
+                            )
                         }
                     }
 
@@ -138,6 +194,7 @@ class NotificationViewModel @Inject constructor(
 
     data class ViewState(
         val isLoading: Boolean = false,
+        val isRefresh: Boolean = false,
         val loadingMore: Boolean = false,
         val loadMoreError: Boolean = false,
         val isError: Boolean = false,
@@ -146,5 +203,6 @@ class NotificationViewModel @Inject constructor(
         val notifications: List<NotificationItem> = emptyList(),
         val user: UserInfo = UserInfo(),
         val currentPage: Int = 1,
+        val totalPages: Int? = null,
     ) : IViewState
 }

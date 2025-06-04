@@ -125,16 +125,9 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         Log.d("DeepLink", "onStart received: ${intent?.data}")
-        intent?.let {
-            val route = intent.getStringExtra("navigateTo")
-            Log.i("ON_START_ROUTE", route.toString())
-            route?.let {
-                navController?.navigate(it) {
-                    popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
-                    launchSingleTop = true
-                }
-            }
-            intent.removeExtra("navigateTo")
+        val route = intent.getStringExtra("navigateTo")
+        route?.let {
+            mainViewModel.sendNavigate(it)
         }
     }
 

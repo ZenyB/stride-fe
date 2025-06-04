@@ -25,4 +25,20 @@ class FCMNotificationRepositoryImpl @Inject constructor(
     override suspend fun deleteLocalToken() {
         fcmTokenManager.deleteToken()
     }
+
+    override suspend fun setIsTokenSynced(isSynced: Boolean) {
+        fcmTokenManager.setIsTokenSynced(isSynced)
+    }
+
+    override suspend fun isTokenSynced(): Flow<Boolean> {
+        return fcmTokenManager.isTokenSynced()
+    }
+
+    override suspend fun addTokenToDelete(token: String) {
+        fcmTokenManager.addTokenToDelete(token)
+    }
+
+    override suspend fun removeTokenToDelete(token: String) {
+        fcmTokenManager.removeTokenToDelete(token)
+    }
 }

@@ -7,6 +7,7 @@ import com.trio.stride.data.local.dao.AvailableSportDao
 import com.trio.stride.data.local.dao.CurrentSportDao
 import com.trio.stride.data.local.dao.CurrentUserDao
 import com.trio.stride.data.local.dao.GoalDao
+import com.trio.stride.data.local.dao.NotificationDao
 import com.trio.stride.data.local.dao.ProgressDao
 import com.trio.stride.data.local.dao.RouteFilterSportDao
 import com.trio.stride.data.local.dao.SportDao
@@ -18,6 +19,7 @@ import com.trio.stride.data.local.entity.EquipmentWeightEntity
 import com.trio.stride.data.local.entity.GoalEntity
 import com.trio.stride.data.local.entity.GoalHistoryEntity
 import com.trio.stride.data.local.entity.HeartRateZonesEntity
+import com.trio.stride.data.local.entity.NotificationEntity
 import com.trio.stride.data.local.entity.ProgressEntity
 import com.trio.stride.data.local.entity.RouteFilterSportEntity
 import com.trio.stride.data.local.entity.SportEntity
@@ -36,7 +38,8 @@ import com.trio.stride.data.local.entity.SportEntity
         GoalEntity::class,
         GoalHistoryEntity::class,
         ActivityEntity::class,
-    ], version = 10
+        NotificationEntity::class
+    ], version = 11
 )
 abstract class StrideDatabase : RoomDatabase() {
     //    abstract fun categoryDao(): CategoryDao
@@ -48,4 +51,5 @@ abstract class StrideDatabase : RoomDatabase() {
     abstract fun availableSportDao(): AvailableSportDao
     abstract fun goalDao(): GoalDao
     abstract fun activityDao(): ActivityDao
+    abstract fun notificationDao(): NotificationDao
 }

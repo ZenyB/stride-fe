@@ -18,6 +18,7 @@ class DeleteFCMTokenUseCase @Inject constructor(
             val result = fcmNotificationRepository.deleteToken(token)
             if (result) {
                 fcmNotificationRepository.deleteLocalToken()
+                fcmNotificationRepository.removeTokenToDelete(token)
                 emit(Resource.Success(true))
             }
         } catch (e: IOException) {

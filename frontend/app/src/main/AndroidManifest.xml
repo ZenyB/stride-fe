@@ -61,6 +61,11 @@
             android:name=".receiver.RecordReceiver"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <provider
+            android:authorities="${applicationId}.androidx-startup"
+            android:name="androidx.startup.InitializationProvider"
+            tools:node="remove" />
     </application>
 
 </manifest>

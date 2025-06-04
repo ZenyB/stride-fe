@@ -24,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URL
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class FCMNotificationService : FirebaseMessagingService() {
@@ -98,7 +99,7 @@ class FCMNotificationService : FirebaseMessagingService() {
         title: String,
         message: String,
         banner: Bitmap? = null,
-        notificationId: Int = System.currentTimeMillis().toInt()
+        notificationId: Int = Random.nextInt()
     ) {
         val routeIntent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -109,7 +110,7 @@ class FCMNotificationService : FirebaseMessagingService() {
 
         val pendingIntent = PendingIntent.getActivity(
             applicationContext,
-            System.currentTimeMillis().toInt(),
+            Random.nextInt(),
             routeIntent,
             flags
         )
