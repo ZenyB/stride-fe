@@ -9,7 +9,8 @@ import retrofit2.Response
 
 interface RouteRepository {
     suspend fun getRecommendRoute(request: RecommendRouteRequest): Response<RecommendRouteResponse>
-    suspend fun saveRouteFromActivity(activityId: String): Response<SuccessResponse>
+    suspend fun saveRouteFromActivity(activityId: String, routeName: String): Response<SuccessResponse>
+    suspend fun deleteRoute(routeId: String): Response<SuccessResponse>
     suspend fun getUserRoute(
         request: UserRouteRequest
     ): Response<UserRouteResponse>

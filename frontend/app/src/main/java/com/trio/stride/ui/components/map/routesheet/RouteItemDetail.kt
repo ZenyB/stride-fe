@@ -60,35 +60,48 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
             )
         }
 
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(
-                item.images ?: emptyList()
-            ) { _, imgUrl ->
-                AsyncImage(
-                    model = imgUrl,
-                    contentDescription = "route",
-                    modifier = Modifier
-                        .width(300.dp)
-                        .aspectRatio(12f / 7f)
-                        .clip(RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center
-                )
-            }
-            items(1) { _ ->
-                AsyncImage(
-                    model = item.mapImage,
-                    contentDescription = "route",
-                    modifier = Modifier
-                        .width(300.dp)
-                        .aspectRatio(12f / 7f)
-                        .clip(RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center
-                )
+        if(item.images.isNullOrEmpty()){
+            AsyncImage(
+                model = item.mapImage,
+                contentDescription = "route",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(12f / 7f)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.Center
+            )
+        }else{
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                itemsIndexed(
+                    item.images ?: emptyList()
+                ) { _, imgUrl ->
+                    AsyncImage(
+                        model = imgUrl,
+                        contentDescription = "route",
+                        modifier = Modifier
+                            .width(300.dp)
+                            .aspectRatio(12f / 7f)
+                            .clip(RoundedCornerShape(10.dp)),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center
+                    )
+                }
+                items(1) { _ ->
+                    AsyncImage(
+                        model = item.mapImage,
+                        contentDescription = "route",
+                        modifier = Modifier
+                            .width(300.dp)
+                            .aspectRatio(12f / 7f)
+                            .clip(RoundedCornerShape(10.dp)),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center
+                    )
+                }
             }
         }
 

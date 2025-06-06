@@ -5,6 +5,7 @@ import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.apiservice.route.RouteApi
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.domain.usecase.activity.SaveRouteFromActivityUseCase
+import com.trio.stride.domain.usecase.route.DeleteUserRouteUseCase
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase
 import dagger.Module
 import dagger.Provides
@@ -77,4 +78,9 @@ object RouteModule {
     @Singleton
     fun provideSaveRouteUseCase(repository: RouteRepository) =
         SaveRouteFromActivityUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideDeleteRouteUseCase(repository: RouteRepository) =
+        DeleteUserRouteUseCase(repository)
 }
