@@ -11,12 +11,17 @@ import com.trio.stride.data.mapper.roomdatabase.toSportEntity
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
+import com.trio.stride.ui.utils.getDaysInMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,6 +30,7 @@ class SportManager @Inject constructor(
     private val getSportsUseCase: GetSportsUseCase,
     private val currentSportDao: CurrentSportDao,
     private val routeFilterSportDao: RouteFilterSportDao,
+    private val metadataManager: MetadataManager,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -50,18 +56,24 @@ class SportManager @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage
 
     init {
-        fetchSports()
-    }
-
-    private fun shouldFetchSports(lastFetchTime: Long): Boolean {
-        val now = System.currentTimeMillis()
-        val oneDayMillis = 24 * 60 * 60 * 1000
-        return (now - lastFetchTime) > oneDayMillis
-    }
-
-    private fun fetchSports() {
         coroutineScope.launch {
-            getSportsUseCase.invoke().collectLatest { response ->
+            fetchSports()
+        }
+    }
+
+    private suspend fun fetchSports() {
+        val lastFetchTime = metadataManager.getLastSportFetchTime().firstOrNull() ?: 0L
+        val currentTime = System.currentTimeMillis()
+        val shouldFetch = currentTime - lastFetchTime > getDaysInMillis(1)
+
+        getSportsUseCase.invoke(forceRefresh = shouldFetch)
+            .retryWhen { cause, attempt ->
+                if (attempt < 3 && cause is IOException) {
+                    delay(1000L * (attempt + 1))
+                    true
+                } else false
+            }
+            .collectLatest { response ->
                 when (response) {
                     is Resource.Success -> {
                         _isError.value = false
@@ -80,27 +92,20 @@ class SportManager @Inject constructor(
                         handleError(response.error.message)
                     }
 
-                    else -> {
-                        Unit
-                    }
+                    else -> Unit
                 }
             }
-        }
     }
 
     private fun getCurrentSport() {
         coroutineScope.launch {
             val localCurrentSport = currentSportDao.getCurrentSport()?.toSportEntity()
 
-            val sports = _sports.value
-
-            if (localCurrentSport == null || sports.none { it.id == localCurrentSport.id }) {
-                val defaultSport = sports.firstOrNull()
-                defaultSport?.let {
-                    val currentSportEntity = it.toEntity().toCurrentSportEntity()
-                    currentSportDao.saveCurrentSport(currentSportEntity)
-                    _currentSport.value = it
-                }
+            if (localCurrentSport == null) {
+                val sports = _sports.value
+                val currentSportEntity = sports[0].toEntity().toCurrentSportEntity()
+                currentSportDao.saveCurrentSport(currentSportEntity)
+                _currentSport.value = sports[0]
             } else {
                 _currentSport.value = localCurrentSport.toModel()
             }
@@ -111,15 +116,11 @@ class SportManager @Inject constructor(
         coroutineScope.launch {
             val localRouteFilterSport = routeFilterSportDao.getSport()?.toSportEntity()
 
-            val sportsWithMap = _sports.value
-
-            if (localRouteFilterSport == null || sportsWithMap.none { it.id == localRouteFilterSport.id }) {
-                val defaultSport = sportsWithMap.firstOrNull()
-                defaultSport?.let {
-                    val routeFilterSportEntity = it.toEntity().toRouteFilterSportEntity()
-                    routeFilterSportDao.saveSport(routeFilterSportEntity)
-                    _routeFilterSport.value = it
-                }
+            if (localRouteFilterSport == null) {
+                val sportsWithMap = _sportsWithMap.value
+                val routeFilterSportEntity = sportsWithMap[0].toEntity().toCurrentSportEntity()
+                currentSportDao.saveCurrentSport(routeFilterSportEntity)
+                _routeFilterSport.value = sportsWithMap[0]
             } else {
                 _routeFilterSport.value = localRouteFilterSport.toModel()
             }
@@ -134,7 +135,6 @@ class SportManager @Inject constructor(
     fun updateCurrentSport(sport: Sport) {
         _currentSport.value = sport
         coroutineScope.launch {
-            currentSportDao.deleteCurrentSport()
             currentSportDao.saveCurrentSport(sport.toEntity().toCurrentSportEntity())
         }
     }
@@ -142,7 +142,6 @@ class SportManager @Inject constructor(
     fun updateRouteFilterSport(sport: Sport) {
         _routeFilterSport.value = sport
         coroutineScope.launch {
-            routeFilterSportDao.deleteRouteFilterSport()
             routeFilterSportDao.saveSport(sport.toEntity().toRouteFilterSportEntity())
         }
     }

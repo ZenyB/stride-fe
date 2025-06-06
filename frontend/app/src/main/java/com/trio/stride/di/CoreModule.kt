@@ -1,6 +1,7 @@
 package com.trio.stride.di
 
 import com.trio.stride.data.ApiConstants
+import com.trio.stride.data.datastoremanager.MetadataManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.apiservice.activity.ActivityApi
 import com.trio.stride.data.remote.apiservice.category.CategoryApi
@@ -131,8 +132,11 @@ object CoreModule {
 
     @Provides
     @Singleton
-    fun provideGetSportsUseCase(sportRepository: SportRepository): GetSportsUseCase {
-        return GetSportsUseCase(sportRepository)
+    fun provideGetSportsUseCase(
+        sportRepository: SportRepository,
+        metadataManager: MetadataManager
+    ): GetSportsUseCase {
+        return GetSportsUseCase(sportRepository, metadataManager)
     }
 
 //    @Provides
