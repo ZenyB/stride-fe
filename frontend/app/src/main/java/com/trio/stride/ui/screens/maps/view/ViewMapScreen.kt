@@ -515,10 +515,6 @@ fun ViewMapScreen(
                         )
                         mapView.mapboxMap.style?.moveStyleLayer("touch-map-route", null)
 
-                        mapView.mapboxMap.style?.styleLayers?.forEachIndexed { index, layer ->
-                            Log.d("MapLayers", "Layer $index: ${layer.id}")
-                        }
-
                     }
 
                     mapView.location.updateSettings {
