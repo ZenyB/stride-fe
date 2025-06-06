@@ -62,10 +62,6 @@ class ActivityDetailViewModel @Inject constructor(
             return
         }
 
-//        val newDto = dto.copy(
-//            sportId = sport.id
-//        )
-
         item.value?.let {
             viewModelScope.launch {
                 updateActivityUseCase.invoke(
@@ -116,6 +112,12 @@ class ActivityDetailViewModel @Inject constructor(
         setState { ActivityDetailState.Edit }
     }
 
+    fun savingRoute() {
+        setState {
+            ActivityDetailState.SavingRoute
+        }
+    }
+
     fun discardEdit() {
         setState { ActivityDetailState.Idle }
     }
@@ -126,5 +128,6 @@ sealed class ActivityDetailState : IViewState {
     data object Loading : ActivityDetailState()
     data object Edit : ActivityDetailState()
     data object Deleted : ActivityDetailState()
+    data object SavingRoute : ActivityDetailState()
     data class Error(val message: String) : ActivityDetailState()
 }

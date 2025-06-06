@@ -1,6 +1,7 @@
 package com.trio.stride.ui.screens.activity.view
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -70,7 +71,6 @@ import com.mapbox.maps.util.isEmpty
 import com.trio.stride.R
 import com.trio.stride.domain.model.Activity
 import com.trio.stride.ui.components.CustomLeftTopAppBar
-import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.LoadingSmall
 import com.trio.stride.ui.components.activity.detail.ActivityActionDropdown
 import com.trio.stride.ui.components.activity.detail.ActivityDetailView
@@ -79,8 +79,7 @@ import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.map.mapstyle.MapStyleBottomSheet
 import com.trio.stride.ui.screens.activity.detail.ActivityFormMode
 import com.trio.stride.ui.screens.activity.detail.ActivityFormView
-import com.trio.stride.ui.screens.maps.saveroute.SaveRouteState
-import com.trio.stride.ui.screens.maps.saveroute.SaveRouteViewModel
+import com.trio.stride.ui.screens.maps.saveroute.SaveRouteForm
 import com.trio.stride.ui.screens.maps.view.INITIAL_ZOOM
 import com.trio.stride.ui.screens.maps.view.ZOOM_MORE
 import com.trio.stride.ui.theme.StrideTheme
@@ -91,12 +90,9 @@ fun ActivityDetailScreen(
     id: String = "",
     navController: NavController,
     viewModel: ActivityDetailViewModel = hiltViewModel(),
-    saveRouteViewModel: SaveRouteViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val item by viewModel.item.collectAsStateWithLifecycle()
-
-    val saveRouteState by saveRouteViewModel.uiState.collectAsStateWithLifecycle()
 
     val sheetState = rememberStandardBottomSheetState(
         initialValue = SheetValue.PartiallyExpanded,
@@ -185,36 +181,6 @@ fun ActivityDetailScreen(
         dismissText = "Cancel"
     )
 
-    when (saveRouteState) {
-        is SaveRouteState.ErrorSaving -> {
-            StrideDialog(
-                visible = true,
-                title = "Error saving activity",
-                description = (saveRouteState as SaveRouteState.ErrorSaving).message,
-                dismiss = { saveRouteViewModel.resetState() },
-                dismissText = "OK",
-            )
-        }
-
-        is SaveRouteState.Success -> {
-            StrideDialog(
-                visible = true,
-                title = "Route Saved",
-                description = "You can access your Saved Routes from Maps and your profile",
-                dismiss = { saveRouteViewModel.resetState() },
-                dismissText = "OK",
-            )
-        }
-
-        is SaveRouteState.IsSaving -> {
-            Loading()
-        }
-
-        else -> {
-
-        }
-    }
-
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -257,7 +223,7 @@ fun ActivityDetailScreen(
                             } else {
                                 IconButton(
                                     onClick = {
-                                        item?.let { saveRouteViewModel.saveRoute(it.routeId) }
+                                        item?.let { viewModel.savingRoute() }
                                     },
                                     modifier = Modifier
                                         .background(
@@ -400,7 +366,10 @@ fun ActivityDetailScreen(
                                 CameraOptions.Builder().build()
                             mapView.mapboxMap.cameraForCoordinates(
                                 coords,
-                                cameraOptions, EdgeInsets(300.0, 300.0, 700.0, 300.0), ZOOM_MORE, null
+                                cameraOptions,
+                                EdgeInsets(300.0, 300.0, 700.0, 300.0),
+                                ZOOM_MORE,
+                                null
                             ) { result ->
                                 if (result.isEmpty) {
                                     //TODO: error
@@ -460,6 +429,20 @@ fun ActivityDetailScreen(
             ),
             dismissAction = { showDiscardEditDialog = true },
             isSaving = uiState == ActivityDetailState.Loading,
+        )
+    }
+
+    if (item?.routeId != null) {
+        BackHandler(enabled = uiState == ActivityDetailState.SavingRoute) {
+            viewModel.discardEdit()
+        }
+        SaveRouteForm(
+            visible = uiState == ActivityDetailState.SavingRoute,
+            routeId = item!!.routeId,
+            sport = item!!.sport,
+            mapImage = item!!.mapImage,
+            distance = item!!.totalDistance ?: 0.0,
+            onFinish = { viewModel.discardEdit() },
         )
     }
 }

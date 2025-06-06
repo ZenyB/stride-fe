@@ -7,7 +7,6 @@ sealed class ViewMapState : IViewState {
     object Idle : ViewMapState()
     object Loading : ViewMapState()
     object ViewRouteDetail: ViewMapState()
+    object SavingRoute : ViewMapState()
     data class GetRouteError(val message: String) : ViewMapState()
-
-
 }

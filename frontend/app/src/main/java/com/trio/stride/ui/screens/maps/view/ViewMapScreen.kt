@@ -99,6 +99,7 @@ import com.trio.stride.ui.components.map.routesheet.RoutePager
 import com.trio.stride.ui.components.sport.bottomsheet.SportMapBottomSheet
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearch
 import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInSearchViewModel
+import com.trio.stride.ui.screens.maps.saveroute.SaveRouteForm
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteState
 import com.trio.stride.ui.screens.maps.saveroute.SaveRouteViewModel
 import com.trio.stride.ui.theme.StrideColor
@@ -365,7 +366,8 @@ fun ViewMapScreen(
                             RouteItemDetail(
                                 routeItems[viewModel.currentDetailIndex],
                                 onSaveRoute = {
-                                    saveRouteViewModel.saveRoute(routeItems[viewModel.currentDetailIndex].id)
+                                    viewModel.savingRoute()
+//                                    saveRouteViewModel.saveRoute(routeItems[viewModel.currentDetailIndex].id)
                                 },
                                 startRecord = { geometry ->
                                     viewModel.setCurrentSport(selectedSport)
@@ -655,6 +657,26 @@ fun ViewMapScreen(
                     )
                 })
         }
+    }
 
+    when (uiState) {
+        ViewMapState.SavingRoute -> {
+            val currentItem = routeItems[viewModel.currentDetailIndex]
+            BackHandler(enabled = true) {
+                viewModel.discardSaving()
+            }
+            SaveRouteForm(
+                visible = uiState == ViewMapState.SavingRoute,
+                routeId = currentItem.id,
+                sportId = currentItem.sportId,
+                mapImage = currentItem.mapImage,
+                distance = currentItem.avgDistance,
+                onFinish = { viewModel.discardSaving() },
+            )
+        }
+
+        else -> {
+
+        }
     }
 }

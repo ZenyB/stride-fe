@@ -15,7 +15,6 @@ import com.trio.stride.data.remote.dto.RecommendRouteRequest
 import com.trio.stride.domain.model.RouteItem
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.SportMapType
-import com.trio.stride.domain.usecase.activity.SaveRouteFromActivityUseCase
 import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +26,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewMapViewModel @Inject constructor(
     private val getRecommendedRouteUseCase: GetRecommendedRouteUseCase,
-    private val saveRouteFromActivityUseCase: SaveRouteFromActivityUseCase,
     private val sportManager: SportManager,
 ) : BaseViewModel<ViewMapState>() {
     var currentDetailIndex by mutableIntStateOf(-1)
@@ -77,13 +75,13 @@ class ViewMapViewModel @Inject constructor(
             val result =
                 getRecommendedRouteUseCase(
                     request =
-                        RecommendRouteRequest(
-                            sportId = selectedSport.id,
-                            latitude = selectedPoint?.latitude() ?: 10.873953237840828,
-                            longitude = selectedPoint?.longitude() ?: 106.74647540531987,
-                            limit = 5,
-                            sportMapType = SportMapType.CYCLING
-                        )
+                    RecommendRouteRequest(
+                        sportId = selectedSport.id,
+                        latitude = selectedPoint?.latitude() ?: 10.873953237840828,
+                        longitude = selectedPoint?.longitude() ?: 106.74647540531987,
+                        limit = 5,
+                        sportMapType = SportMapType.CYCLING
+                    )
                 )
             result
                 .onSuccess { data ->
@@ -100,6 +98,13 @@ class ViewMapViewModel @Inject constructor(
         sport?.let { sportManager.updateCurrentSport(sport) }
     }
 
+    fun savingRoute() {
+        setState { ViewMapState.SavingRoute }
+    }
+
+    fun discardSaving() {
+        setState { ViewMapState.Idle }
+    }
 
     override fun createInitialState(): ViewMapState {
         return ViewMapState.Idle
