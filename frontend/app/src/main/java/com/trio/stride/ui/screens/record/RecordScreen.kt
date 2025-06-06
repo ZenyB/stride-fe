@@ -776,7 +776,7 @@ fun RecordScreen(
                                     modifier = Modifier.weight(1f),
                                     title = "Avg speed",
                                     unit = "km/h",
-                                    value = if (avgSpeed == 0.0) "--" else formatTimeByMillis(time),
+                                    value = if (avgSpeed == 0.0) "--" else formatSpeed(avgSpeed),
                                     type = RecordValueBlockType.OnMapSmall
                                 )
                                 RecordValueBlock(
@@ -859,18 +859,18 @@ fun RecordScreen(
             )
         }
 
-    currentSport?.let {
-        SportBottomSheetWithCategory(
-            sportsByCategory = sportsByCategory,
-            selectedSport = it,
-            onItemClick = { sport ->
-                viewModel.updateCurrentSport(sport)
-                showSportBottomSheet = false
-            },
-            dismissAction = { showSportBottomSheet = false },
-            visible = showSportBottomSheet
-        )
-    }
+        currentSport?.let {
+            SportBottomSheetWithCategory(
+                sportsByCategory = sportsByCategory,
+                selectedSport = it,
+                onItemClick = { sport ->
+                    viewModel.updateCurrentSport(sport)
+                    showSportBottomSheet = false
+                },
+                dismissAction = { showSportBottomSheet = false },
+                visible = showSportBottomSheet
+            )
         }
     }
+}
 
