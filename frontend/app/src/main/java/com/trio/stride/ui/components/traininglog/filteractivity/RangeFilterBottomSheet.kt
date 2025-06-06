@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.trio.stride.domain.model.Range
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.formatTimeHM
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,11 +45,16 @@ fun RangeFilterBottomSheet(
     rangeType: RangeType = RangeType.NUMBER,
     visible: Boolean = false
 ) {
-    val unit = when (rangeType) {
-        RangeType.NUMBER -> ""
-        RangeType.HOUR -> "h"
+    val rightText = when (rangeType) {
+        RangeType.NUMBER -> "${value.max}"
+        RangeType.HOUR -> formatTimeHM(value.max)
     }
-    val rightRangeText = if (value.max == range.max) ">${range.max}$unit" else "${value.max}$unit"
+    val rightRangeText = if (value.max == range.max) ">$rightText" else rightText
+
+    val leftRangeText = when (rangeType) {
+        RangeType.NUMBER -> "${value.min}"
+        RangeType.HOUR -> formatTimeHM(value.min)
+    }
 
     AnimatedVisibility(
         visible = visible,

@@ -5,21 +5,17 @@ import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.apiservice.activity.ActivityApi
 import com.trio.stride.data.remote.apiservice.category.CategoryApi
 import com.trio.stride.data.remote.apiservice.goal.GoalApi
-import com.trio.stride.data.remote.apiservice.route.RouteApi
 import com.trio.stride.data.remote.apiservice.sport.SportApi
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.GoalRepository
-import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.domain.repository.SportRepository
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.usecase.activity.DeleteActivityUseCase
 import com.trio.stride.domain.usecase.activity.GetAllActivityUseCase
-import com.trio.stride.domain.usecase.activity.SaveRouteFromActivityUseCase
 import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
 import com.trio.stride.domain.usecase.goal.DeleteUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
 import com.trio.stride.domain.usecase.goal.UpdateGoalUseCase
-import com.trio.stride.domain.usecase.route.GetRecommendedRouteUseCase
 import com.trio.stride.domain.usecase.sport.GetSportsUseCase
 import dagger.Module
 import dagger.Provides
@@ -186,20 +182,4 @@ object CoreModule {
     fun provideUpdateGoalUseCase(goalRepository: GoalRepository): UpdateGoalUseCase {
         return UpdateGoalUseCase(goalRepository)
     }
-
-    @Provides
-    @Singleton
-    fun provideRouteApi(@CoreBaseUrl retrofit: Retrofit): RouteApi =
-        retrofit.create(RouteApi::class.java)
-
-
-    @Provides
-    @Singleton
-    fun provideGetRecommendRouteUseCase(repository: RouteRepository) =
-        GetRecommendedRouteUseCase(repository)
-
-    @Provides
-    @Singleton
-    fun provideSaveRouteUseCase(repository: RouteRepository) =
-        SaveRouteFromActivityUseCase(repository)
 }
