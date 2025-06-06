@@ -101,7 +101,7 @@ fun RangeFilterBottomSheet(
             Box(Modifier.padding(16.dp), Alignment.Center) {
                 Column(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("${value.min}$unit", style = StrideTheme.typography.bodyLarge)
+                        Text(leftRangeText, style = StrideTheme.typography.bodyLarge)
                         Text(rightRangeText, style = StrideTheme.typography.bodyLarge)
                     }
                     Spacer(Modifier.height(12.dp))
