@@ -7,6 +7,7 @@ object ApiConstants {
     const val ROUTE_URL = "${BASE_URL}"
     const val CORE_URL = "${BASE_URL}core/"
     const val BRIDGE_URL = "${BASE_URL}bridge/"
+    const val METRIC_URL = "${BASE_URL}metric/"
     const val LOGIN_END_POINTS = "auth/login"
     const val LOGIN_GOOGLE = "auth/login/google"
     const val LOGOUT = "auth/logout"

@@ -7,7 +7,7 @@ data class LoginRequestDto(
 
 data class AuthResponseDto(
     val token: String? = null,
-    val expiryTime: String? = null,
+    val expiryTime: Long? = null,
     val userIdentityId: String? = null
 )
 
