@@ -20,8 +20,15 @@ class RouteRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun saveRouteFromActivity(activityId: String): Response<SuccessResponse> {
-        return routeApi.saveRouteFromActivity(activityId, "")
+    override suspend fun saveRouteFromActivity(
+        activityId: String,
+        routeName: String
+    ): Response<SuccessResponse> {
+        return routeApi.saveRouteFromActivity(activityId, routeName)
+    }
+
+    override suspend fun deleteRoute(routeId: String): Response<SuccessResponse> {
+        return routeApi.deleteSavedRoute(routeId)
     }
 
     override suspend fun getUserRoute(
