@@ -1,18 +1,10 @@
 package com.trio.stride.domain.usecase.activity
 
-import androidx.compose.ui.graphics.Color
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.domain.repository.ActivityRepository
+import com.trio.stride.ui.components.activity.detail.redShades
 import com.trio.stride.ui.utils.parseErrorResponse
 import javax.inject.Inject
-
-val redShades = listOf(
-    Color(0xFFFDB4B5),
-    Color(0xFFF6716D),
-    Color(0xFFDF2824),
-    Color(0xFFB81506),
-    Color(0xFF890E11)
-)
 
 class GetActivityDetailUseCase @Inject constructor(
     private val repository: ActivityRepository

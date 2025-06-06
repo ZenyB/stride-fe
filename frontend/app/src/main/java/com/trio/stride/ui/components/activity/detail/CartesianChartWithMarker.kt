@@ -18,6 +18,7 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberTop
+import com.patrykandpatrick.vico.compose.cartesian.cartesianLayerPadding
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
@@ -165,7 +166,7 @@ fun CartesianChartWithMarker(
                 valueFormatter = CartesianValueFormatter { _, value, _ ->
                     val formatted = DecimalFormat("#.##").format(value)
                     "$formatted km"
-                }
+                },
             ),
             endAxis = VerticalAxis.rememberEnd(
                 tick = null,
@@ -185,6 +186,14 @@ fun CartesianChartWithMarker(
             getXStep = { model ->
                 model.extraStore.getOrNull(xStepExtraKey) ?: model.getXDeltaGcd()
             },
+            layerPadding = { extraStore ->
+                cartesianLayerPadding(
+                    unscalableStart = 4.dp,
+                    unscalableEnd = 4.dp,
+                    scalableStart = 4.dp,
+                    scalableEnd = 4.dp
+                )
+            }
         ),
         modelProducer,
         modifier.offset(y = (-24).dp),

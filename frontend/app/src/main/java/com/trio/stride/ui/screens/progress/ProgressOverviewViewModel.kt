@@ -77,6 +77,7 @@ class ProgressOverviewViewModel @Inject constructor(
 
     fun getProgress() {
         val sportId = currentState.sportId ?: return
+        setState { currentState.copy(state = OverviewLoadingState.Loading) }
         progressJob?.cancel()
         progressJob = viewModelScope.launch {
             Log.d("Progress", "Loading local progress")
