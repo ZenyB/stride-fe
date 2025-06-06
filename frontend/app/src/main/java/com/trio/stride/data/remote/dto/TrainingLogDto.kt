@@ -41,7 +41,7 @@ data class TrainingLogSportDto(
     val name: String,
     val image: String,
     val color: String,
-    val sportMapType: SportMapType?
+    val sportMapType: SportMapType
 )
 
 data class TrainingLogMetaDataDto(

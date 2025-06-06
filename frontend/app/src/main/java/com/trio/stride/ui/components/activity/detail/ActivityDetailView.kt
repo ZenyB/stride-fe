@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.trio.stride.domain.model.ActivityDetailInfo
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.Avatar
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDate
@@ -129,7 +130,7 @@ fun ActivityDetailView(
             }
         }
 
-        if (item.sport.sportMapType != null && item.speeds.isNotEmpty()) {
+        if (item.sport.sportMapType != SportMapType.NO_MAP && item.speeds.isNotEmpty()) {
             Spacer(
                 Modifier
                     .height(8.dp)
@@ -142,7 +143,7 @@ fun ActivityDetailView(
             )
         }
 
-        if (item.sport.sportMapType != null && item.elevations.isNotEmpty()) {
+        if (item.sport.sportMapType != SportMapType.NO_MAP && item.elevations.isNotEmpty()) {
             Spacer(
                 Modifier
                     .height(8.dp)
@@ -155,7 +156,7 @@ fun ActivityDetailView(
             )
         }
 
-        if (item.sport.sportMapType != null && item.heartRates.isNotEmpty()) {
+        if (item.sport.sportMapType != SportMapType.NO_MAP && item.heartRates.isNotEmpty()) {
             Spacer(
                 Modifier
                     .height(8.dp)
@@ -168,7 +169,7 @@ fun ActivityDetailView(
             )
         }
 
-        if (item.sport.sportMapType != null && !item.heartRateZones.isNullOrEmpty() && item.heartRates.isNotEmpty()) {
+        if (item.sport.sportMapType != SportMapType.NO_MAP && !item.heartRateZones.isNullOrEmpty() && item.heartRates.isNotEmpty()) {
             Spacer(
                 Modifier
                     .height(8.dp)

@@ -8,6 +8,7 @@ import com.trio.stride.data.remote.dto.CreateGoalDTO
 import com.trio.stride.domain.model.GoalTimeFrame
 import com.trio.stride.domain.model.GoalType
 import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -86,7 +87,7 @@ class CreateGoalViewModel @Inject constructor(
 
     fun onSportSelected(sport: Sport) {
         if (sport.id != uiState.value.sportId) {
-            if (sport.sportMapType == null) {
+            if (sport.sportMapType == SportMapType.NO_MAP) {
                 if (uiState.value.selectedGoalType == GoalType.DISTANCE || uiState.value.selectedGoalType == GoalType.ELEVATION) {
                     setState {
                         currentState.copy(

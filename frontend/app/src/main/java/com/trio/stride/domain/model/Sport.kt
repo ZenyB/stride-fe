@@ -6,7 +6,7 @@ data class Sport(
     val name: String = "",
     val image: String = "",
     val color: String = "",
-    val sportMapType: SportMapType? = null,
+    val sportMapType: SportMapType = SportMapType.NO_MAP,
 )
 
-enum class SportMapType { WALKING, DRIVING, CYCLING }
+enum class SportMapType { WALKING, DRIVING, CYCLING, NO_MAP }

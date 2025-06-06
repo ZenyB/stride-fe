@@ -29,7 +29,7 @@ data class TrainingLogSport(
     val name: String,
     val image: String,
     val color: String = "#CCCCCC",
-    val sportMapType: SportMapType?
+    val sportMapType: SportMapType
 )
 
 data class TrainingLogFilter(

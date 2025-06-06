@@ -14,7 +14,7 @@ data class SportDto(
     val name: String,
     val image: String,
     val color: String,
-    val sportMapType: SportMapType?,
+    val sportMapType: SportMapType,
     val rules: List<RuleDto>
 )
 

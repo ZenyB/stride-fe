@@ -78,7 +78,7 @@ fun ActivityItemView(item: ActivityItem, onClick: (String) -> Unit, modifier: Mo
             }
         }
 
-        if (item.sport.sportMapType != null) {
+        if (item.sport.sportMapType != SportMapType.NO_MAP) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(item.mapImage)

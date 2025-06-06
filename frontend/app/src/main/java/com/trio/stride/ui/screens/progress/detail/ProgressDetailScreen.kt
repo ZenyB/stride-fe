@@ -36,6 +36,7 @@ import com.trio.stride.data.mapper.roomdatabase.total
 import com.trio.stride.domain.model.Progress
 import com.trio.stride.domain.model.ProgressTimeRange
 import com.trio.stride.domain.model.ProgressType
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.model.isEmpty
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.CustomLeftTopAppBar
@@ -360,7 +361,7 @@ fun ProgressDetailScreen(
                 normalizedItems[uiState.selectedIndex!!].toDate
             ),
             onItemSelected = { id ->
-                if (uiState.sport?.sportMapType != null) {
+                if (uiState.sport?.sportMapType != SportMapType.NO_MAP) {
                     navController.navigate(Screen.ActivityDetail.createRoute(id))
                 } else {
                     navController.navigate(Screen.ActivityDetailNoMap.createRoute(id))

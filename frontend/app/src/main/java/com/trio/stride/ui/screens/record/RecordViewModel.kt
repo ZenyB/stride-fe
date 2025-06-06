@@ -20,6 +20,7 @@ import com.trio.stride.data.repositoryimpl.GpsRepository
 import com.trio.stride.data.repositoryimpl.RecordRepository
 import com.trio.stride.data.service.RecordService
 import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.activity.CreateActivityUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -247,7 +248,7 @@ class RecordViewModel @Inject constructor(
     }
 
     fun finish(context: Context) {
-        if (currentSport.value?.sportMapType != null && coordinates.value.size < 2) {
+        if (currentSport.value?.sportMapType != SportMapType.NO_MAP && coordinates.value.size < 2) {
             stop(context)
             setState { currentState.copy(isNotEnoughDataToSave = true) }
             return

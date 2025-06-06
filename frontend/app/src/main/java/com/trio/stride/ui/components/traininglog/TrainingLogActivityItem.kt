@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.trio.stride.R
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.model.TrainingLogActivity
 import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDistance
@@ -61,7 +62,7 @@ fun TrainingLogActivityItem(
                 color = StrideTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(8.dp))
-            if (activity.sport.sportMapType != null) {
+            if (activity.sport.sportMapType != SportMapType.NO_MAP) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
