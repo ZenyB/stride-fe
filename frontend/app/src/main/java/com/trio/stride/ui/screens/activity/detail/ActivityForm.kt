@@ -68,6 +68,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.trio.stride.R
 import com.trio.stride.data.mapper.toRpeString
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheet
@@ -269,7 +270,7 @@ fun ActivityFormView(
                     val screenWidth = localConfig.screenWidthDp.dp
                     val halfWidth = (screenWidth - 24.dp) / 2
 
-                    if (sport.sportMapType != null) {
+                    if (sport.sportMapType != SportMapType.NO_MAP) {
                         item {
                             Box(
                                 modifier = Modifier

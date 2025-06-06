@@ -9,5 +9,5 @@ data class AvailableSportEntity(
     val id: String,
     val name: String,
     val image: String,
-    val sportMapType: String?
+    val sportMapType: String
 )

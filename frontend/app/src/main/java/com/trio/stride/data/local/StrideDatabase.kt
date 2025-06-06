@@ -35,7 +35,7 @@ import com.trio.stride.data.local.entity.SportEntity
         ProgressEntity::class,
         GoalEntity::class,
         GoalHistoryEntity::class,
-        ActivityEntity::class
+        ActivityEntity::class,
     ], version = 10
 )
 abstract class StrideDatabase : RoomDatabase() {

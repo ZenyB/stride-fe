@@ -172,6 +172,10 @@ fun getStartOfWeekInMillis(ofDate: Long? = null): Long {
     return startOfWeek
 }
 
+fun getDaysInMillis(numOfDays: Int = 1): Long {
+    return numOfDays * 24L * 60 * 60 * 1000
+}
+
 fun Long.minus12Weeks(): Long {
     val twelveWeeksInMillis = 12L * 7 * 24 * 60 * 60 * 1000
 

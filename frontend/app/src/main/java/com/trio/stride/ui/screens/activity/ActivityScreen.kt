@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -21,11 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.LoadingSmall
 import com.trio.stride.ui.components.RefreshIndicator
@@ -91,7 +88,7 @@ fun ActivityScreen(
             }
             items(items.size) { index ->
                 ActivityItemView(item = items[index], onClick = { id ->
-                    if (items[index].sport.sportMapType != null) {
+                    if (items[index].sport.sportMapType != SportMapType.NO_MAP) {
                         navController.navigate(Screen.ActivityDetail.createRoute(id))
                     } else {
                         navController.navigate(Screen.ActivityDetailNoMap.createRoute(id))

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.flow
 import java.io.IOException
 
 class GetSportsUseCase(
-    private val sportRepository: SportRepository
+    private val sportRepository: SportRepository,
 ) {
 
     operator fun invoke(

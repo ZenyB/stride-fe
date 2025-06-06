@@ -68,6 +68,7 @@ import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.trio.stride.R
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.CustomCenterTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.StatusMessage
@@ -260,7 +261,7 @@ fun RecordScreen(
             }
         },
         floatingActionButton = {
-            if (currentSport?.sportMapType != null && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
+            if (currentSport?.sportMapType != SportMapType.NO_MAP && screenStatus == RecordViewModel.ScreenStatus.DEFAULT) {
                 Column(
                     modifier = Modifier
                         .padding(bottom = 52.dp),
@@ -546,7 +547,7 @@ fun RecordScreen(
             }
 
             Box {
-                if (currentSport?.sportMapType != null) {
+                if (currentSport?.sportMapType != SportMapType.NO_MAP) {
                     MapboxMap(
                         Modifier
                             .fillMaxSize()
@@ -579,7 +580,7 @@ fun RecordScreen(
                 if ((screenStatus == RecordViewModel.ScreenStatus.DEFAULT
                             || (screenStatus == RecordViewModel.ScreenStatus.DETAIL
                             && recordStatus == RecordViewModel.RecordStatus.STOP))
-                    && currentSport?.sportMapType != null
+                    && currentSport?.sportMapType != SportMapType.NO_MAP
                 ) {
                     if (recordStatus == RecordViewModel.RecordStatus.NONE)
                         GPSStatusMessage(
@@ -627,7 +628,7 @@ fun RecordScreen(
             AnimatedVisibility(
                 visible = (screenStatus == RecordViewModel.ScreenStatus.DETAIL
                         || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
-                        && currentSport?.sportMapType == null)) && recordStatus == RecordViewModel.RecordStatus.RECORDING,
+                        && currentSport?.sportMapType == SportMapType.NO_MAP)) && (recordStatus == RecordViewModel.RecordStatus.RECORDING || recordStatus == RecordViewModel.RecordStatus.NONE),
                 enter = slideInHorizontally(
                     initialOffsetX = { -it }
                 ),
@@ -640,11 +641,12 @@ fun RecordScreen(
                         .fillMaxSize()
                         .background(StrideTheme.colorScheme.surface)
                         .padding(bottom = padding.calculateBottomPadding() + 16.dp)
-                        .windowInsetsPadding(WindowInsets.statusBars),
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .animateContentSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    if (currentSport?.sportMapType != null) {
+                    if (currentSport?.sportMapType != SportMapType.NO_MAP) {
                         RecordValueBlock(
                             title = "Time",
                             value = if (time == 0L) "--" else formatTimeByMillis(time)
@@ -680,6 +682,7 @@ fun RecordScreen(
                         }
                     } else {
                         RecordValueBlock(
+                            modifier = Modifier.padding(top = padding.calculateTopPadding()),
                             type = RecordValueBlockType.Large,
                             title = "Time",
                             value = if (time == 0L) "--" else formatTimeByMillis(time),
@@ -701,7 +704,7 @@ fun RecordScreen(
                     .padding(bottom = padding.calculateBottomPadding() - 24.dp),
                 visible = (screenStatus == RecordViewModel.ScreenStatus.DETAIL
                         || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
-                        && currentSport?.sportMapType == null)) && recordStatus == RecordViewModel.RecordStatus.STOP,
+                        && currentSport?.sportMapType == SportMapType.NO_MAP)) && recordStatus == RecordViewModel.RecordStatus.STOP,
                 enter = slideInHorizontally(
                     initialOffsetX = { -it }
                 ),
@@ -833,15 +836,17 @@ fun RecordScreen(
         )
     }
 
-    SportBottomSheetWithCategory(
-        sportsByCategory = sportsByCategory,
-        selectedSport = currentSport!!,
-        onItemClick = {
-            viewModel.updateCurrentSport(it)
-            showSportBottomSheet = false
-        },
-        dismissAction = { showSportBottomSheet = false },
-        visible = showSportBottomSheet
-    )
+    currentSport?.let {
+        SportBottomSheetWithCategory(
+            sportsByCategory = sportsByCategory,
+            selectedSport = it,
+            onItemClick = { sport ->
+                viewModel.updateCurrentSport(sport)
+                showSportBottomSheet = false
+            },
+            dismissAction = { showSportBottomSheet = false },
+            visible = showSportBottomSheet
+        )
+    }
 }
 

@@ -13,12 +13,11 @@ fun SportEntity.toModel(): Sport = Sport(
     name = this.name,
     image = this.image,
     color = this.color,
-    sportMapType = this.sportMapType?.let { type ->
-        SportMapType.entries.firstOrNull {
-            it.name == type
-        }
-    }
+    sportMapType = this.sportMapType.let { type ->
+        SportMapType.entries.firstOrNull { it.name == type }
+    } ?: SportMapType.NO_MAP
 )
+
 
 fun Sport.toEntity(): SportEntity = SportEntity(
     id = this.id,
@@ -26,7 +25,7 @@ fun Sport.toEntity(): SportEntity = SportEntity(
     name = this.name,
     image = this.image,
     color = this.color,
-    sportMapType = this.sportMapType?.name
+    sportMapType = this.sportMapType.name
 )
 
 fun CurrentSportEntity.toSportEntity(): SportEntity =
@@ -48,7 +47,7 @@ fun AvailableSportEntity.toSport(): Sport {
         image = this.image,
         sportMapType = SportMapType.entries.firstOrNull {
             it.name == this.sportMapType
-        }
+        } ?: SportMapType.NO_MAP
     )
 }
 

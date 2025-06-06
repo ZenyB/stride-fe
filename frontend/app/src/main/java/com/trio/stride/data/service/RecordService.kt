@@ -32,6 +32,7 @@ import com.trio.stride.data.ble.HeartRateReceiveManager
 import com.trio.stride.data.ble.HeartRateResult
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.repositoryimpl.RecordRepository
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.navigation.Screen
 import com.trio.stride.receiver.RecordReceiver
 import com.trio.stride.ui.utils.ble.Resource
@@ -160,6 +161,11 @@ class RecordService : LifecycleService() {
         }
     }
 
+    fun stopObserveRecordValues() {
+        observeJob?.cancel()
+        observeJob = null
+    }
+
     private fun observeBleData() {
         serviceScope.launch {
             heartRateReceiveManager.data.collect { result ->
@@ -179,6 +185,11 @@ class RecordService : LifecycleService() {
                 }
             }
         }
+    }
+
+    fun stopObserveBleData() {
+        observeJob?.cancel()
+        observeJob = null
     }
 
     private fun startTimer() {
@@ -208,7 +219,7 @@ class RecordService : LifecycleService() {
 
                 recordRepository.updateTime(movingTime)
 
-                if (sportManager.currentSport.value?.sportMapType != null) {
+                if (sportManager.currentSport.value?.sportMapType != SportMapType.NO_MAP) {
                     val durationSeconds = movingTime / 1000.0
                     val distance = recordRepository.distance.value
                     val avgSpeed =
@@ -283,7 +294,7 @@ class RecordService : LifecycleService() {
         observeRecordValues()
         startTimer()
         startForeground()
-        if (sportManager.currentSport.value?.sportMapType != null) {
+        if (sportManager.currentSport.value?.sportMapType != SportMapType.NO_MAP) {
             startTracking()
         }
     }
@@ -321,9 +332,12 @@ class RecordService : LifecycleService() {
     private fun endRecording() {
         Log.i("END_RECORDINGG", "end")
         Log.d("bluetoothScan", "stop foreground")
-        stopForeground(STOP_FOREGROUND_REMOVE)
         stopTimer()
         stopTracking()
+        stopObserveRecordValues()
+        stopObserveBleData()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
         recordRepository.end()
     }
 

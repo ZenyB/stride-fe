@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.trio.stride.R
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.model.TrainingLogFilterDataType
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
@@ -214,7 +215,7 @@ fun TrainingLogScreen(
                                 if (trainingLogItem.activities.size == 1)
                                     navigateToActivityDetail(
                                         trainingLogItem.activities[0].id,
-                                        trainingLogItem.activities[0].sport.sportMapType != null
+                                        trainingLogItem.activities[0].sport.sportMapType != SportMapType.NO_MAP
                                     )
                                 else viewModel.onSelectTrainingLog(trainingLogItem)
                             },
@@ -263,7 +264,7 @@ fun TrainingLogScreen(
             onActivityClick = { activity ->
                 navigateToActivityDetail(
                     activity.id,
-                    activity.sport.sportMapType != null
+                    activity.sport.sportMapType != SportMapType.NO_MAP
                 )
             }
         )

@@ -3,6 +3,7 @@ package com.trio.stride.di
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.trio.stride.data.datastoremanager.MapStyleManager
+import com.trio.stride.data.datastoremanager.MetadataManager
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.datastoremanager.UserManager
@@ -61,5 +62,13 @@ object ManagerModule {
             routeFilterSportDao,
 //            categoryDao
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideMetadataManager(
+        dataStore: DataStore<Preferences>,
+    ): MetadataManager {
+        return MetadataManager(dataStore)
     }
 }
