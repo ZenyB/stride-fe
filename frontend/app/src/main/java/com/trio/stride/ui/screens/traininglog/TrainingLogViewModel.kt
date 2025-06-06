@@ -16,6 +16,7 @@ import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.getEndOfWeekInMillis
 import com.trio.stride.ui.utils.getStartOf12WeeksInMillis
 import com.trio.stride.ui.utils.getStartOfWeekInMillis
+import com.trio.stride.ui.utils.getTodayInMillis
 import com.trio.stride.ui.utils.minus12Weeks
 import com.trio.stride.ui.utils.systemZoneId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -54,8 +54,7 @@ class TrainingLogViewModel @Inject constructor(
 
     private fun getFirstTrainingLogsData() {
         viewModelScope.launch {
-            val today =
-                LocalDate.now().atStartOfDay(systemZoneId).toInstant().toEpochMilli()
+            val today = getTodayInMillis()
             getTrainingLogsUseCase.invoke(
                 TrainingLogFilterDto(
                     fromDate = today,

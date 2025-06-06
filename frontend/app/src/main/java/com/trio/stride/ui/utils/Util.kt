@@ -131,6 +131,10 @@ fun String.toDate(): LocalDate {
     }
 }
 
+fun getTodayInMillis(): Long {
+    return LocalDate.now().atStartOfDay(systemZoneId).toInstant().toEpochMilli()
+}
+
 fun getStartOf12WeeksInMillis(): Long {
     val now = LocalDate.now()
 
@@ -171,6 +175,12 @@ fun getStartOfWeekInMillis(ofDate: Long? = null): Long {
         .toEpochMilli()
 
     return startOfWeek
+}
+
+fun Long.toLocalDate(): LocalDate {
+    return Instant.ofEpochMilli(this)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
 }
 
 fun Long.minus12Weeks(): Long {
@@ -263,6 +273,10 @@ fun Long.toTimeAgo(): String {
             }
         }
     }
+}
+
+fun LocalDate.toMillis(): Long {
+    return this.atStartOfDay(systemZoneId).toInstant().toEpochMilli()
 }
 
 // endregion

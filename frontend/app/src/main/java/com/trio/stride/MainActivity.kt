@@ -100,10 +100,13 @@ class MainActivity : ComponentActivity() {
             var showBottomBarState by remember { mutableStateOf(false) }
 
             LaunchedEffect(currentBackStack) {
-                showBottomBarState =
-                    (currentBackStack?.destination?.route in Screen.BottomNavScreen.items.map { it.route }) &&
-                            currentBackStack?.destination?.route != Screen.BottomNavScreen.Record.route
+                val currentRoute = currentBackStack?.destination?.route
+                val bottomRoutes = Screen.BottomNavScreen.items.mapNotNull { it.route }
+                val recordRoute = Screen.BottomNavScreen.Record?.route
+
+                showBottomBarState = currentRoute in bottomRoutes && currentRoute != recordRoute
             }
+
 
             StrideTheme {
                 Scaffold(
@@ -114,13 +117,21 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                 ) { paddingValues ->
-                    startDestination?.let {
+                    if (startDestination != null) {
                         AppNavHost(
                             navController = controller,
-                            startDestination = it,
+                            startDestination = startDestination,
                             handleBottomBarVisibility = { visible -> showBottomBarState = visible }
                         )
                     }
+
+//                    startDestination?.let {
+//                        AppNavHost(
+//                            navController = controller,
+//                            startDestination = it,
+//                            handleBottomBarVisibility = { visible -> showBottomBarState = visible }
+//                        )
+//                    }
                 }
             }
         }

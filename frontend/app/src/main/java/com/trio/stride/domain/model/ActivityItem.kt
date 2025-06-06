@@ -1,6 +1,7 @@
 package com.trio.stride.domain.model
 
 import androidx.compose.ui.graphics.Color
+import com.trio.stride.ui.utils.getEndOfWeekInMillis
 
 data class ActivityItem(
     val id: String,
@@ -51,4 +52,24 @@ data class HeartRateInfo(
     val max: Long?,
     val value: Long,
     val color: Color
+)
+
+data class ActivityFilter(
+    val userId: String = "",
+    val search: String = "",
+    val sportIds: List<String> = emptyList(),
+    val distance: Range = Range(Int.MIN_VALUE, Int.MAX_VALUE),
+    val time: Range = Range(Int.MIN_VALUE, Int.MAX_VALUE),
+    val elevation: Range = Range(Int.MIN_VALUE, Int.MAX_VALUE),
+    val date: DateRange = DateRange(0L, getEndOfWeekInMillis())
+)
+
+data class Range(
+    val min: Int,
+    val max: Int
+)
+
+data class DateRange(
+    val min: Long? = null,
+    val max: Long? = null
 )

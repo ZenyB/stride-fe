@@ -22,7 +22,7 @@ import com.trio.stride.ui.theme.StrideTheme
 import java.time.LocalDate
 
 @Composable
-fun BirthDayTextField(
+fun CalendarTextField(
     value: String,
     initialDate: LocalDate = LocalDate.now(),
     label: @Composable (() -> Unit)? = { Text("Dob") },

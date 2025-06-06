@@ -6,6 +6,7 @@ import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
+import com.trio.stride.domain.model.ActivityFilter
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -45,4 +46,11 @@ interface ActivityApi {
     suspend fun deleteActivity(
         @Path("id") id: String
     ): SuccessResponse
+
+    @POST(ApiConstants.ACTIVITY_LIST)
+    suspend fun filterActivity(
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null,
+        @Body activityFilter: ActivityFilter
+    ): ActivityListDto
 }

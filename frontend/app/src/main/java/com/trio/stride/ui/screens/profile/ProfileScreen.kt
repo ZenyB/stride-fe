@@ -56,7 +56,7 @@ import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.librarypicker.rememberImagePickerLauncher
-import com.trio.stride.ui.components.textfield.BirthDayTextField
+import com.trio.stride.ui.components.textfield.CalendarTextField
 import com.trio.stride.ui.components.textfield.CustomOutlinedTextField
 import com.trio.stride.ui.components.textfield.GenderTextField
 import com.trio.stride.ui.theme.StrideTheme
@@ -278,7 +278,7 @@ fun ProfileScreen(
                 }
 
                 ProfileColumnContainer("Birth Day") {
-                    BirthDayTextField(
+                    CalendarTextField(
                         value = state.userInfo.dob,
                         initialDate = state.userInfo.dob.toDate(),
                         label = null,

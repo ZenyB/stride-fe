@@ -46,9 +46,8 @@ import com.trio.stride.ui.utils.formatDistance
 import com.trio.stride.ui.utils.formatTimeHM
 import com.trio.stride.ui.utils.getEndOfWeekInMillis
 import com.trio.stride.ui.utils.getStartOfWeekInMillis
+import com.trio.stride.ui.utils.getTodayInMillis
 import com.trio.stride.ui.utils.minusNWeeks
-import com.trio.stride.ui.utils.systemZoneId
-import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
@@ -60,7 +59,7 @@ fun TrainingLogScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sports by viewModel.sports.collectAsStateWithLifecycle()
 
-    val today = LocalDate.now().atStartOfDay(systemZoneId).toInstant().toEpochMilli()
+    val today = getTodayInMillis()
     val listState = rememberLazyListState()
     val showFilterSheet = remember { mutableStateOf(false) }
     val showCalendarFilter = remember { mutableStateOf(false) }

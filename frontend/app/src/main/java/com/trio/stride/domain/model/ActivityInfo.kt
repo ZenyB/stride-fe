@@ -1,5 +1,7 @@
 package com.trio.stride.domain.model
 
+import com.trio.stride.data.remote.dto.PageDto
+
 data class ActivityUser(
     val id: String = "",
     val name: String = "",
@@ -38,4 +40,9 @@ data class ActivityMetric(
     val time: Long = 0,
     val avgSpeed: Float = 0f,
     val distance: Double = 0.0,
+)
+
+data class ActivityListInfo(
+    val data: List<ActivityItem>,
+    val page: PageDto
 )

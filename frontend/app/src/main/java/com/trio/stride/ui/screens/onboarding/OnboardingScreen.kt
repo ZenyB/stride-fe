@@ -33,7 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.trio.stride.R
 import com.trio.stride.ui.components.Loading
-import com.trio.stride.ui.components.textfield.BirthDayTextField
+import com.trio.stride.ui.components.textfield.CalendarTextField
 import com.trio.stride.ui.components.textfield.CustomOutlinedTextField
 import com.trio.stride.ui.components.textfield.GenderTextField
 import com.trio.stride.ui.theme.StrideTheme
@@ -105,7 +105,7 @@ fun OnboardingScreen(
                                     )
                                 }
 
-                                BirthDayTextField(
+                                CalendarTextField(
                                     value = viewState.dob,
                                     initialDate = LocalDate.now().minusYears(20)
                                 ) {

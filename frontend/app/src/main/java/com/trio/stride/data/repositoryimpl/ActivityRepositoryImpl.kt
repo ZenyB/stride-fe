@@ -9,6 +9,7 @@ import com.trio.stride.data.remote.dto.ActivityListDto
 import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
+import com.trio.stride.domain.model.ActivityFilter
 import com.trio.stride.domain.model.ActivityItem
 import com.trio.stride.domain.model.ActivityUser
 import com.trio.stride.domain.repository.ActivityRepository
@@ -45,6 +46,18 @@ class ActivityRepositoryImpl @Inject constructor(
 
     override suspend fun deleteActivity(id: String): Boolean {
         return activityApi.deleteActivity(id).data
+    }
+
+    override suspend fun filterActivity(
+        page: Int?,
+        limit: Int?,
+        activityFilter: ActivityFilter
+    ): ActivityListDto {
+        return activityApi.filterActivity(
+            page = page,
+            limit = limit,
+            activityFilter = activityFilter
+        )
     }
 
     override suspend fun getRecentLocalActivity(): Flow<List<ActivityItem>> {
