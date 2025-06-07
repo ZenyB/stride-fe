@@ -22,9 +22,9 @@ class ActivityRepositoryImpl @Inject constructor(
     private val activityDao: ActivityDao,
     private val currentUserDao: CurrentUserDao
 ) : ActivityRepository {
-    override suspend fun createActivity(request: CreateActivityRequestDTO): Boolean {
+    override suspend fun createActivity(request: CreateActivityRequestDTO): ActivityItem {
         val result = activityApi.createActivity(request)
-        return result.data
+        return result
     }
 
     override suspend fun updateActivity(request: UpdateActivityRequestDto, id: String): Boolean {
@@ -65,6 +65,10 @@ class ActivityRepositoryImpl @Inject constructor(
 
     override suspend fun insertActivityList(items: List<ActivityItem>) {
         activityDao.insertActivities(items.map { it.toEntity() })
+    }
+
+    override suspend fun insertActivity(item: ActivityItem) {
+        activityDao.insertActivity(item.toEntity())
     }
 
     override suspend fun clearAll() {

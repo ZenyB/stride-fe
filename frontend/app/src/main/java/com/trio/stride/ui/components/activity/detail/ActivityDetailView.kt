@@ -174,6 +174,29 @@ fun ActivityDetailView(
                 )
             }
         }
+        if(item.description.isNotEmpty()){
+            Spacer(
+                Modifier
+                    .height(8.dp)
+                    .fillMaxWidth()
+                    .background(StrideTheme.colors.background)
+            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier
+                    .padding(16.dp)
+            ) {
+                Text(
+                    "Notes",
+                    style = StrideTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    item.description,
+                    style = StrideTheme.typography.bodyMedium,
+                    color = StrideTheme.colors.gray600
+                )
+            }
+        }
 
         if (item.sport.sportMapType != SportMapType.NO_MAP && item.speeds.isNotEmpty()) {
             Spacer(
@@ -221,7 +244,7 @@ fun ActivityDetailView(
                     .fillMaxWidth()
                     .background(StrideTheme.colors.background)
             )
-            HeartRateZonesChart(items = item.heartRateZones)
+            HeartRateZonesChart(items = item.heartRateZones, totalTime = item.movingTimeSeconds)
         }
     }
 

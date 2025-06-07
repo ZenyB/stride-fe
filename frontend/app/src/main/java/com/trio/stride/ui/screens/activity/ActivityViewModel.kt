@@ -39,8 +39,10 @@ class ActivityViewModel @Inject constructor(
             }
 
             activityRepository.getRecentLocalActivity().collectLatest { data ->
-                if (items.isEmpty()) {
-                    items = data
+                val currentIds = items.map { it.id }.toSet()
+                val newItems = data.filter { it.id !in currentIds }
+                if (newItems.isNotEmpty()) {
+                    items = items + newItems
                 }
             }
         }

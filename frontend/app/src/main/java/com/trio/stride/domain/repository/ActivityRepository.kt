@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 
 interface ActivityRepository {
-    suspend fun createActivity(request: CreateActivityRequestDTO): Boolean
+    suspend fun createActivity(request: CreateActivityRequestDTO): ActivityItem
     suspend fun updateActivity(request: UpdateActivityRequestDto, id: String): Boolean
     suspend fun getAllActivity(
         page: Int? = null,
@@ -23,5 +23,6 @@ interface ActivityRepository {
     suspend fun deleteActivity(id: String): Boolean
     suspend fun getRecentLocalActivity(): Flow<List<ActivityItem>>
     suspend fun insertActivityList(items: List<ActivityItem>)
+    suspend fun insertActivity(item: ActivityItem)
     suspend fun clearAll()
 }

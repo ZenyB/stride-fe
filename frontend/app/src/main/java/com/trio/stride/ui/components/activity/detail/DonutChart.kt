@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.trio.stride.domain.model.HeartRateInfo
 import com.trio.stride.ui.utils.formatDuration
 import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.sqrt
 
 private const val TOTAL_ANGLE = 360.0f
@@ -58,6 +59,7 @@ private class DonutChartState(
 fun DonutChart(
     modifier: Modifier = Modifier,
     chartSize: Dp = 350.dp,
+    totalTime: Long,
     data: DonutChartDataCollection,
     gapPercentage: Float = 0.02f,
     selectedIndex: Int,
@@ -136,7 +138,9 @@ fun DonutChart(
                     val x = center.x + tooltipRadius * kotlin.math.cos(radians).toFloat()
                     val y = center.y + tooltipRadius * kotlin.math.sin(radians).toFloat()
 
-                    val labelText = formatDuration(data.items[selectedIndex].value)
+                    val actualDuration =
+                        round(data.items[selectedIndex].value * totalTime * 1.0 / data.totalDuration)
+                    val labelText = formatDuration(actualDuration.toLong())
                     val paint = android.graphics.Paint().apply {
                         color = android.graphics.Color.BLACK
                         textSize = 36f
