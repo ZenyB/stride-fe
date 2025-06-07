@@ -111,7 +111,7 @@ fun GoalItemView(item: GoalItem, onActionClick: () -> Unit) {
             Column(
                 modifier = Modifier
                     .background(StrideTheme.colors.gray300.copy(alpha = 0.2f))
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 12.dp)
             ) {
                 GoalChart(item)
             }

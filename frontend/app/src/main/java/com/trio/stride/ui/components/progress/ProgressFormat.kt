@@ -176,8 +176,8 @@ val zeroWidthSpace = "\u200B"
 
 
 fun getLast12WeeksLabels(chartData: List<Progress>, timeRange: ProgressTimeRange): List<String> {
-    val monthFormatter = SimpleDateFormat("MMM", Locale.getDefault())
-    val dayMonthFormatter = SimpleDateFormat("MMM d", Locale.getDefault())
+    val monthFormatter = SimpleDateFormat("MMM", Locale.ENGLISH)
+    val dayMonthFormatter = SimpleDateFormat("MMM d", Locale.ENGLISH)
     val dayFormatter = SimpleDateFormat("EEE", Locale.ENGLISH)
     val labels = mutableListOf<String>()
 
@@ -228,7 +228,7 @@ fun formatWeekRange(fromDate: Long, toDate: Long): String {
         fromCal.get(Calendar.MONTH) == toCal.get(Calendar.MONTH) &&
         fromCal.get(Calendar.DAY_OF_MONTH) == toCal.get(Calendar.DAY_OF_MONTH)
     ) {
-        val oneDayFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+        val oneDayFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
         return oneDayFormat.format(Date(fromDate))
     }
 
@@ -236,16 +236,16 @@ fun formatWeekRange(fromDate: Long, toDate: Long): String {
     val from = Date(fromDate)
     val to = Date(toDate)
 
-    val fromMonth = SimpleDateFormat("MMM", Locale.getDefault()).format(from)
-    val toMonth = SimpleDateFormat("MMM", Locale.getDefault()).format(to)
+    val fromMonth = SimpleDateFormat("MMM", Locale.ENGLISH).format(from)
+    val toMonth = SimpleDateFormat("MMM", Locale.ENGLISH).format(to)
 
     return if (fromMonth == toMonth) {
-        val dayFormat = SimpleDateFormat("MMM d", Locale.getDefault())
-        val endFormat = SimpleDateFormat("d, yyyy", Locale.getDefault())
+        val dayFormat = SimpleDateFormat("MMM d", Locale.ENGLISH)
+        val endFormat = SimpleDateFormat("d, yyyy", Locale.ENGLISH)
         "${dayFormat.format(from)} – ${endFormat.format(to)}"
     } else {
-        val fullFormat = SimpleDateFormat("MMM d", Locale.getDefault())
-        val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
+        val fullFormat = SimpleDateFormat("MMM d", Locale.ENGLISH)
+        val yearFormat = SimpleDateFormat("yyyy", Locale.ENGLISH)
         "${fullFormat.format(from)} – ${fullFormat.format(to)}, ${yearFormat.format(to)}"
     }
 }

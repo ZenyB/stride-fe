@@ -105,8 +105,8 @@ fun formatDate(timestamp: Long): String {
     val dateTime = Instant.ofEpochMilli(timestamp).atZone(systemZoneId)
     val date = dateTime.toLocalDate()
 
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-    val fullDateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy")
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
+    val fullDateFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy",  Locale.ENGLISH)
 
     return when {
         date.isEqual(now) -> "Today at ${dateTime.format(timeFormatter)}"
@@ -117,13 +117,13 @@ fun formatDate(timestamp: Long): String {
 
 fun formatTimeWithDateTimestamp(timestamp: Long): String {
     val dateTime = Instant.ofEpochMilli(timestamp).atZone(systemZoneId)
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
     return dateTime.format(timeFormatter)
 }
 
-fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+fun LocalDateTime.toDateString(): String = this.format(DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH))
 fun String.toDate(): LocalDate {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH)
     return try {
         LocalDate.parse(this, formatter)
     } catch (e: Exception) {
@@ -261,9 +261,9 @@ fun Long.toTimeAgo(): String {
             val year = calendar.get(Calendar.YEAR)
 
             if (year == currentYear) {
-                SimpleDateFormat("dd MMMM", Locale.getDefault()).format(date)
+                SimpleDateFormat("dd MMMM", Locale.ENGLISH).format(date)
             } else {
-                SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(date)
+                SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH).format(date)
             }
         }
     }
