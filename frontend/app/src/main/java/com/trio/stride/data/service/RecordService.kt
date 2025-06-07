@@ -225,6 +225,12 @@ class RecordService : LifecycleService() {
                     val avgSpeed =
                         if (durationSeconds > 0.0) (distance / durationSeconds) * 3.6 else 0.0
                     recordRepository.updateAvgSpeed(avgSpeed)
+                } else {
+                    if (movingTime % 5 == 0L) {
+                        val newHeartRates = recordRepository.heartRates.value.toMutableList()
+                        newHeartRates.add(recordRepository.heartRate.value)
+                        recordRepository.updateHeartRates(newHeartRates)
+                    }
                 }
 
                 lastUpdateTime = currentTime
@@ -391,13 +397,16 @@ class RecordService : LifecycleService() {
         val actionText = if (recording) "Stop" else "Resume"
         val contentText = if (!recording) "Stopped" else null
 
+        val contentTitle = buildString {
+            append("$sportName | ${formatTimeByMillis(time)}")
+            if (sportManager.currentSport.value?.sportMapType != SportMapType.NO_MAP) {
+                append(" | %.2f km".format(distance / 1000))
+            }
+        }
+
         notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(
-                "$sportName | ${formatTimeByMillis(time)} | ${
-                    "%.2f".format(
-                        distance / 1000
-                    )
-                } km"
+                contentTitle
             )
             .setContentText(
                 contentText
