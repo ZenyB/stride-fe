@@ -19,13 +19,14 @@ class SaveRouteViewModel @Inject constructor(
     private val _sportsWithMap = sportManager.sportsWithMap
     val sportsWithMap: StateFlow<List<Sport>> = _sportsWithMap
 
-    fun saveRoute(routeId: String, name: String) {
+    fun saveRoute(routeId: String, name: String, onSuccess:()->Unit) {
         setState { SaveRouteState.IsSaving }
         viewModelScope.launch {
             val result =
                 saveRouteFromActivityUseCase(routeId, name)
             result
                 .onSuccess { data ->
+                    onSuccess()
                     setState { SaveRouteState.Success }
                 }
                 .onFailure {

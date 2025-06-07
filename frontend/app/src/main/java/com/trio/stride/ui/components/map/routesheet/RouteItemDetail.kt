@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -21,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +35,13 @@ import com.trio.stride.ui.theme.StrideTheme
 import com.trio.stride.ui.utils.formatDuration
 
 @Composable
-fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (String) -> Unit) {
+fun RouteItemDetail(
+    item: RouteItem,
+    isSaved: Boolean? = false,
+    isSaving: Boolean? = false,
+    onSaveRoute: () -> Unit,
+    startRecord: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -60,7 +67,7 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
             )
         }
 
-        if(item.images.isNullOrEmpty()){
+        if (item.images.isNullOrEmpty()) {
             AsyncImage(
                 model = item.mapImage,
                 contentDescription = "route",
@@ -71,7 +78,7 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.Center
             )
-        }else{
+        } else {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -116,13 +123,25 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
                 ),
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(CircleShape)
+                    .clip(CircleShape),
+                enabled = isSaving != true
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_save),
-                    contentDescription = "icon",
-                    tint = Color.Black
-                )
+                if (isSaving == true) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = StrideTheme.colorScheme.onSurface,
+                        strokeCap = StrokeCap.Round,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Icon(
+                        painter = if (isSaved == true) painterResource(R.drawable.ic_save_filled) else painterResource(
+                            R.drawable.ic_save
+                        ),
+                        contentDescription = "icon",
+                        tint = StrideTheme.colorScheme.onSurface
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(32.dp))
             IconButton(
@@ -132,12 +151,13 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
                 ),
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(CircleShape)
+                    .clip(CircleShape),
+                enabled = isSaving != true
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_share),
                     contentDescription = "icon",
-                    tint = Color.Black
+                    tint = StrideTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(32.dp))
@@ -148,12 +168,13 @@ fun RouteItemDetail(item: RouteItem, onSaveRoute: () -> Unit, startRecord: (Stri
                 ),
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(CircleShape)
+                    .clip(CircleShape),
+                enabled = isSaving != true
             ) {
                 Icon(
                     painter = painterResource(R.drawable.record),
                     contentDescription = "icon",
-                    tint = Color.Black
+                    tint = StrideTheme.colorScheme.onSurface
                 )
             }
         }
