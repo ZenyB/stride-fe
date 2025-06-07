@@ -19,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -42,6 +45,7 @@ fun RateFeelingBottomSheet(
     val feelingRate by state.feelingRate.collectAsStateWithLifecycle()
     val feelingStatusText by state.feelingStatusText.collectAsStateWithLifecycle()
     val feelingDetailTextId by state.feelingDetailTextId.collectAsStateWithLifecycle()
+    var showDetails by remember { mutableStateOf(true) }
 
     AnimatedVisibility(
         visible = showBottomSheet,
@@ -84,7 +88,10 @@ fun RateFeelingBottomSheet(
                         )
 
                         TextButton(
-                            onClick = { state.updateFeelingRate(0) }
+                            onClick = {
+                                onValueChange(0)
+                                state.updateFeelingRate(0)
+                            }
                         ) {
                             Text(
                                 text = "Clear Entry",
@@ -117,25 +124,30 @@ fun RateFeelingBottomSheet(
                     }
 
                     TextButton(
-                        onClick = { }
+                        onClick = { showDetails = !showDetails }
                     ) {
-                        Text("Hide Details", style = StrideTheme.typography.bodyMedium)
+                        Text(
+                            if (showDetails) "Hide Details" else "Show Details",
+                            style = StrideTheme.typography.bodyMedium
+                        )
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, StrideTheme.colors.grayBorder)
-                    ) {
-                        Column(
+                    if (showDetails) {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .border(1.dp, StrideTheme.colors.grayBorder)
                         ) {
-                            Text(
-                                stringResource(feelingDetailTextId),
-                                style = StrideTheme.typography.bodyMedium
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                            ) {
+                                Text(
+                                    stringResource(feelingDetailTextId),
+                                    style = StrideTheme.typography.bodyMedium
+                                )
+                            }
                         }
                     }
                 }

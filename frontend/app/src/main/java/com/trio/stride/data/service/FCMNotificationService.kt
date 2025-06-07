@@ -8,6 +8,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.compose.ui.text.AnnotatedString
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -15,6 +16,7 @@ import com.trio.stride.MainActivity
 import com.trio.stride.R
 import com.trio.stride.domain.usecase.fcmnotification.RefreshAndSaveFCMTokenUseCase
 import com.trio.stride.navigation.Screen
+import com.trio.stride.ui.utils.text.parseHtmlToAnnotatedString
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,22 +56,15 @@ class FCMNotificationService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        if (message.data.isNotEmpty()) {
-            val title = message.data["title"] ?: "Stride"
-            val body = message.data["message"] ?: ""
-            val banner = message.data["banner"]
-            val bitmap = banner?.let { getBitmapFromUrl(it) }
-            val notificationId = System.currentTimeMillis().toInt()
-            Log.i("NOTIFICATION_SHOW", "Data: $title - $body - $banner")
-            showNotification(title, body, bitmap)
-        } else {
-            message.notification?.let {
-                val title = it.title ?: "Stride"
-                val body = it.body ?: ""
-                Log.i("NOTIFICATION_SHOW", "Notification: $title - $body")
-                showNotification(title, body)
-            }
-        }
+        val title = message.data["title"] ?: message.notification?.title ?: "Stride"
+        val body =
+            parseHtmlToAnnotatedString(message.data["message"] ?: message.notification?.body ?: "")
+        val banner = message.data["banner"]
+        val bitmap = banner?.let { getBitmapFromUrl(it) }
+
+        Log.i("NOTIFICATION_SHOW", "FCM received: $title - $body - $banner")
+
+        showNotification(title, body, bitmap)
     }
 
 
@@ -96,7 +91,7 @@ class FCMNotificationService : FirebaseMessagingService() {
 
     private fun showNotification(
         title: String,
-        message: String,
+        message: AnnotatedString,
         banner: Bitmap? = null,
         notificationId: Int = System.currentTimeMillis().toInt()
     ) {
@@ -121,7 +116,9 @@ class FCMNotificationService : FirebaseMessagingService() {
             .setSmallIcon(R.drawable.ic_logo_primary)
             .setContentTitle(title)
             .setContentText(message)
-            .setStyle(NotificationCompat.BigPictureStyle().bigPicture(banner))
+            .setStyle(
+                NotificationCompat.BigPictureStyle().bigPicture(banner).setSummaryText(message)
+            )
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(pendingIntent)

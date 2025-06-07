@@ -42,7 +42,7 @@ fun TrainingLogActivityItem(
                     .build()
             ),
             contentDescription = "Sport Icon",
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(20.dp),
             tint = StrideTheme.colorScheme.onSurface
         )
         Column(modifier = Modifier) {
@@ -50,7 +50,7 @@ fun TrainingLogActivityItem(
                 activity.name,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = StrideTheme.typography.labelLarge.copy(fontSize = 20.sp),
+                style = StrideTheme.typography.labelLarge.copy(fontSize = 16.sp),
                 color = StrideTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(4.dp))
@@ -105,7 +105,7 @@ private fun MetricItem(
             value,
             maxLines = 1,
             overflow = TextOverflow.Clip,
-            style = StrideTheme.typography.titleLarge,
+            style = StrideTheme.typography.titleMedium,
             color = StrideTheme.colorScheme.onSurface
         )
     }

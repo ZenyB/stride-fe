@@ -110,7 +110,6 @@ fun ActivityDetailScreen(
     var polylineManager by remember { mutableStateOf<PolylineAnnotationManager?>(null) }
     var mapStyle by remember { mutableStateOf(Style.MAPBOX_STREETS) }
     var showStyleSheet by remember { mutableStateOf(false) }
-    var showDiscardEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val headerHeight =
@@ -159,24 +158,15 @@ fun ActivityDetailScreen(
     }
 
     StrideDialog(
-        visible = showDiscardEditDialog,
-        title = "Discard Unsaved Change",
-        subtitle = "Your changes will not be saved.",
-        dismiss = { showDiscardEditDialog = false },
-        destructiveText = "Discard",
-        destructive = { viewModel.discardEdit() },
-        dismissText = "Cancel"
-    )
-
-    StrideDialog(
         visible = showDeleteDialog,
         title = "Delete Activity",
         subtitle = "Your activity will be permanently deleted.",
         dismiss = { showDeleteDialog = false },
-        destructiveText = "Discard",
+        destructiveText = "Delete",
         destructive = {
-            viewModel.deleteActivity()
+            showDeleteDialog = false
             navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+            viewModel.deleteActivity()
         },
         dismissText = "Cancel"
     )
@@ -421,13 +411,14 @@ fun ActivityDetailScreen(
                 onUpdate = { dto, sport ->
                     viewModel.updateActivity(dto, sport, {
                         navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+                        navController.popBackStack()
                     })
                 },
                 onDiscard = {
-                    showDiscardEditDialog = true
+                    viewModel.discardEdit()
                 }
             ),
-            dismissAction = { showDiscardEditDialog = true },
+            dismissAction = { },
             isSaving = uiState == ActivityDetailState.Loading,
         )
     }

@@ -135,6 +135,7 @@ class SportManager @Inject constructor(
     fun updateCurrentSport(sport: Sport) {
         _currentSport.value = sport
         coroutineScope.launch {
+            currentSportDao.deleteCurrentSport()
             currentSportDao.saveCurrentSport(sport.toEntity().toCurrentSportEntity())
         }
     }
@@ -142,6 +143,7 @@ class SportManager @Inject constructor(
     fun updateRouteFilterSport(sport: Sport) {
         _routeFilterSport.value = sport
         coroutineScope.launch {
+            routeFilterSportDao.deleteRouteFilterSport()
             routeFilterSportDao.saveSport(sport.toEntity().toRouteFilterSportEntity())
         }
     }

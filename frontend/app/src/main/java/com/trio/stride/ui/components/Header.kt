@@ -35,7 +35,7 @@ fun CustomCenterTopAppBar(
     backgroundColor: Color = StrideTheme.colorScheme.surface,
     contentColor: Color = StrideTheme.colorScheme.onSurface,
     height: Dp = 52.dp,
-    dividerColor: Color? = null,
+    dividerColor: Color = StrideTheme.colors.grayBorder,
     hideDivider: Boolean = false,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
@@ -83,7 +83,7 @@ fun CustomCenterTopAppBar(
         }
         if (!hideDivider) {
             HorizontalDivider(
-                color = dividerColor ?: StrideTheme.colors.grayBorder.copy(alpha = 0.12f)
+                color = dividerColor
             )
         }
     }
@@ -97,7 +97,7 @@ fun CustomLeftTopAppBar(
     backgroundColor: Color = StrideTheme.colorScheme.surface,
     contentColor: Color = StrideTheme.colorScheme.onSurface,
     height: Dp = 52.dp,
-    dividerColor: Color? = null,
+    dividerColor: Color = StrideTheme.colors.grayBorder,
     hideDivider: Boolean = false,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {}
@@ -153,7 +153,7 @@ fun CustomLeftTopAppBar(
         }
         if (!hideDivider) {
             HorizontalDivider(
-                color = dividerColor ?: StrideTheme.colors.grayBorder.copy(alpha = 0.12f)
+                color = dividerColor
             )
         }
     }

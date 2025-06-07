@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -75,8 +74,6 @@ import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBott
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.librarypicker.ImagePickerView
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
-import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInActivity
 import com.trio.stride.ui.components.textfield.CustomOutlinedTextField
 import com.trio.stride.ui.theme.StrideTheme
 
@@ -102,6 +99,7 @@ fun ActivityFormView(
     val previewImage = remember { mutableStateListOf<Uri>() }
     val expandImageOptionMenu = remember { mutableStateOf(false) }
     val selectedPreviewImageIndex = remember { mutableStateOf<Int?>(null) }
+    val selectedActivityImageIndex = remember { mutableStateOf<Int?>(null) }
     var showSportBottomSheet by remember { mutableStateOf(false) }
 
     val sport = when (mode) {
@@ -164,17 +162,20 @@ fun ActivityFormView(
                 actions = {
                     TextButton(
                         onClick = {
-                            viewModel.uploadImages(previewImage, context, onFinish = {
-                                when (mode) {
-                                    is ActivityFormMode.Create -> {
-                                        mode.onCreate(state.createActivityDto, selectedSport)
-                                    }
+                            viewModel.uploadImages(
+                                previewImage,
+                                context,
+                                onFinish = { createDto, updateDto ->
+                                    when (mode) {
+                                        is ActivityFormMode.Create -> {
+                                            mode.onCreate(createDto, selectedSport)
+                                        }
 
-                                    is ActivityFormMode.Update -> {
-                                        mode.onUpdate(state.updateActivityDto, selectedSport)
+                                        is ActivityFormMode.Update -> {
+                                            mode.onUpdate(updateDto, selectedSport)
+                                        }
                                     }
-                                }
-                            })
+                                })
                         },
                         enabled = !isSaving
                     ) {
@@ -186,7 +187,7 @@ fun ActivityFormView(
         bottomBar = {
             val buttonText = when (mode) {
                 is ActivityFormMode.Create -> "Discard Activity"
-                is ActivityFormMode.Update -> "Discard Unsaved Changed"
+                is ActivityFormMode.Update -> "Discard Unsaved Changes"
             }
 
             Box(
@@ -243,22 +244,6 @@ fun ActivityFormView(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                //Choose Sport
-                Box {
-                    ChooseSportInActivity(
-                        modifier = Modifier.height(56.dp),
-                        sport = selectedSport,
-                        onClick = { showSportBottomSheet = true }
-                    )
-                    SportBottomSheetWithCategory(
-                        sportsByCategory = sportsByCategory,
-                        selectedSport = selectedSport,
-                        visible = showSportBottomSheet,
-                        onItemClick = { sport -> selectedSport = sport },
-                        dismissAction = { showSportBottomSheet = false }
-                    )
-                }
-
                 //Photo Section
                 //ShowSelectedImage&ImagePicker
                 LazyRow(
@@ -304,7 +289,7 @@ fun ActivityFormView(
                     }
 
                     if (mode is ActivityFormMode.Update) {
-                        items(mode.activity.images) { image ->
+                        itemsIndexed(state.updateActivityDto.images) { index, image ->
                             Image(
                                 painter = rememberAsyncImagePainter(
                                     model = ImageRequest.Builder(LocalContext.current)
@@ -329,11 +314,10 @@ fun ActivityFormView(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = ripple()
                                     ) {
-                                        val newImages = mode.activity.images.toMutableList()
-                                        newImages.remove(image)
-                                        viewModel.updateActivityImage(newImages)
+                                        selectedActivityImageIndex.value = index
+                                        expandImageOptionMenu.value = true
                                     },
-                                contentScale = ContentScale.Inside
+                                contentScale = ContentScale.FillHeight
                             )
                         }
                     }
@@ -371,10 +355,24 @@ fun ActivityFormView(
                     }
 
                     item {
+                        val activityImages = when (mode) {
+                            is ActivityFormMode.Create -> emptyList()
+                            is ActivityFormMode.Update -> {
+                                mode.activity.images
+                            }
+                        }
+
+                        val width =
+                            if (sport.sportMapType == SportMapType.NO_MAP
+                                && previewImage.isEmpty()
+                                && activityImages.isEmpty()
+                            )
+                                halfWidth * 2 - 12.dp else halfWidth - 16.dp
+
                         ImagePickerView(
                             modifier = Modifier
                                 .height(160.dp)
-                                .width(halfWidth - 24.dp)
+                                .width(width)
                         ) { uri ->
                             previewImage.add(uri)
                         }
@@ -463,9 +461,18 @@ fun ActivityFormView(
         dismissAction = {
             expandImageOptionMenu.value = false
             selectedPreviewImageIndex.value = null
+            selectedActivityImageIndex.value = null
         },
         onDelete = {
             selectedPreviewImageIndex.value?.let { previewImage.removeAt(it) }
+            selectedActivityImageIndex.value?.let {
+                if (mode is ActivityFormMode.Update) {
+                    val newImages = mode.activity.images.toMutableList()
+                    newImages.removeAt(it)
+                    viewModel.updateActivityImage(newImages)
+                }
+            }
+            selectedActivityImageIndex.value = null
             selectedPreviewImageIndex.value = null
             expandImageOptionMenu.value = false
         }

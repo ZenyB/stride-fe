@@ -67,7 +67,7 @@ fun TrainingLogActivitiesDialog(
             AnimatedVisibility(
                 modifier = Modifier
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 24.dp)
                     .pointerInput(Unit) {
                         awaitPointerEventScope {
                             awaitFirstDown().also { it.consume() }
@@ -88,7 +88,8 @@ fun TrainingLogActivitiesDialog(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(vertical = 16.dp)
+                            .padding(horizontal = 8.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -122,7 +123,8 @@ fun TrainingLogActivitiesDialog(
                         Spacer(Modifier.height(12.dp))
                         LazyColumn(
                             modifier = Modifier
-                                .heightIn(max = 300.dp)
+                                .heightIn(max = 250.dp)
+                                .padding(horizontal = 4.dp)
                         ) {
                             itemsIndexed(activities) { index, activity ->
                                 TrainingLogActivityItem(

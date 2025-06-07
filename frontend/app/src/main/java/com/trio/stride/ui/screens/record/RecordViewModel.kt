@@ -94,6 +94,21 @@ class RecordViewModel @Inject constructor(
         }
     }
 
+    private fun fillZerosWithLastNonZero(input: List<Int>): List<Int> {
+        var lastNonZero = 0
+        return input.map { value ->
+            if (value > 0) {
+                lastNonZero = value
+                value
+            } else if (lastNonZero > 0) {
+                lastNonZero
+            } else {
+                0
+            }
+        }
+    }
+
+
     fun saveActivity(
         createActivityRequestDto: CreateActivityRequestDTO,
         sport: Sport,
@@ -101,7 +116,9 @@ class RecordViewModel @Inject constructor(
         back: () -> Unit
     ) {
         val realHeartRates =
-            if (heartRates.value.all { it == 0 }) emptyList<Int>() else heartRates.value
+            if (heartRates.value.all { it == 0 })
+                emptyList()
+            else fillZerosWithLastNonZero(heartRates.value)
 
         var requestDto = createActivityRequestDto.copy(
             movingTimeSeconds = (time.value / 1000).toInt(),
@@ -146,7 +163,7 @@ class RecordViewModel @Inject constructor(
         }
     }
 
-    fun saveAgain(context: Context) {
+    fun saveAgain(context: Context, back: () -> Unit) {
         viewModelScope.launch {
             createActivityUseCase.invoke(currentState.createActivityDto).collectLatest { response ->
                 when (response) {
@@ -164,6 +181,7 @@ class RecordViewModel @Inject constructor(
                         context.startService(startIntent)
 
                         setState { currentState.copy(isLoading = false, isSavingError = true) }
+                        back()
                     }
 
                     is Resource.Error -> {
@@ -256,14 +274,6 @@ class RecordViewModel @Inject constructor(
         }
 
         Log.i("HEART_RATE_NO_FILTER", heartRates.value.toString())
-
-        val realHeartRates =
-            if (heartRates.value.all { it == 0 }) emptyList() else heartRates.value
-        if (realHeartRates.isEmpty() && currentSport.value?.sportMapType == SportMapType.NO_MAP) {
-            stop(context)
-            setState { currentState.copy(isNotEnoughDataToSave = true) }
-            return
-        }
 
         val startIntent = Intent(context, RecordService::class.java).apply {
             action = RecordService.SAVING_RECORDING
