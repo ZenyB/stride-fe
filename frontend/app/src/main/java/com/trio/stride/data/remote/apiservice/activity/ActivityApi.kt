@@ -6,6 +6,7 @@ import com.trio.stride.data.remote.dto.CreateActivityRequestDTO
 import com.trio.stride.data.remote.dto.SuccessResponse
 import com.trio.stride.data.remote.dto.UpdateActivityRequestDto
 import com.trio.stride.domain.model.ActivityDetailInfo
+import com.trio.stride.domain.model.ActivityItem
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -22,7 +23,7 @@ interface ActivityApi {
     suspend fun createActivity(
         @Body requestDTO: CreateActivityRequestDTO,
         @Header("X-User-Timezone") timezone: String = "Asia/Ho_Chi_Minh",
-    ): SuccessResponse
+    ): ActivityItem
 
     @PUT("${ApiConstants.ACTIVITY}/{id}")
     suspend fun updateActivity(

@@ -164,7 +164,7 @@ fun NavGraphBuilder.mainAppGraph(
 //                    "${strideBasePath}"
 //            })
         ) {
-            RecordScreen(back = { navController.popBackStack() })
+            RecordScreen(back = { navController.popBackStack() }, navController)
         }
 
         composable(Screen.ActivityDetail.route) { backStackEntry ->

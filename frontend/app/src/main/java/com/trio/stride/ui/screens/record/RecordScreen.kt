@@ -63,6 +63,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -108,6 +109,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RecordScreen(
     back: () -> Unit,
+    navController: NavController,
     mapStyleViewModel: MapStyleViewModel = hiltViewModel(),
     viewModel: RecordViewModel = hiltViewModel(),
     permissionViewModel: PermissionViewModel = hiltViewModel()
@@ -855,7 +857,13 @@ fun RecordScreen(
                 mode = ActivityFormMode.Create(
                     sportFromRecord = currentSport,
                     onCreate = { dto, sport ->
-                        viewModel.saveActivity(dto, sport, context, { back() })
+                        viewModel.saveActivity(dto, sport, context, {
+                            navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "refresh",
+                                true
+                            )
+                            back()
+                        })
                     },
                     onDiscard = {
                         viewModel.discard(context)
