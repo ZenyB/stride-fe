@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.trio.stride.data.datastoremanager.FCMTokenManager
 import com.trio.stride.data.datastoremanager.MapStyleManager
+import com.trio.stride.data.datastoremanager.MetadataManager
 import com.trio.stride.data.datastoremanager.PermissionCountManager
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.datastoremanager.TokenManager
@@ -54,6 +55,7 @@ object ManagerModule {
         getSportsUseCase: GetSportsUseCase,
         currentSportDao: CurrentSportDao,
         routeFilterSportDao: RouteFilterSportDao,
+        metadataManager: MetadataManager
 //        categoryDao: CategoryDao
     ): SportManager {
         return SportManager(
@@ -61,6 +63,7 @@ object ManagerModule {
             getSportsUseCase,
             currentSportDao,
             routeFilterSportDao,
+            metadataManager
 //            categoryDao
         )
     }

@@ -36,6 +36,7 @@ class SportRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insertSports(sports: List<Sport>) {
+        sportDao.deleteSports()
         sportDao.insertSports(sports.map { sport -> sport.toEntity() })
     }
 }

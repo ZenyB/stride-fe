@@ -13,4 +13,7 @@ interface SportDao {
 
     @Query("SELECT * FROM sport")
     suspend fun getAllSports(): List<SportEntity>
+
+    @Query("DELETE FROM sport")
+    suspend fun deleteSports()
 }
