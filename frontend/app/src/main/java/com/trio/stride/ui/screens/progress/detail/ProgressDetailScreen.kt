@@ -119,7 +119,10 @@ fun ProgressDetailScreen(
                 LoadingState.Loading -> ProgressDetailSkeleton()
                 else -> {
                     OutlinedRadioButtonsHorizontal(
-                        options = ProgressType.entries,
+                        options = if (uiState.sport?.sportMapType == SportMapType.NO_MAP) listOf(
+                            ProgressType.TIME,
+                            ProgressType.ACTIVITY
+                        ) else ProgressType.entries,
                         selectedOption = uiState.selectedFilterType,
                         onOptionSelected = {
                             viewModel.onTypeSelected(it)

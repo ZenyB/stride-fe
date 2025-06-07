@@ -39,6 +39,7 @@ import com.trio.stride.ui.components.LoadingLarger
 import com.trio.stride.ui.components.activity.detail.StatText
 import com.trio.stride.ui.screens.progress.detail.LoadingState
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.formatDate
 import com.trio.stride.ui.utils.formatDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -154,7 +155,7 @@ fun ProgressActivityView(
             ) {
                 Row {
                     Icon(
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         painter = rememberAsyncImagePainter(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(sportImage)
@@ -174,6 +175,13 @@ fun ProgressActivityView(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                if (item.createdAt != null) {
+                    Text(
+                        formatDate(item.createdAt),
+                        style = StrideTheme.typography.bodyMedium,
+                        color = StrideTheme.colors.gray600
+                    )
+                }
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -189,5 +197,4 @@ fun ProgressActivityView(
             }
         }
     }
-
 }

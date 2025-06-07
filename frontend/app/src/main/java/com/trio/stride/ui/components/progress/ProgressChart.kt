@@ -260,6 +260,7 @@ fun ProgressChart(
         ProgressPointChart(
             modelProducer = modelProducer,
             labels = labels,
+            yFormatter = yFormatter,
             onIndexSelected = onIndexSelected
         )
     }

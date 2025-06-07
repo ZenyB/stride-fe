@@ -18,7 +18,10 @@ import androidx.compose.ui.util.fastMaxOfOrNull
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.trio.stride.domain.model.ProgressTimeRange
+import com.trio.stride.domain.model.ProgressType
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.activity.detail.StatText
 import com.trio.stride.ui.components.progress.ProgressChart
@@ -40,6 +43,7 @@ fun ProgressOverview(
     val progressItems = viewModel.progressData.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sportList by viewModel.sportList.collectAsStateWithLifecycle()
+    val sportItem = sportList.firstOrNull { it.id == uiState.sportId }
 
     val normalizedItems = getLastWeeksChartData(progressItems.value, 12)
 
@@ -106,12 +110,26 @@ fun ProgressOverview(
                     Log.d("Progress chart", "max distance: $maxDistance")
                     Log.d("Progress chart", "yStepValue: $yStepValue")
 
+                    val sportType = sportItem?.sportMapType
+                    val yFormatter = when (sportType) {
+                        SportMapType.NO_MAP -> CartesianValueFormatter { _, value, _ ->
+                            val formatted = formatDuration(value.toLong())
+                            formatted
+                        }
+
+                        else -> CartesianValueFormatter { _, value, _ ->
+                            val formatted = "${formatDistance(value)} km"
+                            formatted
+                        }
+                    }
                     val labels =
                         getLast12WeeksLabels(normalizedItems, ProgressTimeRange.LAST_3_MONTHS)
                     ProgressChart(
                         items = normalizedItems,
                         yStep = yStepValue,
-                        labels = labels
+                        yFormatter = yFormatter,
+                        labels = labels,
+                        filterType = if (sportType == SportMapType.NO_MAP) ProgressType.TIME else ProgressType.DISTANCE
                     ) { index ->
                         viewModel.selectIndex(index)
                     }
