@@ -199,6 +199,9 @@ class RecordService : LifecycleService() {
             val startTime = System.currentTimeMillis()
             var lastUpdateTime = startTime
             var movingTime = 0L
+            var newHeartRates = recordRepository.heartRates.value.toMutableList()
+            newHeartRates.add(recordRepository.heartRate.value)
+            recordRepository.updateHeartRates(newHeartRates)
 
             while (true) {
                 delay(1000)
@@ -226,8 +229,8 @@ class RecordService : LifecycleService() {
                         if (durationSeconds > 0.0) (distance / durationSeconds) * 3.6 else 0.0
                     recordRepository.updateAvgSpeed(avgSpeed)
                 } else {
-                    if (movingTime % 5 == 0L) {
-                        val newHeartRates = recordRepository.heartRates.value.toMutableList()
+                    if ((movingTime / 1000) % 2 == 0L) {
+                        newHeartRates = recordRepository.heartRates.value.toMutableList()
                         newHeartRates.add(recordRepository.heartRate.value)
                         recordRepository.updateHeartRates(newHeartRates)
                     }

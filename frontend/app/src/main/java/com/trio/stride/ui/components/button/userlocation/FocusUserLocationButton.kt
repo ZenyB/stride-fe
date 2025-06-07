@@ -133,6 +133,7 @@ fun FocusUserLocationButton(
                 state.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS)
                 checkLocationOn(
                     context, mapView, launcher,
+                    checkingAction = { state.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS) },
                     successAction = {
                         state.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY)
                     },

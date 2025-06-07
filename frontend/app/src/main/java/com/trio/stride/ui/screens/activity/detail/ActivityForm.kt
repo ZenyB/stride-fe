@@ -75,8 +75,6 @@ import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBott
 import com.trio.stride.ui.components.activity.feelingbottomsheet.RateFeelingBottomSheetState
 import com.trio.stride.ui.components.dialog.StrideDialog
 import com.trio.stride.ui.components.librarypicker.ImagePickerView
-import com.trio.stride.ui.components.sport.bottomsheet.SportBottomSheetWithCategory
-import com.trio.stride.ui.components.sport.buttonchoosesport.ChooseSportInActivity
 import com.trio.stride.ui.components.textfield.CustomOutlinedTextField
 import com.trio.stride.ui.theme.StrideTheme
 
@@ -243,22 +241,6 @@ fun ActivityFormView(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                //Choose Sport
-                Box {
-                    ChooseSportInActivity(
-                        modifier = Modifier.height(56.dp),
-                        sport = selectedSport,
-                        onClick = { showSportBottomSheet = true }
-                    )
-                    SportBottomSheetWithCategory(
-                        sportsByCategory = sportsByCategory,
-                        selectedSport = selectedSport,
-                        visible = showSportBottomSheet,
-                        onItemClick = { sport -> selectedSport = sport },
-                        dismissAction = { showSportBottomSheet = false }
-                    )
-                }
-
                 //Photo Section
                 //ShowSelectedImage&ImagePicker
                 LazyRow(
@@ -371,10 +353,12 @@ fun ActivityFormView(
                     }
 
                     item {
+                        val width =
+                            if (sport.sportMapType == SportMapType.NO_MAP && previewImage.isEmpty()) halfWidth * 2 - 12.dp else halfWidth - 16.dp
                         ImagePickerView(
                             modifier = Modifier
                                 .height(160.dp)
-                                .width(halfWidth - 24.dp)
+                                .width(width)
                         ) { uri ->
                             previewImage.add(uri)
                         }
