@@ -29,7 +29,8 @@ val redShades = listOf(
 @Composable
 fun HeartRateZonesChart(
     modifier: Modifier = Modifier,
-    items: List<HeartRateInfo>
+    items: List<HeartRateInfo>,
+    totalTime: Long
 ) {
     val selectedIndex = remember { mutableStateOf(-1) }
 
@@ -51,6 +52,7 @@ fun HeartRateZonesChart(
             modifier = Modifier.padding(bottom = 32.dp),
             data = viewData,
             chartSize = 250.dp,
+            totalTime = totalTime,
             selectedIndex = selectedIndex.value,
             onSelectedIndexChange = { selectedIndex.value = it }
         ) { selectedValue ->
