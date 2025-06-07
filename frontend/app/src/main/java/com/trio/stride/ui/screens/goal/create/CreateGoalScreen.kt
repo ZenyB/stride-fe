@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.trio.stride.domain.model.GoalTimeFrame
 import com.trio.stride.domain.model.GoalType
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.Loading
 import com.trio.stride.ui.components.dialog.StrideDialog
@@ -57,6 +58,9 @@ fun CreateGoalScreen(
     var selectedSport by remember {
         mutableStateOf(viewModel.defaultSport)
     }
+    val availableTypes = uiState.selectedTimeFrame?.let {
+        viewModel.getAvailableType(it)
+    } ?: GoalType.entries.toList()
 
     var showSportBottomSheet by remember { mutableStateOf(false) }
 
@@ -166,7 +170,11 @@ fun CreateGoalScreen(
             Text("What type of goal are you going for?", style = StrideTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedRadioButtons(
-                options = GoalType.entries,
+                options = if ((selectedSport?.sportMapType
+                        ?: "") == SportMapType.NO_MAP
+                )  GoalType.entries
+                    .filterNot { it == GoalType.DISTANCE || it == GoalType.ELEVATION } else GoalType.entries,
+                enableOptions = availableTypes,
                 selectedOption = uiState.selectedGoalType,
                 onOptionSelected = {
                     viewModel.onGoalTypeSelected(it)
