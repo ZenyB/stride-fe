@@ -130,8 +130,8 @@ fun ProfileScreen(
         title = "Something Error",
         description = "Stride can not update your profile now\nPlease try again after few minutes.",
         dismiss = { viewModel.clearError() },
-        neutralText = "OK",
-        neutral = { viewModel.clearError() }
+        doneText = "OK",
+        done = { viewModel.clearError() }
     )
 
     StrideDialog(
@@ -148,8 +148,8 @@ fun ProfileScreen(
         title = "Sync Error",
         description = "Update successful but data may not be synchronized",
         dismiss = { viewModel.ignoreIsNotSync() },
-        neutralText = "OK",
-        neutral = { viewModel.ignoreIsNotSync() }
+        doneText = "OK",
+        done = { viewModel.ignoreIsNotSync() }
     )
 
     Box(
@@ -480,10 +480,12 @@ fun ProfileScreen(
                     }
                 }
 
-                Button(
-                    onClick = { viewModel.logout(context) }
-                ) {
-                    Text("Sign Out", style = StrideTheme.typography.titleMedium)
+                if (!state.isEditProfile) {
+                    Button(
+                        onClick = { viewModel.logout(context) }
+                    ) {
+                        Text("Sign Out", style = StrideTheme.typography.titleMedium)
+                    }
                 }
             }
         }

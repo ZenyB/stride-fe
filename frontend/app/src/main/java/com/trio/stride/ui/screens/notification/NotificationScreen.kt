@@ -139,7 +139,7 @@ fun NotificationScreen(
                     item {
                         Spacer(Modifier.height(12.dp))
                     }
-                    
+
                     itemsIndexed(state.notifications) { index, notification ->
                         Box(
                             modifier = Modifier
@@ -162,7 +162,7 @@ fun NotificationScreen(
                         }
                     }
 
-                    if (state.hasNextPage && state.loadingMore) {
+                    if (state.hasNextPage) {
                         item {
                             NotificationItemSkeleton()
                         }

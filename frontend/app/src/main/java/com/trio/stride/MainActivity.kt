@@ -101,7 +101,8 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(currentBackStack) {
                 val currentRoute = currentBackStack?.destination?.route
-                val bottomRoutes = Screen.BottomNavScreen.items.mapNotNull { it.route }
+                val bottomRoutes =
+                    Screen.BottomNavScreen?.items?.mapNotNull { it.route } ?: emptyList()
                 val recordRoute = Screen.BottomNavScreen.Record?.route
 
                 showBottomBarState = currentRoute in bottomRoutes && currentRoute != recordRoute
