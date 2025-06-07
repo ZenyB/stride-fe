@@ -60,7 +60,7 @@ fun SaveRouteForm(
     sport: Sport? = null,
     sportId: String? = null,
     distance: Double,
-    mapImage: String,
+    mapImage: String?,
     onFinish: () -> Unit,
     saveRouteViewModel: SaveRouteViewModel = hiltViewModel()
 ) {

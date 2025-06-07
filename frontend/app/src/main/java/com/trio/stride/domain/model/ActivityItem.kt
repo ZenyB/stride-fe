@@ -9,7 +9,7 @@ data class ActivityItem(
     val totalDistance: Double?,
     val elevationGain: Int?,
     val movingTimeSeconds: Long?,
-    val mapImage: String,
+    val mapImage: String?,
     val createdAt: Long,
     val user: ActivityUser,
 )
@@ -26,9 +26,9 @@ data class ActivityDetailInfo(
     val calories: Long,
     val carbonSaved: Double,
     val rpe: Long,
-    val geometry: String,
+    val geometry: String?,
     val images: List<Any?>,
-    val mapImage: String,
+    val mapImage: String?,
     val elevations: List<Long>,
     val elevationGain: Long,
     val maxElevation: Long,
@@ -41,7 +41,7 @@ data class ActivityDetailInfo(
     val maxHearRate: Long,
     val distances: List<Double>,
     val createdAt: Long,
-    val routeId: String,
+    val routeId: String?,
 )
 
 data class HeartRateInfo(

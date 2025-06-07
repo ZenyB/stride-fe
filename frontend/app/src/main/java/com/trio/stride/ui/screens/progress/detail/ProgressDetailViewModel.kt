@@ -11,6 +11,7 @@ import com.trio.stride.domain.model.ProgressDetails
 import com.trio.stride.domain.model.ProgressTimeRange
 import com.trio.stride.domain.model.ProgressType
 import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.domain.usecase.progress.GetProgressDetailUseCase
 import com.trio.stride.domain.viewstate.IViewState
 import com.trio.stride.ui.utils.formatDistance
@@ -65,9 +66,20 @@ class ProgressDetailViewModel @Inject constructor(
 
     fun selectSport(selectedSport: Sport) {
         if (selectedSport.id != currentState.sport?.id) {
-            setState {
-                currentState.copy(sport = selectedSport)
+            if (selectedSport.sportMapType == SportMapType.NO_MAP && currentState.selectedFilterType in listOf(
+                    ProgressType.DISTANCE,
+                    ProgressType.ELEVATION
+                )
+            ) {
+                setState {
+                    currentState.copy(sport = selectedSport, selectedFilterType = ProgressType.TIME)
+                }
+            } else {
+                setState {
+                    currentState.copy(sport = selectedSport)
+                }
             }
+
         }
     }
 
@@ -97,7 +109,9 @@ class ProgressDetailViewModel @Inject constructor(
                     _sportList.value = sports
                     if (currentState.sport == null) {
                         val defaultSport = sports.firstOrNull()
-                        setState { currentState.copy(sport = defaultSport) }
+                        if (defaultSport != null) {
+                            selectSport(defaultSport)
+                        }
                     }
                 }
         }

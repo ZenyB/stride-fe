@@ -43,9 +43,12 @@ import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.trio.stride.domain.model.GoalItem
+import com.trio.stride.domain.model.GoalType
 import com.trio.stride.domain.model.toMonthLabels
 import com.trio.stride.ui.components.activity.detail.rememberMarker
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.formatKmDistance
+import com.trio.stride.ui.utils.formatTimeHM
 import kotlinx.coroutines.runBlocking
 
 private val LegendLabelKey = ExtraStore.Key<Set<String>>()
@@ -55,11 +58,25 @@ private val MarkerValueFormatter = DefaultCartesianMarker.ValueFormatter.default
 private fun GoalPointChart(
     modelProducer: CartesianChartModelProducer,
     modifier: Modifier = Modifier,
-    months: List<String>
+    months: List<String>,
+    goalType: String
 ) {
     val lineColors = listOf(Color(0xFF687072), Color(0xFF18C252))
     val legendItemLabelComponent = rememberTextComponent(vicoTheme.textColor)
     val solidGuideline = rememberAxisGuidelineComponent(shape = Shape.Rectangle)
+    fun formatWithGoalType(value: Double?): String {
+        if (value == null) {
+            return "0"
+        }
+        return when (goalType) {
+            GoalType.DISTANCE.name -> "${formatKmDistance(value)} km"
+            GoalType.ACTIVITY.name -> "${value.toInt()}"
+            GoalType.TIME.name -> formatTimeHM(value.toInt())
+
+            GoalType.ELEVATION.name -> "$value m"
+            else -> ""
+        }
+    }
 
     val goalMarkerFormatter = DefaultCartesianMarker.ValueFormatter { context, targets ->
         val spannable = SpannableStringBuilder()
@@ -69,7 +86,8 @@ private fun GoalPointChart(
             val yFormatted = MarkerValueFormatter.format(context, listOf(target))
             val values = yFormatted.split(", ")
 
-            val yStyled = SpannableString("Goal: ${values.get(0)}")
+            val yStyled =
+                SpannableString("Goal: ${formatWithGoalType(values[0].toDoubleOrNull())}")
             yStyled.setSpan(
                 StyleSpan(Typeface.BOLD),
                 0,
@@ -86,7 +104,7 @@ private fun GoalPointChart(
             spannable.append(yStyled)
             spannable.append("\n")
 
-            val yStyled2 = SpannableString("Current: ${values[1]}")
+            val yStyled2 = SpannableString("Current: ${formatWithGoalType(values[1].toDoubleOrNull())}")
             yStyled2.setSpan(
                 StyleSpan(Typeface.BOLD),
                 0,
@@ -155,7 +173,7 @@ private fun GoalPointChart(
                 valueFormatter = CartesianValueFormatter { context, value, _ ->
                     val formatted = months[value.toInt()]
                     formatted
-                }
+                },
             ),
             topAxis = HorizontalAxis.rememberTop(
                 label = null,
@@ -198,7 +216,7 @@ fun GoalChart(item: GoalItem) {
             extras { extraStore -> extraStore[LegendLabelKey] = chartData.keys }
         }
     }
-    GoalPointChart(modelProducer, months = months)
+    GoalPointChart(modelProducer, months = months, goalType = item.type)
 }
 
 

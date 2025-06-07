@@ -436,14 +436,16 @@ fun ActivityDetailScreen(
         BackHandler(enabled = uiState == ActivityDetailState.SavingRoute) {
             viewModel.discardEdit()
         }
-        SaveRouteForm(
-            visible = uiState == ActivityDetailState.SavingRoute,
-            routeId = item!!.routeId,
-            sport = item!!.sport,
-            mapImage = item!!.mapImage,
-            distance = item!!.totalDistance ?: 0.0,
-            onFinish = { viewModel.discardEdit() },
-        )
+        item!!.routeId?.let {
+            SaveRouteForm(
+                visible = uiState == ActivityDetailState.SavingRoute,
+                routeId = it,
+                sport = item!!.sport,
+                mapImage = item!!.mapImage,
+                distance = item!!.totalDistance ?: 0.0,
+                onFinish = { viewModel.discardEdit() },
+            )
+        }
     }
 }
 

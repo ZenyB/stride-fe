@@ -145,23 +145,6 @@ fun RouteItemDetail(
             }
             Spacer(modifier = Modifier.width(32.dp))
             IconButton(
-                onClick = {},
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = StrideTheme.colors.gray200
-                ),
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape),
-                enabled = isSaving != true
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_share),
-                    contentDescription = "icon",
-                    tint = StrideTheme.colorScheme.onSurface
-                )
-            }
-            Spacer(modifier = Modifier.width(32.dp))
-            IconButton(
                 onClick = { startRecord(item.geometry) },
                 colors = IconButtonDefaults.iconButtonColors(
                     containerColor = StrideTheme.colors.gray200

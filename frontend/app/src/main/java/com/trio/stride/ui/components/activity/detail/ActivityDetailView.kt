@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.trio.stride.domain.model.ActivityDetailInfo
 import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.components.Avatar
@@ -80,48 +81,92 @@ fun ActivityDetailView(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                StatText(
-                    "Distance",
-                    "${formatKmDistance(item.totalDistance ?: 0.0)} km",
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(0.5f),
-                    horizontal = Alignment.CenterHorizontally
-                )
-                StatText(
-                    "Time",
-                    formatDuration(item.movingTimeSeconds),
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(0.5f),
-                    horizontal = Alignment.CenterHorizontally
-                )
-                StatText(
-                    "Carbon Saved",
-                    "${item.carbonSaved} kg CO2",
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(0.5f),
-                    horizontal = Alignment.CenterHorizontally
-                )
+                if (item.sport.sportMapType != SportMapType.NO_MAP) {
+                    StatText(
+                        "Distance",
+                        "${formatKmDistance(item.totalDistance ?: 0.0)} km",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.5f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                    StatText(
+                        "Time",
+                        formatDuration(item.movingTimeSeconds),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.5f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                    StatText(
+                        "Carbon Saved",
+                        "${item.carbonSaved} kg CO2",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.5f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                    StatText(
+                        "Avg Speed",
+                        "${formatSpeed(item.avgSpeed)} km/h",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.4f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                    StatText(
+                        "Elevation Gain",
+                        "${item.elevationGain}m",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.4f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                } else if (item.avgHearRate > 0 && item.maxHearRate > 0) {
+                    StatText(
+                        "Time",
+                        formatDuration(item.movingTimeSeconds),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.4f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                    StatText(
+                        "Avg HR",
+                        "${item.avgHearRate} bpm",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.4f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                    StatText(
+                        "Max HR",
+                        "${item.maxHearRate} bpm",
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(0.4f),
+                        horizontal = Alignment.CenterHorizontally
+                    )
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Time",
+                            style = StrideTheme.typography.bodyMedium,
+                            color = StrideTheme.colors.gray600
+                        )
+                        Text(
+                            formatDuration(item.movingTimeSeconds), style = StrideTheme
+                                .typography.titleMedium.copy(fontSize = 18.sp)
+                        )
+                    }
+                }
 
-                StatText(
-                    "Avg Speed",
-                    "${formatSpeed(item.avgSpeed)} km/h",
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(0.4f),
-                    horizontal = Alignment.CenterHorizontally
-                )
 
-                StatText(
-                    "Elevation Gain",
-                    "${item.elevationGain}m",
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(0.4f),
-                    horizontal = Alignment.CenterHorizontally
-                )
                 Spacer(
                     modifier = Modifier
                         .weight(1f)
@@ -169,7 +214,7 @@ fun ActivityDetailView(
             )
         }
 
-        if (item.sport.sportMapType != SportMapType.NO_MAP && !item.heartRateZones.isNullOrEmpty() && item.heartRates.isNotEmpty()) {
+        if (!item.heartRateZones.isNullOrEmpty() && item.heartRates.isNotEmpty()) {
             Spacer(
                 Modifier
                     .height(8.dp)

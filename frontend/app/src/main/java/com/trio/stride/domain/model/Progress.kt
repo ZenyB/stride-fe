@@ -36,6 +36,7 @@ data class ProgressActivity(
     val distance: Double?,
     val elevation: Long?,
     val time: Long?,
+    val createdAt: Long?
 )
 
 data class ProgressDetails(

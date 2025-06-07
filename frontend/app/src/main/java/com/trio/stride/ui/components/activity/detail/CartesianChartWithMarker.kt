@@ -79,10 +79,12 @@ fun CartesianChartWithMarker(
 
     val solidGuideline = rememberAxisGuidelineComponent(shape = Shape.Rectangle)
     var selectedXTarget by remember { mutableStateOf<Double?>(null) }
+    var selectedActualXTarget by remember { mutableStateOf<Double?>(null) }
 
-    val persistentMarker = remember(selectedXTarget) {
+
+    val persistentMarker = remember(selectedActualXTarget) {
         val persistentMarkerScope: CartesianChart.PersistentMarkerScope.(ExtraStore) -> Unit = {
-            selectedXTarget?.let { marker at it }
+            selectedActualXTarget?.let { marker at it }
         }
 
         persistentMarkerScope
@@ -91,13 +93,23 @@ fun CartesianChartWithMarker(
     val markerVisibilityListener = remember {
         object : CartesianMarkerVisibilityListener {
             override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
+                super.onShown(marker, targets)
+                val target = targets.firstOrNull() ?: return
+                selectedXTarget = (if (target.x == selectedXTarget) null else target.x)
+                selectedActualXTarget = null
+
+            }
+
+            override fun onUpdated(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
+                super.onUpdated(marker, targets)
+                selectedActualXTarget = null
                 val target = targets.firstOrNull() ?: return
                 selectedXTarget = (if (target.x == selectedXTarget) null else target.x)
             }
 
-            override fun onUpdated(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                val target = targets.firstOrNull() ?: return
-                selectedXTarget = (if (target.x == selectedXTarget) null else target.x)
+            override fun onHidden(marker: CartesianMarker) {
+                super.onHidden(marker)
+                selectedActualXTarget = selectedXTarget
             }
         }
     }
