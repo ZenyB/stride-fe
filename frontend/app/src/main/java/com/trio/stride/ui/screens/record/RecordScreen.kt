@@ -573,6 +573,17 @@ fun RecordScreen(
                         Button(
                             modifier = Modifier.align(Alignment.CenterHorizontally),
                             onClick = {
+                                showLocationRequest = true
+                            }
+                        ) {
+                            Text(
+                                "Try again",
+                                style = StrideTheme.typography.titleMedium
+                            )
+                        }
+                        Button(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                            onClick = {
                                 context.startActivity(
                                     Intent(
                                         android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

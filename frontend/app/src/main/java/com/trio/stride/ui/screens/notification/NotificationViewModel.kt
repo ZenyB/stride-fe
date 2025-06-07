@@ -92,38 +92,39 @@ class NotificationViewModel @Inject constructor(
 
     private fun refreshNotifications() {
         viewModelScope.launch {
-            getNotificationsUseCase.invoke(forceRefresh = true).collectLatest { response ->
-                when (response) {
-                    is Resource.Loading -> setState { currentState.copy(isRefresh = true) }
+            getNotificationsUseCase.invoke(page = 1, forceRefresh = true)
+                .collectLatest { response ->
+                    when (response) {
+                        is Resource.Loading -> setState { currentState.copy(isRefresh = true) }
 
-                    is Resource.Success -> {
-                        setState {
-                            currentState.copy(
-                                notifications = response.data.notificationItems,
-                                hasNextPage = response.data.page.index < (response.data.page.totalPages
-                                    ?: Int.MAX_VALUE),
-                                totalPages = response.data.page.totalPages,
-                                currentPage = response.data.page.index,
-                                isRefresh = false,
-                                isError = false,
-                                errorMessage = null
-                            )
+                        is Resource.Success -> {
+                            setState {
+                                currentState.copy(
+                                    notifications = response.data.notificationItems,
+                                    hasNextPage = response.data.page.index < (response.data.page.totalPages
+                                        ?: Int.MAX_VALUE),
+                                    totalPages = response.data.page.totalPages,
+                                    currentPage = response.data.page.index,
+                                    isRefresh = false,
+                                    isError = false,
+                                    errorMessage = null
+                                )
+                            }
+                            Log.i("REFRESH", response.data.notificationItems.toString())
                         }
-                        Log.i("REFRESH", response.data.notificationItems.toString())
-                    }
 
-                    is Resource.Error -> {
-                        Log.i("GET_NOTI_ERR", response.error.message.toString())
-                        setState {
-                            currentState.copy(
-                                isError = true,
-                                errorMessage = response.error.message.toString(),
-                                isRefresh = false
-                            )
+                        is Resource.Error -> {
+                            Log.i("GET_NOTI_ERR", response.error.message.toString())
+                            setState {
+                                currentState.copy(
+                                    isError = true,
+                                    errorMessage = response.error.message.toString(),
+                                    isRefresh = false
+                                )
+                            }
                         }
                     }
                 }
-            }
         }
     }
 

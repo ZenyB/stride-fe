@@ -47,7 +47,7 @@ fun RequestLocationPermission(
             }
         }
     }
-    LaunchedEffect(permissionCount) {
+    LaunchedEffect(permissionCount, showRequest) {
         if (permissionCount < PermissionViewModel.MAX_REQUEST_COUNT && showRequest) {
             context.checkAndRequestLocationPermission(
                 locationPermissions,

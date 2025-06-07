@@ -46,6 +46,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -154,7 +155,7 @@ fun ViewMapScreen(
     )
     val pagerState = rememberPagerState(pageCount = { routeItems.size })
 
-    var isMapAvailable by remember {
+    var isMapAvailable by rememberSaveable {
         mutableStateOf(false)
     }
     var showSheet by remember { mutableStateOf(false) }
@@ -645,7 +646,9 @@ fun ViewMapScreen(
 
         if (!isMapAvailable) {
             MapFallbackScreen(
-                onRetry = { showLocationRequest = true },
+                onRetry = {
+                    showLocationRequest = true
+                },
                 goToSetting = {
                     context.startActivity(
                         Intent(
