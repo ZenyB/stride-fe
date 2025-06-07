@@ -49,6 +49,7 @@ fun checkLocationOn(
     context: Context,
     mapView: MapView?,
     launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
+    checkingAction: () -> Unit = {},
     successAction: () -> Unit = {},
     failureAction: () -> Unit = {},
 ) {
@@ -66,8 +67,12 @@ fun checkLocationOn(
 
     client.checkLocationSettings(builder.build())
         .addOnSuccessListener(OnSuccessListener {
-            focusToUser(mapView)
-            successAction()
+            focusToUser(
+                mapView,
+                onFocusing = checkingAction,
+                onCompleted = successAction,
+                onFailed = failureAction
+            )
         })
         .addOnFailureListener(OnFailureListener { exception ->
             if (exception is ResolvableApiException) {
@@ -89,7 +94,10 @@ fun checkLocationOn(
 
 fun focusToUser(
     mapView: MapView?,
-    followUserHeading: Boolean = false
+    followUserHeading: Boolean = false,
+    onCompleted: () -> Unit = {},
+    onFailed: () -> Unit = {},
+    onFocusing: () -> Unit = {},
 ) {
     val viewportState = if (followUserHeading)
         mapView?.viewport?.makeFollowPuckViewportState(followPuckWithBearingBuilder)
@@ -99,4 +107,20 @@ fun focusToUser(
     viewportState?.let {
         mapView?.viewport?.transitionTo(it)
     }
+
+    viewportState?.let { targetState ->
+        onFocusing()
+        mapView?.viewport?.transitionTo(
+            targetState,
+            null
+        )
+        { isFinished ->
+            if (isFinished) {
+                onCompleted()
+            } else {
+                onFailed()
+            }
+        }
+    }
+
 }

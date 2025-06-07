@@ -26,8 +26,11 @@ object GpsUtils {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Toast.makeText(context, "GPS on!", Toast.LENGTH_SHORT).show()
-            updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS)
-            focusToUser(mapView)
+            focusToUser(
+                mapView,
+                onFocusing = { updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS) },
+                onCompleted = { updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY) },
+                onFailed = { updateGpsStatus(RecordViewModel.GPSStatus.NO_GPS) })
         } else {
             Toast.makeText(context, "Can't access current location", Toast.LENGTH_SHORT).show()
             updateGpsStatus(RecordViewModel.GPSStatus.NO_GPS)

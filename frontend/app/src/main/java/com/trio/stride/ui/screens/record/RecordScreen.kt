@@ -186,7 +186,11 @@ fun RecordScreen(
                     val mapInstance = snapshotFlow { mapView }
                         .filterNotNull()
                         .first()
-                    focusToUser(mapInstance)
+                    focusToUser(
+                        mapInstance,
+                        onFocusing = { viewModel.updateGpsStatus(RecordViewModel.GPSStatus.ACQUIRING_GPS) },
+                        onCompleted = { viewModel.updateGpsStatus(RecordViewModel.GPSStatus.GPS_READY) },
+                        onFailed = { viewModel.updateGpsStatus(RecordViewModel.GPSStatus.NO_GPS) })
                 }
             }
         }
@@ -210,7 +214,7 @@ fun RecordScreen(
         dismiss = { viewModel.resetSaveActivityError() },
         dismissText = "Cancel",
         doneText = "Try Again",
-        done = { viewModel.saveAgain(context) },
+        done = { viewModel.saveAgain(context, { back() }) },
     )
 
     StrideDialog(
