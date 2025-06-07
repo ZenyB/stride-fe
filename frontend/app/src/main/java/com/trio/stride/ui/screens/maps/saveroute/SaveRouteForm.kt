@@ -141,7 +141,10 @@ fun SaveRouteForm(
                     actions = {
                         TextButton(
                             onClick = {
-                                saveRouteViewModel.saveRoute(routeId, name)
+                                saveRouteViewModel.saveRoute(routeId, name) {
+                                    name = ""
+                                }
+
                             },
                             enabled = name.isNotBlank()
                         ) {
@@ -250,7 +253,9 @@ fun SaveRouteForm(
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 keyboardController?.hide()
-                                saveRouteViewModel.saveRoute(routeId, name)
+                                saveRouteViewModel.saveRoute(routeId, name) {
+                                    name = ""
+                                }
                             }
                         ),
                     )

@@ -29,6 +29,7 @@ import java.util.Locale
 @Composable
 fun <T : Enum<T>> OutlinedRadioButtons(
     options: List<T>,
+    enableOptions: List<T>? = null,
     selectedOption: T?,
     onOptionSelected: (T) -> Unit,
 ) {
@@ -48,7 +49,10 @@ fun <T : Enum<T>> OutlinedRadioButtons(
             OutlinedButton(
                 modifier = Modifier.weight(1f),
                 onClick = { onOptionSelected(option) },
-                border = BorderStroke(1.dp, if (isSelected) primaryColor else unselectedColor),
+                border = BorderStroke(
+                    1.dp,
+                    if (isSelected) primaryColor else unselectedColor.copy(alpha = 0.5f)
+                ),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = if (isSelected) primaryColor else unselectedColor
                 ),
@@ -56,7 +60,10 @@ fun <T : Enum<T>> OutlinedRadioButtons(
                 contentPadding = PaddingValues(
                     horizontal = 24.dp,
                     vertical = 12.dp
-                )
+                ),
+                enabled = if (enableOptions.isNullOrEmpty()) true else (enableOptions).any {
+                    option.name == it.name
+                }
             ) {
                 Text(
                     option.name.lowercase(Locale.ROOT).replaceFirstChar { c -> c.uppercase() },

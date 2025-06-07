@@ -20,6 +20,8 @@ class SaveRouteListViewModel @Inject constructor(
 ) : BaseViewModel<SaveRouteListState>() {
 
     var items by mutableStateOf<List<RouteItem>>(emptyList())
+    var selectedItem by mutableStateOf<RouteItem?>(null)
+
     var isRefreshing by mutableStateOf(false)
         private set
 
@@ -31,12 +33,24 @@ class SaveRouteListViewModel @Inject constructor(
         getUserRoutes()
     }
 
+    fun selectedItem(item: RouteItem) {
+        selectedItem = item
+    }
+
+    fun discardSelected() {
+        selectedItem = null
+    }
+
     fun refresh() {
         isRefreshing = true
         currentPage = 1
         totalPages = null
         items = emptyList()
         getUserRoutes()
+    }
+
+    fun refreshAfterDelete(itemId: String) {
+        items = items.filterNot { it.id == itemId }
     }
 
     fun getUserRoutes() {

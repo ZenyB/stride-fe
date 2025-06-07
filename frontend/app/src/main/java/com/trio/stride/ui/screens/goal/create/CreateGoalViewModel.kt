@@ -1,17 +1,25 @@
 package com.trio.stride.ui.screens.goal.create
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
+import com.trio.stride.base.Resource
 import com.trio.stride.data.datastoremanager.SportManager
 import com.trio.stride.data.remote.dto.CreateGoalDTO
+import com.trio.stride.domain.model.GoalItem
 import com.trio.stride.domain.model.GoalTimeFrame
 import com.trio.stride.domain.model.GoalType
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.model.SportMapType
+import com.trio.stride.domain.repository.GoalRepository
 import com.trio.stride.domain.usecase.goal.CreateGoalUseCase
+import com.trio.stride.domain.usecase.goal.GetUserGoalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,34 +27,55 @@ import javax.inject.Inject
 class CreateGoalViewModel @Inject constructor(
     private val sportManager: SportManager,
     private val createGoalUseCase: CreateGoalUseCase,
+    private val getUserGoalUseCase: GetUserGoalUseCase,
+    private val goalRepository: GoalRepository
 ) : BaseViewModel<CreateGoalState>() {
 
     private val _sportsByCategory = sportManager.sportsByCategory
     val sportsByCategory: StateFlow<Map<String, List<Sport>>> = _sportsByCategory
+    var items by mutableStateOf<List<GoalItem>>(emptyList())
 
     val defaultSport = _sportsByCategory.value.entries.first { item ->
         item.value.isNotEmpty()
     }.value.getOrNull(0)
 
+    init {
+        getLocalGoals()
+    }
+
     fun createGoal() {
         Log.d("okhttp", "Create goal")
         setState { currentState.copy(state = SaveGoalState.IsSaving) }
-
         viewModelScope.launch {
+            if (currentState.sportId == null) {
+                setState { currentState.copy(sportId = defaultSport?.id) }
+            }
+            if (currentState.sportId == null) {
+                setState {
+                    currentState.copy(
+                        state = SaveGoalState.ErrorSaving(
+                            "Error selecting sport"
+                        )
+                    )
+                }
+                return@launch
+            }
             val result =
                 createGoalUseCase(
                     request =
-                        CreateGoalDTO(
-                            sportId = "d81c0cf1-7b18-44d4-8e4f-bbd8408aa45d",
-                            type = currentState.selectedGoalType,
-                            timeFrame = currentState.selectedTimeFrame,
-                            amount = currentState.amount
-                        )
+                    CreateGoalDTO(
+                        sportId = currentState.sportId!!,
+                        type = currentState.selectedGoalType,
+                        timeFrame = currentState.selectedTimeFrame,
+                        amount = currentState.amount
+                    )
                 )
             result
                 .onSuccess { data ->
                     Log.d("Create goal", "Create success")
-                    setState { currentState.copy(state = SaveGoalState.Success) }
+                    getRemoteUserGoals {
+                        setState { currentState.copy(state = SaveGoalState.Success) }
+                    }
                 }
                 .onFailure {
                     Log.d("Create goal", "Create failed ${it.message}")
@@ -61,6 +90,34 @@ class CreateGoalViewModel @Inject constructor(
         }
     }
 
+    private fun getLocalGoals() {
+        viewModelScope.launch {
+            Log.d("Goal", "Loading local Goal")
+
+            goalRepository.getGoalLocal()
+                .collectLatest { localData ->
+                    Log.d("Goal", "Loading local Goal: ${localData}")
+                    items = localData
+                }
+        }
+    }
+
+    private fun getRemoteUserGoals(onSuccess: () -> Unit) {
+        Log.d("okhttp", "Getting user goals")
+        viewModelScope.launch {
+            getUserGoalUseCase()
+                .collectLatest { data ->
+                    Log.d("Goal", "Loading remote Goal: ${data}")
+                    when (data) {
+                        is Resource.Success -> {
+                            onSuccess()
+                        }
+
+                        else -> {}
+                    }
+                }
+        }
+    }
 
     fun onGoalTypeSelected(type: GoalType) {
         if (type != uiState.value.selectedGoalType) {
@@ -98,6 +155,23 @@ class CreateGoalViewModel @Inject constructor(
                     }
                     return
                 }
+            }
+
+            if (uiState.value.selectedTimeFrame != null && uiState.value.selectedGoalType != null && getAvailableTypeWithSport(
+                    uiState.value.selectedTimeFrame!!,
+                    sport.id
+                ).none {
+                    it.name == (uiState.value.selectedGoalType!!.name)
+                }
+            ) {
+                setState {
+                    currentState.copy(
+                        sportId = sport.id,
+                        selectedGoalType = null,
+                        amount = 0
+                    )
+                }
+                return
             }
             setState {
                 currentState.copy(
@@ -156,4 +230,25 @@ class CreateGoalViewModel @Inject constructor(
         )
     }
 
+    fun getAvailableType(
+        selectedTimeFrame: GoalTimeFrame,
+    ): List<GoalType> {
+        return GoalType.entries.filter { type ->
+            items.none {
+                it.type == type.name && it.timeFrame == selectedTimeFrame.name && (it.sport.id == (currentState.sportId
+                    ?: defaultSport?.id))
+            }
+        }
+    }
+
+    fun getAvailableTypeWithSport(
+        selectedTimeFrame: GoalTimeFrame,
+        sportId: String
+    ): List<GoalType> {
+        return GoalType.entries.filter { type ->
+            items.none {
+                it.type == type.name && it.timeFrame == selectedTimeFrame.name && it.sport.id == sportId
+            }
+        }
+    }
 }

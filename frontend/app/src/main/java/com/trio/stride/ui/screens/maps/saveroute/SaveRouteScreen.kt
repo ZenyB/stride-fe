@@ -1,5 +1,8 @@
 package com.trio.stride.ui.screens.maps.saveroute
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,14 +31,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.trio.stride.navigation.Screen
 import com.trio.stride.ui.components.CustomLeftTopAppBar
 import com.trio.stride.ui.components.LoadingSmall
 import com.trio.stride.ui.components.RefreshIndicator
 import com.trio.stride.ui.components.map.routesheet.RouteItemView
+import com.trio.stride.ui.screens.maps.saveroutedetail.SaveRouteDetailScreen
 import com.trio.stride.ui.theme.StrideTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,6 +49,8 @@ import com.trio.stride.ui.theme.StrideTheme
 fun SaveRouteScreen(
     navController: NavController, viewModel: SaveRouteListViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
     val items = viewModel.items
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -101,7 +109,9 @@ fun SaveRouteScreen(
                 ) {
                     items(items.size) { index ->
                         RouteItemView(
-                            items[index], onClick = {}, modifier = Modifier.shadow(
+                            items[index], onClick = {
+                                viewModel.selectedItem(items[index])
+                            }, modifier = Modifier.shadow(
                                 elevation = 4.dp,
                                 shape = RoundedCornerShape(16.dp),
                                 clip = false
@@ -151,5 +161,36 @@ fun SaveRouteScreen(
             }
         }
 
+    }
+
+    AnimatedVisibility(
+        viewModel.selectedItem != null,
+        enter = slideInHorizontally(
+            initialOffsetX = { it }
+        ),
+        exit = slideOutHorizontally(
+            targetOffsetX = { it }
+        )
+    ) {
+        viewModel.selectedItem?.let {
+            SaveRouteDetailScreen(
+                item = it,
+                onBack = { isDeleted ->
+                    if (isDeleted == true) {
+                        viewModel.selectedItem?.id?.let { it1 ->
+                            viewModel.refreshAfterDelete(
+                                it1
+                            )
+                        }
+                    }
+                    viewModel.discardSelected()
+                },
+                startRecord = { geometry ->
+                    navController.navigate("${Screen.BottomNavScreen.Record.route}?geometry=$geometry") {
+                        popUpTo(Screen.BottomNavScreen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                })
+        }
     }
 }
