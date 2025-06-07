@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -126,7 +127,6 @@ fun RecordScreen(
     var showMap by remember {
         mutableStateOf(false)
     }
-
     var locationGranted by remember { mutableStateOf(false) }
     var notificationRequested by remember { mutableStateOf(false) }
 
@@ -294,131 +294,126 @@ fun RecordScreen(
             }
         },
         bottomBar = {
-            if (locationGranted) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp)
-                        .background(
-                            StrideTheme.colorScheme.surface,
-                            RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                        )
-                        .animateContentSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (
-                        (recordStatus == RecordViewModel.RecordStatus.STOP
-                                && (screenStatus == RecordViewModel.ScreenStatus.DETAIL
-                                || screenStatus == RecordViewModel.ScreenStatus.DEFAULT))
-                        || (recordStatus == RecordViewModel.RecordStatus.NONE
-                                && screenStatus == RecordViewModel.ScreenStatus.DEFAULT)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .background(
+                        StrideTheme.colorScheme.surface,
+                        RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    )
+                    .animateContentSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (screenStatus != RecordViewModel.ScreenStatus.SAVING && screenStatus != RecordViewModel.ScreenStatus.SENSOR) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .padding(
+                                bottom = WindowInsets.navigationBars.asPaddingValues()
+                                    .calculateBottomPadding()
+                            ),
+                        Alignment.Center
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(0.8f),
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (recordStatus != RecordViewModel.RecordStatus.STOP && currentSport != null) {
-                                ChooseSportIconButton(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(vertical = 4.dp)
-                                        .background(StrideTheme.colors.transparent, CircleShape),
-                                    iconModifier = Modifier
-                                        .size(24.dp),
-                                    iconImage = currentSport!!.image,
-                                    onClick = { showSportBottomSheet = true }
-                                )
-                                IconButton(
-                                    modifier = Modifier
-                                        .padding(vertical = 4.dp)
-                                        .size(40.dp),
-                                    onClick = { viewModel.handleShowSensorView() }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.heart_pulse),
-                                        contentDescription = "Show sensor",
-                                        modifier = Modifier.size(24.dp),
-                                        tint = StrideTheme.colorScheme.onSurface
-                                    )
+                        when (recordStatus) {
+                            RecordViewModel.RecordStatus.NONE -> {
+                                Box(Modifier.fillMaxWidth(), Alignment.CenterStart) {
+                                    Box(Modifier.fillMaxWidth(), Alignment.Center) {
+                                        RecordButton(
+                                            onClick = {
+                                                if (mapView != null) {
+                                                    var userLocation: Point? = null
+                                                    mapView?.location?.addOnIndicatorPositionChangedListener { point ->
+                                                        userLocation = point
+                                                    }
+                                                    if (userLocation != null) {
+                                                        focusToUser(mapView)
+                                                        viewModel.startRecord(
+                                                            context,
+                                                            userLocation!!
+                                                        )
+                                                    } else
+                                                        checkLocationOn(
+                                                            context,
+                                                            mapView,
+                                                            launcher
+                                                        )
+                                                }
+
+                                                if (currentSport?.sportMapType == SportMapType.NO_MAP) {
+                                                    viewModel.startRecord(context)
+                                                }
+                                            }) {
+                                            Text(
+                                                "START",
+                                                style = StrideTheme.typography.titleMedium
+                                            )
+                                        }
+                                    }
+                                    if (currentSport != null) {
+                                        Box(
+                                            Modifier
+                                                .padding(start = 48.dp)
+                                                .align(Alignment.CenterStart)
+                                        ) {
+                                            ChooseSportIconButton(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterStart)
+                                                    .size(40.dp)
+                                                    .clip(CircleShape)
+                                                    .background(
+                                                        StrideTheme.colors.transparent,
+                                                        CircleShape
+                                                    ),
+                                                iconModifier = Modifier
+                                                    .size(28.dp)
+                                                    .zIndex(100f),
+                                                iconImage = currentSport!!.image,
+                                                onClick = { showSportBottomSheet = true }
+                                            )
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
 
-                    if (screenStatus != RecordViewModel.ScreenStatus.SAVING && screenStatus != RecordViewModel.ScreenStatus.SENSOR) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    bottom = WindowInsets.navigationBars.asPaddingValues()
-                                        .calculateBottomPadding()
-                                ),
-                            Alignment.Center
-                        ) {
-                            when (recordStatus) {
-                                RecordViewModel.RecordStatus.NONE ->
-                                    RecordButton(
-                                        onClick = {
-                                            if (mapView != null) {
-                                                var userLocation: Point? = null
-                                                mapView?.location?.addOnIndicatorPositionChangedListener { point ->
-                                                    userLocation = point
-                                                }
-                                                if (userLocation != null) {
-                                                    focusToUser(mapView)
-                                                    viewModel.startRecord(userLocation!!, context)
-                                                } else
-                                                    checkLocationOn(
-                                                        context,
-                                                        mapView,
-                                                        launcher
-                                                    )
-                                            }
-                                        }) {
-                                        Text(
-                                            "START",
-                                            style = StrideTheme.typography.titleMedium
-                                        )
-                                    }
-
-                                RecordViewModel.RecordStatus.STOP -> {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth()
+                            RecordViewModel.RecordStatus.STOP -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(end = 4.dp),
+                                        Alignment.CenterEnd
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .padding(end = 4.dp),
-                                            Alignment.CenterEnd
-                                        ) {
-                                            RecordButton(
-                                                isPrimary = false,
-                                                onClick = { viewModel.resume(context) }) {
-                                                Text(
-                                                    "RESUME",
-                                                    color = StrideTheme.colorScheme.onBackground,
-                                                    style = StrideTheme.typography.titleMedium
-                                                )
-                                            }
+                                        RecordButton(
+                                            isPrimary = false,
+                                            onClick = { viewModel.resume(context) }) {
+                                            Text(
+                                                "RESUME",
+                                                color = StrideTheme.colorScheme.onBackground,
+                                                style = StrideTheme.typography.titleMedium
+                                            )
                                         }
-                                        Spacer(Modifier.width(8.dp))
-                                        Row(
-                                            Modifier
-                                                .weight(1f)
-                                                .padding(start = 4.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            RecordButton(
-                                                onClick = { viewModel.finish(context) }) {
-                                                Text(
-                                                    "FINISH",
-                                                    color = StrideTheme.colorScheme.onSecondary,
-                                                    style = StrideTheme.typography.titleMedium
-                                                )
-                                            }
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Row(
+                                        Modifier
+                                            .weight(1f)
+                                            .padding(start = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        RecordButton(
+                                            onClick = { viewModel.finish(context) }) {
+                                            Text(
+                                                "FINISH",
+                                                color = StrideTheme.colorScheme.onSecondary,
+                                                style = StrideTheme.typography.titleMedium
+                                            )
+                                        }
+                                        if (currentSport?.sportMapType != SportMapType.NO_MAP) {
                                             Spacer(Modifier.width(8.dp))
                                             val isVisibleMetric =
                                                 screenStatus == RecordViewModel.ScreenStatus.DETAIL
@@ -460,21 +455,23 @@ fun RecordScreen(
                                         }
                                     }
                                 }
+                            }
 
-                                RecordViewModel.RecordStatus.RECORDING -> {
-                                    Box(
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        RecordButton(
-                                            modifier = Modifier.align(Alignment.Center),
-                                            isPrimary = true,
-                                            onClick = { viewModel.stop(context) }) {
-                                            Icon(
-                                                modifier = Modifier.size(33.dp),
-                                                painter = painterResource(R.drawable.filled_round_square_icon),
-                                                contentDescription = "Stop record",
-                                            )
-                                        }
+                            RecordViewModel.RecordStatus.RECORDING -> {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    RecordButton(
+                                        modifier = Modifier.align(Alignment.Center),
+                                        isPrimary = true,
+                                        onClick = { viewModel.stop(context) }) {
+                                        Icon(
+                                            modifier = Modifier.size(33.dp),
+                                            painter = painterResource(R.drawable.filled_round_square_icon),
+                                            contentDescription = "Stop record",
+                                        )
+                                    }
+                                    if (currentSport?.sportMapType != SportMapType.NO_MAP) {
                                         Spacer(Modifier.width(8.dp))
                                         val isVisibleMetric =
                                             screenStatus == RecordViewModel.ScreenStatus.DETAIL
@@ -516,9 +513,9 @@ fun RecordScreen(
                                         }
                                     }
                                 }
-
-                                RecordViewModel.RecordStatus.FINISH -> {}
                             }
+
+                            RecordViewModel.RecordStatus.FINISH -> {}
                         }
                     }
                 }
@@ -528,25 +525,29 @@ fun RecordScreen(
         val bottomPadding =
             if (padding.calculateBottomPadding() - 24.dp > 0.dp) padding.calculateBottomPadding() - 24.dp else 0.dp
         Box(modifier = Modifier.fillMaxSize()) {
-            if (!locationGranted && locationPermissionCount < PermissionViewModel.MAX_REQUEST_COUNT) {
+            if (currentSport?.sportMapType != SportMapType.NO_MAP) {
                 RequestLocationPermission(
                     showRequest = showLocationRequest,
                     onPermissionDenied = {
                         scope.launch {
                             snackbarHostState.showSnackbar("You need to accept location permissions.")
                         }
+                        locationGranted = false
                         showLocationRequest = false
                     },
                     onPermissionReady = {
-                        showMap = true
                         locationGranted = true
                     }
                 )
-            } else if (!notificationRequested) {
+            }
+            if (!notificationRequested) {
                 RequestNotificationPermission(
                     showRequest = showNotificationRequest,
                     onPermissionGranted = {
                         Log.d("bluetoothScan", "notification permission granted")
+                        scope.launch {
+                            snackbarHostState.showSnackbar("You need to accept notification permissions to tracking your activity on status bar.")
+                        }
                         notificationRequested = true
                     },
                     onPermissionDenied = {
@@ -557,7 +558,7 @@ fun RecordScreen(
                 )
             }
 
-            if (locationPermissionCount >= PermissionViewModel.MAX_REQUEST_COUNT) {
+            if (!locationGranted && currentSport?.sportMapType != SportMapType.NO_MAP && recordStatus == RecordViewModel.RecordStatus.NONE) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     Column(modifier = Modifier.align(Alignment.Center)) {
                         Text(
@@ -640,8 +641,8 @@ fun RecordScreen(
 
                 AnimatedVisibility(
                     visible = (screenStatus == RecordViewModel.ScreenStatus.DETAIL
-                            || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
-                            && currentSport?.sportMapType == SportMapType.NO_MAP)) && (recordStatus == RecordViewModel.RecordStatus.RECORDING || recordStatus == RecordViewModel.RecordStatus.NONE),
+                            && recordStatus == RecordViewModel.RecordStatus.RECORDING)
+                            || currentSport?.sportMapType == SportMapType.NO_MAP,
                     enter = slideInHorizontally(
                         initialOffsetX = { -it }
                     ),
@@ -687,7 +688,9 @@ fun RecordScreen(
                                 RecordValueBlock(
                                     modifier = Modifier.weight(1f),
                                     title = "Distance",
-                                    value = if (distance < 0.1) "--" else formatDistance(distance),
+                                    value = if (distance < 0.1) "--" else formatDistance(
+                                        distance
+                                    ),
                                     unit = "km"
                                 )
                                 VerticalDivider(
@@ -727,8 +730,8 @@ fun RecordScreen(
                         .align(Alignment.BottomCenter)
                         .padding(bottom = bottomPadding),
                     visible = (screenStatus == RecordViewModel.ScreenStatus.DETAIL
-                            || (screenStatus == RecordViewModel.ScreenStatus.DEFAULT
-                            && currentSport?.sportMapType == SportMapType.NO_MAP)) && recordStatus == RecordViewModel.RecordStatus.STOP,
+                            && recordStatus == RecordViewModel.RecordStatus.STOP
+                            && currentSport?.sportMapType != SportMapType.NO_MAP),
                     enter = slideInHorizontally(
                         initialOffsetX = { -it }
                     ),
@@ -744,7 +747,7 @@ fun RecordScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 2.dp),
+                                .padding(top = 12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -757,14 +760,14 @@ fun RecordScreen(
                                     modifier = Modifier.weight(1f),
                                     title = "Time",
                                     value = if (time == 0L) "--" else formatTimeByMillis(time),
-                                    type = RecordValueBlockType.OnMapLarge
+                                    type = RecordValueBlockType.OnMapSmall
                                 )
                                 RecordValueBlock(
                                     modifier = Modifier.weight(1f),
                                     title = "Heart Rate",
                                     unit = "BPM",
                                     value = if (heartRate == 0) "--" else heartRate.toString(),
-                                    type = RecordValueBlockType.OnMapLarge
+                                    type = RecordValueBlockType.OnMapSmall
                                 )
                             }
                             Row(
@@ -783,7 +786,9 @@ fun RecordScreen(
                                     modifier = Modifier.weight(1f),
                                     title = "Distance",
                                     unit = "km",
-                                    value = if (distance < 0.1) "--" else formatDistance(distance),
+                                    value = if (distance < 0.1) "--" else formatDistance(
+                                        distance
+                                    ),
                                     type = RecordValueBlockType.OnMapSmall
                                 )
                             }

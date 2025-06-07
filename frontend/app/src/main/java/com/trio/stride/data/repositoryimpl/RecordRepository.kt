@@ -103,8 +103,12 @@ class RecordRepository @Inject constructor(
         _connectionState.value = newState
     }
 
-    fun updateHeartRate(newRate: Int) {
-        _heartRate.value = newRate
+    fun updateHeartRate(newHeartRate: Int) {
+        _heartRate.value = newHeartRate
+    }
+
+    fun updateHeartRates(newHeartRates: List<Int>) {
+        _heartRates.value = newHeartRates
     }
 
     fun updateDistance(newDistance: Double) {
@@ -152,11 +156,11 @@ class RecordRepository @Inject constructor(
         drawRecommendRoute()
     }
 
-    fun startRecord(startPoint: Point) {
+    fun startRecord(startPoint: Point?) {
         _recording.value = true
         _startPoint.value = startPoint
         _recordStatus.value = RecordViewModel.RecordStatus.RECORDING
-        addPoints(startPoint)
+        startPoint?.let { addPoints(startPoint) }
     }
 
     fun resume() {

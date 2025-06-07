@@ -102,10 +102,11 @@ class RecordViewModel @Inject constructor(
     ) {
         val realHeartRates =
             if (heartRates.value.all { it == 0 }) emptyList<Int>() else heartRates.value
+
         var requestDto = createActivityRequestDto.copy(
             movingTimeSeconds = (time.value / 1000).toInt(),
             elapsedTimeSeconds = (elapsedTime.value / 1000).toInt(),
-            coordinates = coordinates.value,
+            coordinates = if (currentSport.value?.sportMapType == SportMapType.NO_MAP) emptyList() else coordinates.value,
             heartRates = realHeartRates,
             sportId = sport.id
         )
@@ -222,7 +223,7 @@ class RecordViewModel @Inject constructor(
         context.startService(startIntent)
     }
 
-    fun startRecord(startPoint: Point, context: Context) {
+    fun startRecord(context: Context, startPoint: Point? = null) {
         val startIntent = Intent(context, RecordService::class.java).apply {
             action = RecordService.START_RECORDING
         }
@@ -249,6 +250,16 @@ class RecordViewModel @Inject constructor(
 
     fun finish(context: Context) {
         if (currentSport.value?.sportMapType != SportMapType.NO_MAP && coordinates.value.size < 2) {
+            stop(context)
+            setState { currentState.copy(isNotEnoughDataToSave = true) }
+            return
+        }
+
+        Log.i("HEART_RATE_NO_FILTER", heartRates.value.toString())
+
+        val realHeartRates =
+            if (heartRates.value.all { it == 0 }) emptyList() else heartRates.value
+        if (realHeartRates.isEmpty() && currentSport.value?.sportMapType == SportMapType.NO_MAP) {
             stop(context)
             setState { currentState.copy(isNotEnoughDataToSave = true) }
             return
@@ -291,7 +302,7 @@ class RecordViewModel @Inject constructor(
     fun handleDismissSaveActivity(context: Context) {
         recordRepository.updateScreenStatus(ScreenStatus.DEFAULT)
         val startIntent = Intent(context, RecordService::class.java).apply {
-            action = RecordService.RESUME_RECORDING
+            action = RecordService.PAUSE_RECORDING
         }
         context.startService(startIntent)
     }
