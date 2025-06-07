@@ -47,22 +47,11 @@ fun ActivityDetailNoMapScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val item by viewModel.item.collectAsStateWithLifecycle()
-    var showDiscardEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
         viewModel.getActivityDetail(id)
     }
-
-    StrideDialog(
-        visible = showDiscardEditDialog,
-        title = "Discard Unsaved Change",
-        subtitle = "Your changes will not be saved.",
-        dismiss = { showDiscardEditDialog = false },
-        destructiveText = "Discard",
-        destructive = { viewModel.discardEdit() },
-        dismissText = "Cancel"
-    )
 
     StrideDialog(
         visible = showDeleteDialog,
@@ -192,13 +181,14 @@ fun ActivityDetailNoMapScreen(
                                 "refresh",
                                 true
                             )
+                            navController.popBackStack()
                         })
                 },
                 onDiscard = {
-                    showDiscardEditDialog = true
+                    viewModel.discardEdit()
                 }
             ),
-            dismissAction = { showDiscardEditDialog = true },
+            dismissAction = { },
             isSaving = uiState == ActivityDetailState.Loading,
         )
     }

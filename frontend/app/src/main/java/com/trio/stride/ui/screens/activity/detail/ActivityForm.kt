@@ -187,7 +187,7 @@ fun ActivityFormView(
         bottomBar = {
             val buttonText = when (mode) {
                 is ActivityFormMode.Create -> "Discard Activity"
-                is ActivityFormMode.Update -> "Discard Unsaved Changed"
+                is ActivityFormMode.Update -> "Discard Unsaved Changes"
             }
 
             Box(
