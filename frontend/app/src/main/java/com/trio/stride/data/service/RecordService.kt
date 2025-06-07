@@ -359,18 +359,18 @@ class RecordService : LifecycleService() {
         distance: Double,
         recording: Boolean
     ): Notification {
-        var requestCode = 0
+        var requestCode = 1001
 
         val routeIntent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("navigateTo", Screen.BottomNavScreen.Record.route)
         }
 
-        val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         val pendingIntent = PendingIntent.getActivity(
             applicationContext,
-            0,
+            requestCode,
             routeIntent,
             flags
         )

@@ -1,13 +1,18 @@
 package com.trio.stride.ui.screens.profile
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
 import com.trio.stride.base.SyncLocalDataFailed
+import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.data.remote.dto.UpdateUserRequestDto
+import com.trio.stride.data.repositoryimpl.RecordRepository
+import com.trio.stride.data.service.RecordService
 import com.trio.stride.domain.model.UserInfo
+import com.trio.stride.domain.usecase.auth.LogoutUseCase
 import com.trio.stride.domain.usecase.file.UploadFileUseCase
 import com.trio.stride.domain.usecase.profile.GetUserUseCase
 import com.trio.stride.domain.usecase.profile.SyncUserUseCase
@@ -29,6 +34,9 @@ class ProfileViewModel @Inject constructor(
     private val updateUserUseCase: UpdateUserUseCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val syncUserUseCase: SyncUserUseCase,
+    private val recordRepository: RecordRepository,
+    private val logoutUseCase: LogoutUseCase,
+    private val tokenManager: TokenManager
 ) : BaseViewModel<ProfileViewModel.ViewState>() {
 
     override fun createInitialState(): ViewState = ViewState()
@@ -183,6 +191,40 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun logout(context: Context) {
+        val startIntent = Intent(context, RecordService::class.java).apply {
+            action = RecordService.STOP_RECORDING
+        }
+        context.startService(startIntent)
+
+        recordRepository.end()
+
+        viewModelScope.launch {
+            setState { currentState.copy(loggingOut = true) }
+
+            try {
+                logoutUseCase.invoke().collectLatest { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            setState { currentState.copy(logoutSuccess = true) }
+                        }
+
+                        is Resource.Error -> {
+                            setState { currentState.copy(logoutError = true) }
+                        }
+
+                        is Resource.Loading -> {}
+                    }
+
+                }
+            } catch (e: Exception) {
+                setState { currentState.copy(logoutError = true) }
+            } finally {
+                setState { currentState.copy(loggingOut = false) }
+            }
+        }
+    }
+
     fun updateName(value: String) {
         setState { currentState.copy(userInfo = currentState.userInfo.copy(name = value)) }
     }
@@ -269,6 +311,9 @@ class ProfileViewModel @Inject constructor(
     data class ViewState(
         val isEditProfile: Boolean = false,
         val isLoading: Boolean = true,
+        val loggingOut: Boolean = false,
+        val logoutSuccess: Boolean = false,
+        val logoutError: Boolean = false,
         val isUploadImage: Boolean = false,
         val isError: Boolean = false,
         val isNotSync: Boolean = false,

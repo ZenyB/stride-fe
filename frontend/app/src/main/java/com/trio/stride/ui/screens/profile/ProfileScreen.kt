@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -67,6 +68,7 @@ import com.trio.stride.ui.utils.toGender
 fun ProfileScreen(
     onBack: () -> Unit,
     handleBottomBarVisibility: (Boolean) -> Unit,
+    onLogOutSuccess: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
 
@@ -105,6 +107,10 @@ fun ProfileScreen(
         disabledLabelColor = StrideTheme.colorScheme.onSurface,
         disabledSuffixColor = StrideTheme.colorScheme.onSurface,
     )
+
+    if (state.logoutSuccess) {
+        onLogOutSuccess()
+    }
 
     BackHandler {
         if (state.isEditProfile) {
@@ -473,10 +479,16 @@ fun ProfileScreen(
                         )
                     }
                 }
+
+                Button(
+                    onClick = { viewModel.logout(context) }
+                ) {
+                    Text("Sign Out", style = StrideTheme.typography.titleMedium)
+                }
             }
         }
 
-        if (state.isLoading || state.isUploadImage) {
+        if (state.isLoading || state.isUploadImage || state.loggingOut) {
             Loading()
         }
     }

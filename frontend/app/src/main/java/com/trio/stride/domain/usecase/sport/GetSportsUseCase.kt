@@ -4,6 +4,7 @@ import android.util.Log
 import com.trio.stride.base.NetworkException
 import com.trio.stride.base.Resource
 import com.trio.stride.base.UnknownException
+import com.trio.stride.data.datastoremanager.MetadataManager
 import com.trio.stride.domain.model.Sport
 import com.trio.stride.domain.repository.SportRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,7 @@ import java.io.IOException
 
 class GetSportsUseCase(
     private val sportRepository: SportRepository,
+    private val metadataManager: MetadataManager
 ) {
 
     operator fun invoke(
@@ -33,6 +35,7 @@ class GetSportsUseCase(
             val remoteData = sportRepository.getSports(name, categoryId)
 
             sportRepository.insertSports(remoteData)
+            metadataManager.saveLastSportFetchTime()
 
             val updatedLocal = sportRepository.getLocalSports(categoryId)
             Log.i("SPORT_REMOTE", updatedLocal.toString())

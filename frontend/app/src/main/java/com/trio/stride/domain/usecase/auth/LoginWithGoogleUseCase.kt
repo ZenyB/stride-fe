@@ -6,13 +6,19 @@ import com.trio.stride.base.UnknownException
 import com.trio.stride.data.datastoremanager.TokenManager
 import com.trio.stride.domain.model.AuthInfo
 import com.trio.stride.domain.repository.AuthRepository
+import com.trio.stride.domain.usecase.fcmnotification.RefreshAndSaveFCMTokenUseCase
+import com.trio.stride.domain.usecase.profile.SyncUserUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class LoginWithGoogleUseCase(
     private val repository: AuthRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val refreshAndSaveFCMTokenUseCase: RefreshAndSaveFCMTokenUseCase,
+    private val syncUserUseCase: SyncUserUseCase
 ) {
 
     operator fun invoke(idToken: String): Flow<Resource<AuthInfo>> = flow {
@@ -22,6 +28,10 @@ class LoginWithGoogleUseCase(
             when (val result = repository.loginWithGoogle(idToken)) {
                 is AuthInfo.WithToken -> {
                     tokenManager.saveAccessToken(result.token, result.expiryTime)
+                    withContext(Dispatchers.IO) {
+                        syncUserUseCase()
+                        refreshAndSaveFCMTokenUseCase()
+                    }
                     emit(Resource.Success(result))
                 }
 

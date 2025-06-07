@@ -56,4 +56,8 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun saveCurrentUser(user: CurrentUserEntity) {
         userDao.saveCurrentUser(user)
     }
+
+    override suspend fun clearCurrentUser() {
+        userDao.deleteCurrentUser()
+    }
 }

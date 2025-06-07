@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.trio.stride.R
-import com.trio.stride.navigation.Screen
+import com.trio.stride.navigation.Screen.BottomNavScreen
 import com.trio.stride.ui.theme.StrideTheme
 
 @Composable
@@ -39,7 +39,7 @@ fun BottomNavBar(navController: NavHostController) {
         BottomNavigation(
             backgroundColor = Color.White
         ) {
-            Screen.BottomNavScreen.items.forEach { screen ->
+            BottomNavScreen.items.filterNotNull().forEach { screen ->
                 val selected = currentDestination?.route == screen.route
 
                 BottomNavigationItem(
@@ -69,7 +69,7 @@ fun BottomNavBar(navController: NavHostController) {
                     selected = selected,
                     onClick = {
                         navController.navigate(screen.route) {
-                            popUpTo(Screen.BottomNavScreen.Home.route)
+                            popUpTo(BottomNavScreen.Home.route)
                             launchSingleTop = true
                         }
                     },

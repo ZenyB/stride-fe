@@ -2,9 +2,11 @@ package com.trio.stride.di
 
 import com.trio.stride.data.repositoryimpl.ActivityRepositoryImpl
 import com.trio.stride.data.repositoryimpl.AuthRepositoryImpl
+import com.trio.stride.data.repositoryimpl.FCMNotificationRepositoryImpl
 import com.trio.stride.data.repositoryimpl.FileRepositoryImpl
 import com.trio.stride.data.repositoryimpl.GoalRepositoryImpl
 import com.trio.stride.data.repositoryimpl.IdentityRepositoryImpl
+import com.trio.stride.data.repositoryimpl.NotificationRepositoryImpl
 import com.trio.stride.data.repositoryimpl.ProgressRepositoryImpl
 import com.trio.stride.data.repositoryimpl.RouteRepositoryImpl
 import com.trio.stride.data.repositoryimpl.SportRepositoryImpl
@@ -12,9 +14,11 @@ import com.trio.stride.data.repositoryimpl.TrainingLogRepositoryImpl
 import com.trio.stride.data.repositoryimpl.UserRepositoryImpl
 import com.trio.stride.domain.repository.ActivityRepository
 import com.trio.stride.domain.repository.AuthRepository
+import com.trio.stride.domain.repository.FCMNotificationRepository
 import com.trio.stride.domain.repository.FileRepository
 import com.trio.stride.domain.repository.GoalRepository
 import com.trio.stride.domain.repository.IdentityRepository
+import com.trio.stride.domain.repository.NotificationRepository
 import com.trio.stride.domain.repository.ProgressRepository
 import com.trio.stride.domain.repository.RouteRepository
 import com.trio.stride.domain.repository.SportRepository
@@ -94,4 +98,16 @@ abstract class RepositoryModule {
     abstract fun bindTrainingLogRepository(
         trainingLogRepositoryImpl: TrainingLogRepositoryImpl
     ): TrainingLogRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFCMNotificationRepository(
+        fcmNotificationRepositoryImpl: FCMNotificationRepositoryImpl
+    ): FCMNotificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(
+        notificationRepositoryImpl: NotificationRepositoryImpl
+    ): NotificationRepository
 }
