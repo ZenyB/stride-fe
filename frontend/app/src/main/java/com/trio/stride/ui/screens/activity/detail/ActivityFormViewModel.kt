@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.trio.stride.base.BaseViewModel
 import com.trio.stride.base.Resource
@@ -57,7 +58,11 @@ class ActivityFormViewModel @Inject constructor(
         return name
     }
 
-    fun uploadImages(images: List<Uri>, context: Context, onFinish: () -> Unit) {
+    fun uploadImages(
+        images: List<Uri>,
+        context: Context,
+        onFinish: (CreateActivityRequestDTO, UpdateActivityRequestDto) -> Unit
+    ) {
         setState { currentState.copy(isUploadImage = true) }
         viewModelScope.launch {
             val uploadedUrls = coroutineScope {
@@ -87,13 +92,14 @@ class ActivityFormViewModel @Inject constructor(
             setState { currentState.copy(isUploadImage = false) }
             val newActivityImages = currentState.activity.images.toMutableList()
             uploadedUrls.forEach { newActivityImages.add(it) }
+            Log.i("IMAGE_UPLOADED", newActivityImages.toString())
             setState {
                 currentState.copy(
                     createActivityDto = currentState.createActivityDto.copy(images = newActivityImages),
                     updateActivityDto = currentState.updateActivityDto.copy(images = newActivityImages),
                 )
             }
-            onFinish()
+            onFinish(currentState.createActivityDto, currentState.updateActivityDto)
         }
     }
 
@@ -140,7 +146,8 @@ class ActivityFormViewModel @Inject constructor(
             currentState.copy(
                 activity = currentState.activity.copy(
                     images = images
-                )
+                ),
+                updateActivityDto = updateActivityDto.copy(images = images)
             )
         }
     }

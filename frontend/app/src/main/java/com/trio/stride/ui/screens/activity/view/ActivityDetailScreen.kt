@@ -173,10 +173,11 @@ fun ActivityDetailScreen(
         title = "Delete Activity",
         subtitle = "Your activity will be permanently deleted.",
         dismiss = { showDeleteDialog = false },
-        destructiveText = "Discard",
+        destructiveText = "Delete",
         destructive = {
-            viewModel.deleteActivity()
+            showDeleteDialog = false
             navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+            viewModel.deleteActivity()
         },
         dismissText = "Cancel"
     )

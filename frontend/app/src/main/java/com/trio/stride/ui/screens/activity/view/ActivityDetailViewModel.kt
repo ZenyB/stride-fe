@@ -57,6 +57,8 @@ class ActivityDetailViewModel @Inject constructor(
     }
 
     fun updateActivity(dto: UpdateActivityRequestDto, sport: Sport, refreshActivity: () -> Unit) {
+        Log.i("IMAGE_UPDATE_ACTIVITY", dto.toString())
+
         if (item.value == null) {
             setState { ActivityDetailState.Error("Activity Not Found") }
             return
