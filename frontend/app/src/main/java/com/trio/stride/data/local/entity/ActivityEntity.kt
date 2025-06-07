@@ -13,7 +13,7 @@ data class ActivityEntity(
     val totalDistance: Double?,
     val elevationGain: Int?,
     val movingTimeSeconds: Long?,
-    val mapImage: String,
+    val mapImage: String?,
     val createdAt: Long,
 )
 

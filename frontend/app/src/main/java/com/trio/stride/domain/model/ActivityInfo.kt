@@ -30,7 +30,7 @@ data class Activity(
     val heartRateZones: HeartRateZones = HeartRateZones(),
     val avgHearRate: Double = 0.0,
     val maxHeartRate: Double = 0.0,
-    val mapImage: String = "",
+    val mapImage: String? = "",
     val createdAt: Long = System.currentTimeMillis(),
 )
 
