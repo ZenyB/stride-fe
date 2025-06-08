@@ -106,7 +106,8 @@ class MainActivity : ComponentActivity() {
                         ?: emptyList()
                 val recordRoute = Screen.BottomNavScreen.Record?.route
 
-                showBottomBarState = currentRoute in bottomRoutes && currentRoute != recordRoute
+                showBottomBarState =
+                    (bottomRoutes.isEmpty()) || (currentRoute in bottomRoutes && currentRoute != recordRoute)
             }
 
             StrideTheme {
