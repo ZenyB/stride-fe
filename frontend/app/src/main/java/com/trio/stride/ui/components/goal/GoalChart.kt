@@ -47,8 +47,8 @@ import com.trio.stride.domain.model.GoalType
 import com.trio.stride.domain.model.toMonthLabels
 import com.trio.stride.ui.components.activity.detail.rememberMarker
 import com.trio.stride.ui.theme.StrideTheme
+import com.trio.stride.ui.utils.formatDuration
 import com.trio.stride.ui.utils.formatKmDistance
-import com.trio.stride.ui.utils.formatTimeHM
 import kotlinx.coroutines.runBlocking
 
 private val LegendLabelKey = ExtraStore.Key<Set<String>>()
@@ -71,7 +71,7 @@ private fun GoalPointChart(
         return when (goalType) {
             GoalType.DISTANCE.name -> "${formatKmDistance(value)} km"
             GoalType.ACTIVITY.name -> "${value.toInt()}"
-            GoalType.TIME.name -> formatTimeHM(value.toInt())
+            GoalType.TIME.name -> formatDuration(value.toLong(), false)
 
             GoalType.ELEVATION.name -> "$value m"
             else -> ""
@@ -104,7 +104,8 @@ private fun GoalPointChart(
             spannable.append(yStyled)
             spannable.append("\n")
 
-            val yStyled2 = SpannableString("Current: ${formatWithGoalType(values[1].toDoubleOrNull())}")
+            val yStyled2 =
+                SpannableString("Current: ${formatWithGoalType(values[1].toDoubleOrNull())}")
             yStyled2.setSpan(
                 StyleSpan(Typeface.BOLD),
                 0,
@@ -177,7 +178,7 @@ private fun GoalPointChart(
             ),
             topAxis = HorizontalAxis.rememberTop(
                 label = null,
-                guideline = null,
+                guideline = solidGuideline,
                 tick = null
             ),
             marker = rememberMarker(

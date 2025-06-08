@@ -13,8 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.trio.stride.domain.model.HeartRateInfo
-import com.trio.stride.ui.components.activity.DonutChart
-import com.trio.stride.ui.components.activity.DonutChartDataCollection
 import com.trio.stride.ui.theme.StrideTheme
 import java.text.DecimalFormat
 

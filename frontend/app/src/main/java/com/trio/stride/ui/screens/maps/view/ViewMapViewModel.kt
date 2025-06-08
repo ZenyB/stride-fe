@@ -72,6 +72,7 @@ class ViewMapViewModel @Inject constructor(
 
         viewModelScope.launch {
             _routeItems.value = emptyList()
+            _drawnRoutes.clear()
             val result =
                 getRecommendedRouteUseCase(
                     request =
