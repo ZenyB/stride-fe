@@ -21,7 +21,7 @@ class SportRepositoryImpl @Inject constructor(
             Sport(
                 id = response.id,
                 name = response.name,
-                categoryName = response.categoryName ?: "Foot sports",
+                categoryName = response.category?.name ?: "Foot sports",
                 image = response.image,
                 color = response.color,
                 sportMapType = response.sportMapType
