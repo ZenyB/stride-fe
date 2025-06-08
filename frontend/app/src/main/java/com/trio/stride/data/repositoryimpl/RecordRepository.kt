@@ -19,11 +19,19 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.util.isEmpty
 import com.trio.stride.data.ble.ConnectionState
 import com.trio.stride.data.remote.dto.Coordinate
+import com.trio.stride.domain.model.Sport
+import com.trio.stride.domain.model.SportMapType
 import com.trio.stride.ui.screens.maps.view.ZOOM
 import com.trio.stride.ui.screens.record.RecordViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.atan2
@@ -35,10 +43,8 @@ import kotlin.math.sqrt
 class RecordRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    val MIN_METER_TO_ADD_NEW_POINT = 1
-
-    private val _sportName = MutableStateFlow("")
-    val sportName: StateFlow<String> = _sportName
+    private val _sport = MutableStateFlow<Sport?>(null)
+    val sport: StateFlow<Sport?> = _sport
 
     private val _recording = MutableStateFlow(false)
     val recording: StateFlow<Boolean> = _recording
@@ -54,7 +60,6 @@ class RecordRepository @Inject constructor(
 
     private val _time = MutableStateFlow(0L)
     val time: StateFlow<Long> = _time
-
 
     private val _elapsedTime = MutableStateFlow(0L)
     val elapsedTime: StateFlow<Long> = _elapsedTime
@@ -95,8 +100,24 @@ class RecordRepository @Inject constructor(
     })
     val mapViewportState: StateFlow<MapViewportState> = _mapViewportState
 
-    fun updateSportName(newSportName: String) {
-        _sportName.value = newSportName
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    val MIN_METER_TO_ADD_NEW_POINT: StateFlow<Int> =
+        sport.map { sport ->
+            when (sport?.sportMapType) {
+                SportMapType.WALKING -> 5
+                SportMapType.CYCLING -> 15
+                SportMapType.DRIVING -> 45
+                else -> 5
+            }
+        }.stateIn(
+            scope = repositoryScope,
+            started = SharingStarted.Eagerly,
+            initialValue = 7
+        )
+
+    fun updateSport(newSport: Sport?) {
+        _sport.value = newSport
     }
 
     fun updateConnectionState(newState: ConnectionState) {
@@ -295,11 +316,12 @@ class RecordRepository @Inject constructor(
             newPoint.longitude()
         )
 
-        return distance >= MIN_METER_TO_ADD_NEW_POINT
+        return distance >= MIN_METER_TO_ADD_NEW_POINT.value
     }
 
     fun addPoints(point: Point) {
-        if (shouldAddPoint(point) && mapView.value != null && recordStatus.value == RecordViewModel.RecordStatus.RECORDING) {
+        if (shouldAddPoint(point) && mapView.value != null && recordStatus.value == RecordViewModel.RecordStatus.RECORDING
+        ) {
             val newRoutePoints = routePoints.value.toMutableList()
             newRoutePoints.add(point)
 

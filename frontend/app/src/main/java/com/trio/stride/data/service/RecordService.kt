@@ -60,7 +60,6 @@ class RecordService : LifecycleService() {
     @Inject
     lateinit var sportManager: SportManager
 
-
     private var notificationBuilder: NotificationCompat.Builder? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -71,7 +70,7 @@ class RecordService : LifecycleService() {
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-
+    
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
@@ -141,7 +140,7 @@ class RecordService : LifecycleService() {
     private fun startForeground() {
         startForeground(
             NOTIFICATION_ID,
-            buildNotification(recordRepository.sportName.value, 0, 0.0, true)
+            buildNotification(recordRepository.sport.value?.name ?: "", 0, 0.0, true)
         )
     }
 
@@ -149,14 +148,14 @@ class RecordService : LifecycleService() {
         observeJob?.cancel()
         observeJob = serviceScope.launch {
             combine(
-                recordRepository.sportName,
+                recordRepository.sport,
                 recordRepository.distance,
                 recordRepository.time,
                 recordRepository.recording
             ) { sportName, dist, time, recording ->
                 Quadruple(sportName, dist, time, recording)
             }.collect { (sportName, dist, time, recording) ->
-                updateNotification(sportName, time, dist, recording)
+                updateNotification(sportName?.name ?: "", time, dist, recording)
             }
         }
     }
@@ -313,7 +312,7 @@ class RecordService : LifecycleService() {
         isPaused = true
         recordRepository.stop()
         updateNotification(
-            recordRepository.sportName.value,
+            recordRepository.sport.value?.name ?: "",
             recordRepository.time.value,
             recordRepository.distance.value,
             recordRepository.recording.value
@@ -325,7 +324,7 @@ class RecordService : LifecycleService() {
         isPaused = false
         recordRepository.resume()
         updateNotification(
-            recordRepository.sportName.value,
+            recordRepository.sport.value?.name ?: "",
             recordRepository.time.value,
             recordRepository.distance.value,
             recordRepository.recording.value

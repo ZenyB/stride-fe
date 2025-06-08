@@ -10,7 +10,8 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun rememberImagePickerLauncher(
-    onImageSelected: (Uri) -> Unit
+    onFailure: () -> Unit = {},
+    onImageSelected: (Uri) -> Unit,
 ): () -> Unit {
     val context = LocalContext.current
 
@@ -23,6 +24,8 @@ fun rememberImagePickerLauncher(
                 )
                 onImageSelected(it)
             }
+            if (uri == null)
+                onFailure()
         }
     )
 

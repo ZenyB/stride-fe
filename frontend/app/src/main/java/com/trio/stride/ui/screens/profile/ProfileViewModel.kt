@@ -23,6 +23,7 @@ import com.trio.stride.ui.utils.toBoolGender
 import com.trio.stride.ui.utils.toDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -78,14 +79,95 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(context: Context, uri: Uri?) {
+    fun updateProfile(context: Context, uri: Uri?, onSuccess: () -> Unit = {}) {
         clearError()
         if (!validateUserInfo())
             return
-        uri?.let { uploadImage(uri, context) }
-        viewModelScope.launch {
-            updateUserUseCase.invoke(
-                request = UpdateUserRequestDto(
+        uri?.let {
+            setState { currentState.copy(isLoading = true) }
+            viewModelScope.launch {
+                val avaUrl = coroutineScope {
+                    async {
+                        var result = ""
+                        uploadFileUseCase.invoke(uri, context).first { response ->
+                            when (response) {
+                                is Resource.Success -> {
+                                    result = response.data
+                                    true
+                                }
+
+                                is Resource.Error -> {
+                                    setState {
+                                        currentState.copy(
+                                            isLoading = false,
+                                            isError = true,
+                                            errorMessage = response.error.message.toString()
+                                        )
+                                    }
+                                    true
+                                }
+
+                                is Resource.Loading -> false
+                            }
+                        }
+                        result
+                    }
+                }.await()
+                val request = UpdateUserRequestDto(
+                    name = currentState.userInfo.name,
+                    city = currentState.userInfo.city,
+                    ava = avaUrl,
+                    dob = currentState.userInfo.dob,
+                    height = currentState.userInfo.height,
+                    weight = currentState.userInfo.weight,
+                    male = currentState.userInfo.male,
+                    maxHeartRate = currentState.userInfo.maxHeartRate,
+                )
+                updateUserUseCase.invoke(
+                    request = request
+                ).collectLatest { response ->
+                    when (response) {
+                        is Resource.Loading -> setState {
+                            currentState.copy(
+                                isLoading = true,
+                                isError = false,
+                                errorMessage = null
+                            )
+                        }
+
+                        is Resource.Success -> {
+                            setState {
+                                currentState.copy(
+                                    isUpdateSuccess = true,
+                                    isLoading = false,
+                                    userInfo = userInfo.copy(ava = avaUrl)
+                                )
+                            }
+                            onSuccess()
+                        }
+
+                        is Resource.Error -> {
+                            if (response.error is SyncLocalDataFailed) {
+                                setState {
+                                    currentState.copy(isNotSync = true, isLoading = false)
+                                }
+                            } else
+                                setState {
+                                    currentState.copy(
+                                        isLoading = false,
+                                        isError = true,
+                                        errorMessage = response.error.message.toString()
+                                    )
+                                }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (uri == null) {
+            viewModelScope.launch {
+                val request = UpdateUserRequestDto(
                     name = currentState.userInfo.name,
                     city = currentState.userInfo.city,
                     ava = currentState.userInfo.ava,
@@ -95,36 +177,42 @@ class ProfileViewModel @Inject constructor(
                     male = currentState.userInfo.male,
                     maxHeartRate = currentState.userInfo.maxHeartRate,
                 )
-            ).collectLatest { response ->
-                when (response) {
-                    is Resource.Loading -> setState {
-                        currentState.copy(
-                            isLoading = true,
-                            isError = false,
-                            errorMessage = null
-                        )
-                    }
+                updateUserUseCase.invoke(
+                    request = request
+                ).collectLatest { response ->
+                    when (response) {
+                        is Resource.Loading -> setState {
+                            currentState.copy(
+                                isLoading = true,
+                                isError = false,
+                                errorMessage = null
+                            )
+                        }
 
-                    is Resource.Success -> setState {
-                        currentState.copy(
-                            isUpdateSuccess = true,
-                            isLoading = false,
-                        )
-                    }
-
-                    is Resource.Error -> {
-                        if (response.error is SyncLocalDataFailed) {
-                            setState {
-                                currentState.copy(isNotSync = true)
-                            }
-                        } else
+                        is Resource.Success -> {
                             setState {
                                 currentState.copy(
-                                    isLoading = false,
-                                    isError = true,
-                                    errorMessage = response.error.message.toString()
+                                    isUpdateSuccess = true,
+                                    isLoading = false
                                 )
                             }
+                            onSuccess()
+                        }
+
+                        is Resource.Error -> {
+                            if (response.error is SyncLocalDataFailed) {
+                                setState {
+                                    currentState.copy(isNotSync = true, isLoading = false)
+                                }
+                            } else
+                                setState {
+                                    currentState.copy(
+                                        isLoading = false,
+                                        isError = true,
+                                        errorMessage = response.error.message.toString()
+                                    )
+                                }
+                        }
                     }
                 }
             }
@@ -163,32 +251,6 @@ class ProfileViewModel @Inject constructor(
 
         return isNameValid && isDobValid && isMaxHeartRateValid && isHeightValid
                 && isWeightValid && isShoesWeightValid && isBagWeightValid
-    }
-
-    private fun uploadImage(image: Uri, context: Context) {
-        setState { currentState.copy(isUploadImage = true) }
-        viewModelScope.launch {
-            uploadFileUseCase.invoke(image, context).first { response ->
-                when (response) {
-                    is Resource.Success -> {
-                        setState {
-                            currentState.copy(
-                                isUploadImage = false,
-                                userInfo = currentState.userInfo.copy(ava = response.data)
-                            )
-                        }
-                        true
-                    }
-
-                    is Resource.Error -> {
-                        setState { currentState.copy(isUploadImage = false) }
-                        true
-                    }
-
-                    is Resource.Loading -> false
-                }
-            }
-        }
     }
 
     fun logout(context: Context) {
@@ -296,7 +358,13 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             setState { currentState.copy(isLoading = true) }
             async { syncUserUseCase.invoke() }.await()
-            setState { currentState.copy(isEditProfile = true, isLoading = false) }
+            setState {
+                currentState.copy(
+                    isEditProfile = true,
+                    isLoading = false,
+                    isUpdateSuccess = false
+                )
+            }
         }
     }
 
