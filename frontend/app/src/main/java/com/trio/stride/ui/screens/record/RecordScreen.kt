@@ -214,7 +214,15 @@ fun RecordScreen(
         dismiss = { viewModel.resetSaveActivityError() },
         dismissText = "Cancel",
         doneText = "Try Again",
-        done = { viewModel.saveAgain(context, { back() }) },
+        done = {
+            viewModel.saveAgain(context, {
+                navController.previousBackStackEntry?.savedStateHandle?.set(
+                    "refresh",
+                    true
+                )
+                back()
+            })
+        },
     )
 
     StrideDialog(
