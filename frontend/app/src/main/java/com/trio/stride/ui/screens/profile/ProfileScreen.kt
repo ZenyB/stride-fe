@@ -67,6 +67,7 @@ import com.trio.stride.ui.utils.toGender
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onRefreshActivity: () -> Unit,
     handleBottomBarVisibility: (Boolean) -> Unit,
     onLogOutSuccess: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
@@ -88,7 +89,10 @@ fun ProfileScreen(
         selectedAvaUri.value ?: state.userInfo.ava
     }
 
-    val openImagePicker = rememberImagePickerLauncher { selectedUri ->
+    val openImagePicker = rememberImagePickerLauncher(onFailure = {
+        shouldLaunchImagePicker = true
+        selectedAvaUri.value = null
+    }) { selectedUri ->
         shouldLaunchImagePicker = true
         selectedAvaUri.value = selectedUri
     }
@@ -188,7 +192,10 @@ fun ProfileScreen(
                         if (state.isEditProfile) {
                             TextButton(
                                 onClick = {
-                                    viewModel.updateProfile(context, selectedAvaUri.value)
+                                    viewModel.updateProfile(
+                                        context,
+                                        selectedAvaUri.value,
+                                        { onRefreshActivity() })
                                 },
                                 enabled = !state.isLoading || !state.isError
                             ) {
@@ -227,7 +234,8 @@ fun ProfileScreen(
                         .size(68.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = ripple(bounded = true)
+                            indication = ripple(bounded = true),
+                            enabled = state.isEditProfile
                         ) {
                             if (shouldLaunchImagePicker && state.isEditProfile) {
                                 openImagePicker()
@@ -419,7 +427,7 @@ fun ProfileScreen(
                                 Text("Shoes Weight", style = StrideTheme.typography.labelLarge)
                             },
                             suffix = {
-                                Text("kg", style = StrideTheme.typography.labelLarge)
+                                Text("g", style = StrideTheme.typography.labelLarge)
                             },
                             readOnly = !state.isEditProfile,
                             enabled = state.isEditProfile,
@@ -454,7 +462,7 @@ fun ProfileScreen(
                                 Text("Bag Weight", style = StrideTheme.typography.labelLarge)
                             },
                             suffix = {
-                                Text("kg", style = StrideTheme.typography.labelLarge)
+                                Text("g", style = StrideTheme.typography.labelLarge)
                             },
                             readOnly = !state.isEditProfile,
                             enabled = state.isEditProfile,

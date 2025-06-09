@@ -149,6 +149,9 @@ fun NavGraphBuilder.mainAppGraph(
                         popUpTo(0)
                         launchSingleTop = true
                     }
+                },
+                onRefreshActivity = {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
                 })
         }
 

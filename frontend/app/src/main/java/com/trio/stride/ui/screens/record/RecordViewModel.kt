@@ -76,7 +76,7 @@ class RecordViewModel @Inject constructor(
                 recordRepository.updateRecommendRoute(coords)
             }
         }
-        recordRepository.updateSportName(currentSport.value?.name ?: "")
+        recordRepository.updateSport(currentSport.value)
     }
 
     override fun createInitialState(): RecordViewState = RecordViewState()
@@ -192,8 +192,8 @@ class RecordViewModel @Inject constructor(
         }
     }
 
-    fun updateSportName(name: String) {
-        recordRepository.updateSportName(name)
+    fun updateSport(sport: Sport) {
+        recordRepository.updateSport(sport)
     }
 
     fun setMapView(mapView: MapView?) {
@@ -323,7 +323,7 @@ class RecordViewModel @Inject constructor(
 
     fun updateCurrentSport(sport: Sport) {
         sportManager.updateCurrentSport(sport)
-        updateSportName(sport.name)
+        updateSport(sport)
     }
 
     fun resetSaveActivityError() {

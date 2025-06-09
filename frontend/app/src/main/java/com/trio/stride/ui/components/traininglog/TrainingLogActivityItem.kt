@@ -50,7 +50,7 @@ fun TrainingLogActivityItem(
                 activity.name,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = StrideTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                style = StrideTheme.typography.bodyLarge.copy(fontSize = 16.sp),
                 color = StrideTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(4.dp))
